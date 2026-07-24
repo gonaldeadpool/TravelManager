@@ -70,7 +70,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const html = await response.text();
 
             document.getElementById('clienti-table-container')
-                .outerHTML = html;
+                .innerHTML = html;
 
         }, 400);
 

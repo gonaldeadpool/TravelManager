@@ -64,3 +64,6 @@
 
     </tbody>
 </table>
+<div class="mt-4">
+    {{ $clienti->links() }}
+</div>

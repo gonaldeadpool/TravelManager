@@ -22,7 +22,7 @@ class ClienteController extends Controller
 
             }
 
-            $clienti = $clienti->get();
+            $clienti = $clienti->paginate(5)->withQueryString();
 
             return view('clienti', [
                 'clienti' => $clienti,
@@ -40,7 +40,7 @@ class ClienteController extends Controller
                 ->orWhere('cognome', 'like', "%{$ricerca}%")
                 ->orWhere('email', 'like', "%{$ricerca}%")
 
-                ->get();
+                ->paginate(5)->withQueryString();
 
             return view('clienti._table', ['clienti' => $clienti]);
         }        
