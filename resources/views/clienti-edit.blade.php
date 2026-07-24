@@ -31,21 +31,7 @@
             @csrf
             @method('PUT')
 
-            <div class="mb-4">
-                <label class="block mb-1">Nome</label>
-                <input type="text"
-                       name="nome"
-                       value="{{ old('nome', $cliente->nome) }}"
-                       class="border rounded w-full p-2">
-            </div>
-
-            <div class="mb-4">
-                <label class="block mb-1">Cognome</label>
-                <input type="text"
-                       name="cognome"
-                       value="{{ old('cognome', $cliente->cognome) }}"
-                       class="border rounded w-full p-2">
-            </div>
+            @include('clienti._form')
 
             <button type="submit"
                     class="bg-blue-500 text-white px-4 py-2 rounded">

@@ -29,20 +29,9 @@
         <form method="POST" action="{{ route('clienti.store') }}">
 
             @csrf
-
-            <div class="mb-4">
-                <label class="block mb-1">Nome</label>
-                <input type="text"
-                       name="nome"
-                       class="border rounded w-full p-2">
-            </div>
-
-            <div class="mb-4">
-                <label class="block mb-1">Cognome</label>
-                <input type="text"
-                       name="cognome"
-                       class="border rounded w-full p-2">
-            </div>
+        <div class="max-w-6xl mx-auto">
+            @include('clienti._form')
+        </div>
 
             <button type="submit"
                     class="bg-blue-500 text-white px-4 py-2 rounded">

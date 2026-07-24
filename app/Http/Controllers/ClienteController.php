@@ -71,6 +71,22 @@ class ClienteController extends Controller
             $cliente->update([
                 'nome' => $request->nome,
                 'cognome' => $request->cognome,
+                
+                'data_nascita' => $request->data_nascita,
+                'luogo_nascita' => $request->luogo_nascita,
+                'codice_fiscale' => $request->codice_fiscale,
+                
+                'telefono' => $request->telefono,
+                'cellulare' => $request->cellulare,
+                'email' => $request->email,
+                
+                'indirizzo' => $request->indirizzo,
+                'cap' => $request->cap,
+                'citta' => $request->citta,
+                'provincia' => $request->provincia,
+                'nazione' => $request->nazione,
+                
+                'note' => $request->note,
             ]);
 
             return redirect()->route('clienti');
@@ -101,7 +117,23 @@ class ClienteController extends Controller
 
             Cliente::create([
                 'nome' => $request->nome,
-                'cognome' => $request->cognome
+                'cognome' => $request->cognome,
+                
+                'data_nascita' => $request->data_nascita,
+                'luogo_nascita' => $request->luogo_nascita,
+                'codice_fiscale' => $request->codice_fiscale,
+                
+                'telefono' => $request->telefono,
+                'cellulare' => $request->cellulare,
+                'email' => $request->email,
+                
+                'indirizzo' => $request->indirizzo,
+                'cap' => $request->cap,
+                'citta' => $request->citta,
+                'provincia' => $request->provincia,
+                'nazione' => $request->nazione,
+                
+                'note' => $request->note,
             ]);
 
             return redirect()->route('clienti');
