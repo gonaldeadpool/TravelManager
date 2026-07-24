@@ -18,23 +18,36 @@
         </h2>
 
         @if($clienti->count() === 0)
-
             <p>Nessun cliente presente.</p>
-
         @else
 
-            <ul>
-
-                @foreach($clienti as $cliente)
-
-                    <li>
-                        {{ $cliente->nome }}
-                        {{ $cliente->cognome }}
-                    </li>
-
-                @endforeach
-
-            </ul>
+        <div class="overflow-x-auto mt-4">
+            <table class="min-w-full border border-gray-300">
+                <thead class="bg-gray-100">
+                    <tr>
+                        <th class="border px-4 py-2 text-left">ID</th>
+                        <th class="border px-4 py-2 text-left">Nome</th>
+                        <th class="border px-4 py-2 text-left">Cognome</th>
+                        <th class="border px-4 py-2 text-left">Azioni</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($clienti as $cliente)
+                    <tr>
+                        <td class="border px-4 py-2">{{ $cliente->id }}</td>
+                        <td class="border px-4 py-2">{{ $cliente->nome }}</td>
+                        <td class="border px-4 py-2">{{ $cliente->cognome }}</td>
+                        <td class="border px-4 py-2">
+                            <a href="{{ route('clienti.edit', $cliente->id) }}"
+                               class="text-blue-600 hover:underline">
+                                Modifica
+                            </a>
+                        </td>
+                    </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
 
         @endif
 

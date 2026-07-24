@@ -29,6 +29,32 @@ class ClienteController extends Controller
             return view('clienti-create');
         }
 
+        public function edit($id)
+        {
+            $cliente = Cliente::findOrFail($id);
+
+            return view('clienti-edit', [
+                'cliente' => $cliente
+            ]);
+        }
+
+        public function update(Request $request, $id)
+        {
+            $request->validate([
+                'nome' => 'required|max:100',
+                'cognome' => 'required|max:100',
+            ]);
+
+            $cliente = Cliente::findOrFail($id);
+
+            $cliente->update([
+                'nome' => $request->nome,
+                'cognome' => $request->cognome,
+            ]);
+
+            return redirect()->route('clienti');
+        }
+
         public function store(Request $request)
         {
             $request->validate(

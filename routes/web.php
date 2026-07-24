@@ -20,6 +20,14 @@ Route::get('/clienti/nuovo', [ClienteController::class, 'create'])
     ->middleware(['auth'])
     ->name('clienti.create');
 
+Route::get('/clienti/{id}/modifica', [ClienteController::class, 'edit'])
+    ->middleware(['auth'])
+    ->name('clienti.edit');
+
+Route::put('/clienti/{id}', [ClienteController::class, 'update'])
+    ->middleware(['auth'])
+    ->name('clienti.update');
+
 Route::post('/clienti', [ClienteController::class, 'store'])
     ->middleware(['auth'])
     ->name('clienti.store');
