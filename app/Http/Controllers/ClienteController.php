@@ -55,6 +55,15 @@ class ClienteController extends Controller
             return redirect()->route('clienti');
         }
 
+        public function destroy($id)
+        {
+            $cliente = Cliente::findOrFail($id);
+
+            $cliente->delete();
+
+            return redirect()->route('clienti');
+        }
+
         public function store(Request $request)
         {
             $request->validate(

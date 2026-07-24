@@ -28,6 +28,10 @@ Route::put('/clienti/{id}', [ClienteController::class, 'update'])
     ->middleware(['auth'])
     ->name('clienti.update');
 
+Route::delete('/clienti/{id}', [ClienteController::class, 'destroy'])
+    ->middleware(['auth'])
+    ->name('clienti.destroy');
+
 Route::post('/clienti', [ClienteController::class, 'store'])
     ->middleware(['auth'])
     ->name('clienti.store');
