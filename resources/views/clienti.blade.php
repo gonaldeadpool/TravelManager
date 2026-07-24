@@ -8,15 +8,6 @@
 
     <div class="p-6">
 
-        <a href="{{ route('clienti.create') }}"
-           class="bg-green-500 text-white px-4 py-2 rounded">
-            Nuovo Cliente
-        </a>
-
-        <h2 class="text-xl font-bold mt-6 mb-4">
-            Elenco Clienti
-        </h2>
-
         @if($clienti->count() === 0)
 
             <p>Nessun cliente presente.</p>
@@ -25,69 +16,31 @@
 
         <div class="overflow-x-auto mt-4">
 
-            <table class="min-w-full border border-gray-300">
+            <form method="GET" class="mb-4">
 
-                <thead class="bg-gray-100">
+                <div class="flex gap-2">
 
-                    <tr>
-                        <th class="border px-4 py-2 text-left">ID</th>
-                        <th class="border px-4 py-2 text-left">Nome</th>
-                        <th class="border px-4 py-2 text-left">Cognome</th>
-                        <th class="border px-4 py-2 text-left">Azioni</th>
-                    </tr>
+                    <input type="text"
+                        id="ricerca"
+                        name="ricerca"
+                        value="{{ $ricerca }}"
+                        placeholder="Cerca cliente"
+                        class="border rounded px-3 py-2 w-80">
 
-                </thead>
+                    <a href="{{ route('clienti.create') }}"
+                        class="bg-green-500 text-white px-4 py-2 rounded">
+                        Nuovo Cliente
+                    </a>     
 
-                <tbody>
+                </div>
 
-                    @foreach($clienti as $cliente)
+            </form>
 
-                        <tr>
+            <div id="clienti-table-container">
 
-                            <td class="border px-4 py-2">
-                                {{ $cliente->id }}
-                            </td>
+                @include('clienti._table')
 
-                            <td class="border px-4 py-2">
-                                {{ $cliente->nome }}
-                            </td>
-
-                            <td class="border px-4 py-2">
-                                {{ $cliente->cognome }}
-                            </td>
-
-                            <td class="border px-4 py-2">
-                                <a href="{{ route('clienti.edit', $cliente->id) }}"
-                                class="text-blue-600 hover:underline">
-                                    Modifica
-                                </a>
-                            </td>
-
-                            <td class="border px-4 py-2">
-
-                                <form method="POST" action="{{ route('clienti.destroy', $cliente->id) }}"
-                                    class="inline">
-
-                                    @csrf
-                                    @method('DELETE')
-
-                                    <button type="submit"
-                                            class="text-red-600 hover:underline"
-                                            onclick="return confirm('Sei sicuro di voler eliminare questo cliente?')">
-                                        Elimina
-                                    </button>
-
-                                </form>
-
-                            </td>
-
-                        </tr>
-
-                    @endforeach
-
-                </tbody>
-
-            </table>
+            </div>
 
         </div>
 
@@ -96,3 +49,32 @@
     </div>
 
 </x-app-layout>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+
+    let timer;
+
+    const ricerca = document.getElementById('ricerca');
+
+    ricerca.addEventListener('input', function () {
+
+        clearTimeout(timer);
+
+        timer = setTimeout(async () => {
+
+            const response = await fetch(
+                `/clienti/search?q=${encodeURIComponent(ricerca.value)}`
+            );
+
+            const html = await response.text();
+
+            document.getElementById('clienti-table-container')
+                .outerHTML = html;
+
+        }, 400);
+
+    });
+
+});
+</script>

@@ -8,21 +8,42 @@ use Illuminate\Http\Request;
 
 class ClienteController extends Controller
 {
-        public function index()
+        public function index(Request $request)
         {
-//            Cliente::create([
-//                'nome' => 'Mario',
-//                'cognome' => 'Rossi',
-//                'telefono' => '3331234567',
-//                'email' => 'mario.rossi@test.it'
-//            ]);
+            $ricerca = $request->input('ricerca');
 
-            $clienti = Cliente::all();
+            $clienti = Cliente::query();
+
+            if ($ricerca) {
+
+                $clienti->where('nome', 'like', "%{$ricerca}%")
+                        ->orWhere('cognome', 'like', "%{$ricerca}%")
+                        ->orWhere('email', 'like', "%{$ricerca}%");
+
+            }
+
+            $clienti = $clienti->get();
 
             return view('clienti', [
-                'clienti' => $clienti
+                'clienti' => $clienti,
+                'ricerca' => $ricerca
             ]);
         }
+
+        public function search(Request $request)
+        {
+            $ricerca = $request->input('q');
+
+            $clienti = Cliente::query()
+
+                ->where('nome', 'like', "%{$ricerca}%")
+                ->orWhere('cognome', 'like', "%{$ricerca}%")
+                ->orWhere('email', 'like', "%{$ricerca}%")
+
+                ->get();
+
+            return view('clienti._table', ['clienti' => $clienti]);
+        }        
 
         public function create()
         {

@@ -16,6 +16,10 @@ Route::get('/clienti', [ClienteController::class, 'index'])
     ->middleware(['auth'])
     ->name('clienti');
 
+Route::get('/clienti/search', [ClienteController::class, 'search'])
+    ->middleware(['auth'])
+    ->name('clienti.search');
+
 Route::get('/clienti/nuovo', [ClienteController::class, 'create'])
     ->middleware(['auth'])
     ->name('clienti.create');
