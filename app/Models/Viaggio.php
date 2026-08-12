@@ -20,6 +20,8 @@ class Viaggio extends Model
         'locandina',
         'trasporti',
         'sistemazioni',
+        'prezzi_cabine',
+        'eta_gratuita',
     ];
 
     protected function casts(): array
@@ -31,6 +33,8 @@ class Viaggio extends Model
             'minimo_partecipanti' => 'integer',
             'trasporti' => 'array',
             'sistemazioni' => 'array',
+            'prezzi_cabine' => 'array',
+            'eta_gratuita' => 'integer',
         ];
     }
 }

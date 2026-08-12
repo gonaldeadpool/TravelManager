@@ -47,6 +47,7 @@ class ViaggioController extends Controller
         $validated = $this->validateViaggio($request);
         $validated['trasporti'] = $this->normalizzaOpzioni($request->input('trasporti', []));
         $validated['sistemazioni'] = $this->normalizzaSistemazioni($request);
+        $validated['prezzi_cabine'] = $this->normalizzaPrezziCabine($request);
 
         if ($request->hasFile('locandina')) {
             $validated['locandina'] = $request->file('locandina')->store('locandine', 'public');
@@ -67,6 +68,7 @@ class ViaggioController extends Controller
         $validated = $this->validateViaggio($request);
         $validated['trasporti'] = $this->normalizzaOpzioni($request->input('trasporti', []));
         $validated['sistemazioni'] = $this->normalizzaSistemazioni($request);
+        $validated['prezzi_cabine'] = $this->normalizzaPrezziCabine($request);
 
         if ($request->hasFile('locandina')) {
             if ($viaggio->locandina) {
@@ -100,8 +102,12 @@ class ViaggioController extends Controller
             'destinazione' => ['required', 'string', 'max:150'],
             'data_partenza' => ['required', 'date'],
             'data_rientro' => ['required', 'date', 'after_or_equal:data_partenza'],
-            'prezzo' => ['required', 'numeric', 'min:0'],
+            'prezzo' => ['nullable', 'required_unless:tipologia,crociera', 'numeric', 'min:0'],
             'minimo_partecipanti' => ['required', 'integer', 'min:1'],
+            'prezzi_cabine' => ['nullable', 'array'],
+            'prezzi_cabine.*.tipo' => ['required', 'in:interna,vista_mare,balcone'],
+            'prezzi_cabine.*.prezzo' => ['required_if:tipologia,crociera', 'nullable', 'numeric', 'min:0'],
+            'eta_gratuita' => ['nullable', 'integer', 'min:0', 'max:17'],
             'note' => ['nullable', 'string'],
             'locandina' => ['nullable', 'file', 'image', 'max:5120'],
             'trasporti' => ['nullable', 'array'],
@@ -148,5 +154,21 @@ class ViaggioController extends Controller
         }
 
         return $this->normalizzaOpzioni($sistemazioni);
+    }
+
+    private function normalizzaPrezziCabine(Request $request): array
+    {
+        if ($request->input('tipologia') !== 'crociera') {
+            return [];
+        }
+
+        return collect($request->input('prezzi_cabine', []))
+            ->filter(fn ($cabina) => filled($cabina['tipo'] ?? null))
+            ->map(fn ($cabina) => [
+                'tipo' => $cabina['tipo'],
+                'prezzo' => $cabina['prezzo'] ?? null,
+            ])
+            ->values()
+            ->all();
     }
 }

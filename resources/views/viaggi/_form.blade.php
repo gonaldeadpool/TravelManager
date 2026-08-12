@@ -1,11 +1,18 @@
 @php
     $trasporti = old('trasporti', $viaggio->trasporti ?? []);
     $sistemazioni = old('sistemazioni', $viaggio->sistemazioni ?? []);
+    $prezziCabine = old('prezzi_cabine', $viaggio->prezzi_cabine ?? [
+        ['tipo' => 'interna', 'prezzo' => ''],
+        ['tipo' => 'vista_mare', 'prezzo' => ''],
+        ['tipo' => 'balcone', 'prezzo' => ''],
+    ]);
 @endphp
 
 <div x-data="{
     trasporti: @js($trasporti),
     sistemazioni: @js($sistemazioni),
+    prezziCabine: @js($prezziCabine),
+    etaGratuita: @js(old('eta_gratuita', $viaggio->eta_gratuita ?? '')),
     tipologia: @js(old('tipologia', $viaggio->tipologia ?? 'viaggio')),
     locandinaPreview: @js($viaggio->locandina ? asset('storage/' . $viaggio->locandina) : null),
     aggiungiTrasporto() { this.trasporti.push({ tipo: 'bus', posti: '' }) },
@@ -96,10 +103,10 @@
                 <input id="data_rientro" type="date" name="data_rientro" x-model="dataRientro" value="{{ old('data_rientro', optional($viaggio->data_rientro)->format('Y-m-d')) }}" required class="border rounded w-full p-2">
             </div>
 
-            <div>
+            <div x-show="tipologia !== 'crociera'" x-cloak>
                 <label for="prezzo" class="block mb-1">Prezzo a persona *</label>
                 <div class="relative">
-                    <input id="prezzo" type="number" name="prezzo" min="0" step="0.01" value="{{ old('prezzo', $viaggio->prezzo ?? '') }}" required class="border rounded w-full p-2 pr-8">
+                    <input id="prezzo" type="number" name="prezzo" min="0" step="0.01" value="{{ old('prezzo', $viaggio->prezzo ?? '') }}" :disabled="tipologia === 'crociera'" required class="border rounded w-full p-2 pr-8">
                     <span class="absolute right-3 top-2 text-gray-500">EUR</span>
                 </div>
             </div>
@@ -107,6 +114,31 @@
             <div class="md:col-span-2" x-show="durata()" x-cloak>
                 <div class="rounded border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-800">
                     Durata: <strong x-text="durata()?.giorni"></strong> giorni e <strong x-text="durata()?.notti"></strong> notti
+                </div>
+            </div>
+
+            <div class="md:col-span-2 rounded border border-blue-200 bg-blue-50 p-4" x-show="tipologia === 'crociera'" x-cloak>
+                <div class="mb-4">
+                    <h4 class="font-semibold text-blue-900">Prezzi cabine</h4>
+                    <p class="mt-1 text-sm text-blue-800">Imposta il prezzo per ogni tipologia di cabina.</p>
+                </div>
+
+                <div class="grid grid-cols-1 gap-3 md:grid-cols-3">
+                    <template x-for="(cabina, indice) in prezziCabine" :key="cabina.tipo">
+                        <div>
+                            <label :for="`prezzo-cabina-${cabina.tipo}`" class="mb-1 block text-sm font-medium" x-text="cabina.tipo === 'interna' ? 'Cabina interna' : (cabina.tipo === 'vista_mare' ? 'Cabina vista mare' : 'Cabina con balcone')"></label>
+                            <div class="relative">
+                                <input :id="`prezzo-cabina-${cabina.tipo}`" type="number" min="0" step="0.01" :name="`prezzi_cabine[${indice}][prezzo]`" x-model="cabina.prezzo" :disabled="tipologia !== 'crociera'" class="w-full rounded border p-2 pr-8">
+                                <span class="absolute right-3 top-2 text-gray-500">EUR</span>
+                            </div>
+                            <input type="hidden" :name="`prezzi_cabine[${indice}][tipo]`" :value="cabina.tipo" :disabled="tipologia !== 'crociera'">
+                        </div>
+                    </template>
+                </div>
+
+                <div class="mt-4 max-w-xs">
+                    <label for="eta_gratuita" class="mb-1 block text-sm font-medium">Crociera gratis fino a (anni)</label>
+                    <input id="eta_gratuita" type="number" min="0" max="17" name="eta_gratuita" x-model="etaGratuita" :disabled="tipologia !== 'crociera'" class="w-full rounded border p-2">
                 </div>
             </div>
 
