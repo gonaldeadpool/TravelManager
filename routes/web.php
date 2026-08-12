@@ -46,6 +46,10 @@ Route::resource('viaggi', ViaggioController::class)
     ->parameters(['viaggi' => 'viaggio'])
     ->except(['show']);
 
+Route::get('/viaggi/search', [ViaggioController::class, 'search'])
+    ->middleware(['auth'])
+    ->name('viaggi.search');
+
 Route::view('/pratiche', 'pratiche')
     ->middleware(['auth'])
     ->name('pratiche');

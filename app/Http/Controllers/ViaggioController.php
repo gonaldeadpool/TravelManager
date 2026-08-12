@@ -10,11 +10,29 @@ use Illuminate\View\View;
 
 class ViaggioController extends Controller
 {
-    public function index(): View
+    public function index(Request $request): View
     {
+        $ricerca = $request->input('ricerca');
+
+        $viaggi = $this->queryRicerca($ricerca)
+            ->orderBy('data_partenza')
+            ->paginate(10)
+            ->withQueryString();
+
         return view('viaggi', [
-            'viaggi' => Viaggio::orderBy('data_partenza')->paginate(10),
+            'viaggi' => $viaggi,
+            'ricerca' => $ricerca,
         ]);
+    }
+
+    public function search(Request $request): View
+    {
+        $viaggi = $this->queryRicerca($request->input('q'))
+            ->orderBy('data_partenza')
+            ->paginate(10)
+            ->withQueryString();
+
+        return view('viaggi._table', compact('viaggi'));
     }
 
     public function create(): View
@@ -28,7 +46,7 @@ class ViaggioController extends Controller
     {
         $validated = $this->validateViaggio($request);
         $validated['trasporti'] = $this->normalizzaOpzioni($request->input('trasporti', []));
-        $validated['sistemazioni'] = $this->normalizzaOpzioni($request->input('sistemazioni', []));
+        $validated['sistemazioni'] = $this->normalizzaSistemazioni($request);
 
         if ($request->hasFile('locandina')) {
             $validated['locandina'] = $request->file('locandina')->store('locandine', 'public');
@@ -48,7 +66,7 @@ class ViaggioController extends Controller
     {
         $validated = $this->validateViaggio($request);
         $validated['trasporti'] = $this->normalizzaOpzioni($request->input('trasporti', []));
-        $validated['sistemazioni'] = $this->normalizzaOpzioni($request->input('sistemazioni', []));
+        $validated['sistemazioni'] = $this->normalizzaSistemazioni($request);
 
         if ($request->hasFile('locandina')) {
             if ($viaggio->locandina) {
@@ -78,10 +96,13 @@ class ViaggioController extends Controller
     {
         return $request->validate([
             'nome' => ['required', 'string', 'max:150'],
-            'gestione' => ['required', 'in:tour_operator,interno'],
+            'tipologia' => ['required', 'in:viaggio,tour,crociera'],
             'destinazione' => ['required', 'string', 'max:150'],
             'data_partenza' => ['required', 'date'],
             'data_rientro' => ['required', 'date', 'after_or_equal:data_partenza'],
+            'prezzo' => ['required', 'numeric', 'min:0'],
+            'minimo_partecipanti' => ['required', 'integer', 'min:1'],
+            'note' => ['nullable', 'string'],
             'locandina' => ['nullable', 'file', 'image', 'max:5120'],
             'trasporti' => ['nullable', 'array'],
             'trasporti.*.tipo' => ['required', 'in:bus,aereo,treno'],
@@ -91,6 +112,17 @@ class ViaggioController extends Controller
             'sistemazioni.*.formato' => ['required', 'in:singola,doppia,tripla,quadrupla'],
             'sistemazioni.*.quantita' => ['nullable', 'integer', 'min:1'],
         ]);
+    }
+
+    private function queryRicerca(?string $ricerca)
+    {
+        return Viaggio::query()->when($ricerca, function ($query, $ricerca) {
+            $query->where(function ($query) use ($ricerca) {
+                $query->where('nome', 'like', "%{$ricerca}%")
+                    ->orWhere('destinazione', 'like', "%{$ricerca}%")
+                    ->orWhere('tipologia', 'like', "%{$ricerca}%");
+            });
+        });
     }
 
     private function normalizzaOpzioni(array $opzioni): array
@@ -103,5 +135,18 @@ class ViaggioController extends Controller
                 ->all())
             ->values()
             ->all();
+    }
+
+    private function normalizzaSistemazioni(Request $request): array
+    {
+        $sistemazioni = $request->input('sistemazioni', []);
+
+        if ($request->input('tipologia') !== 'crociera') {
+            $sistemazioni = collect($sistemazioni)
+                ->reject(fn ($sistemazione) => ($sistemazione['tipo'] ?? null) === 'cabina')
+                ->all();
+        }
+
+        return $this->normalizzaOpzioni($sistemazioni);
     }
 }
