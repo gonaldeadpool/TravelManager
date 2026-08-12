@@ -1,3 +1,26 @@
+<div x-data="{ tab: 'anagrafica' }">
+
+    <div class="border-b border-gray-200 mb-6">
+        <nav class="flex gap-6" aria-label="Sezioni cliente">
+            <button
+                type="button"
+                @click="tab = 'anagrafica'"
+                :class="tab === 'anagrafica' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'"
+                class="border-b-2 px-1 pb-3 text-sm font-semibold transition">
+                Dati cliente
+            </button>
+            <button
+                type="button"
+                @click="tab = 'documenti'"
+                :class="tab === 'documenti' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'"
+                class="border-b-2 px-1 pb-3 text-sm font-semibold transition">
+                Documenti
+            </button>
+        </nav>
+    </div>
+
+    <div x-show="tab === 'anagrafica'" x-cloak class="space-y-6">
+
     {{-- DATI ANAGRAFICI --}}
     <div class="bg-white shadow rounded p-6">
 
@@ -180,3 +203,55 @@
             class="border rounded w-full p-2">{{ old('note', $cliente->note ?? '') }}</textarea>
 
     </div>
+
+    </div>
+
+    <div x-show="tab === 'documenti'" x-cloak class="space-y-6">
+        <div class="bg-white shadow rounded p-6">
+            <div class="flex items-center justify-between mb-4">
+                <div>
+                    <h3 class="text-lg font-semibold">Documenti del cliente</h3>
+                    <p class="text-sm text-gray-500 mt-1">Tieni qui i documenti utili per viaggi e pratiche.</p>
+                </div>
+                <span class="text-sm text-gray-400">0 documenti</span>
+            </div>
+
+            <div class="rounded border border-dashed border-gray-300 bg-gray-50 p-8 text-center">
+                <p class="font-medium text-gray-700">Nessun documento presente</p>
+                <p class="text-sm text-gray-500 mt-1">I documenti caricati appariranno qui.</p>
+            </div>
+        </div>
+
+        <div class="bg-white shadow rounded p-6">
+            <h3 class="text-lg font-semibold mb-4">Aggiungi documento</h3>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label for="documento_tipo" class="block mb-1">Tipo documento</label>
+                    <select id="documento_tipo" name="documento_tipo" class="border rounded w-full p-2">
+                        <option value="">Seleziona un tipo</option>
+                        <option value="carta_identita">Carta d'identità</option>
+                        <option value="passaporto">Passaporto</option>
+                        <option value="patente">Patente</option>
+                        <option value="altro">Altro</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label for="documento_numero" class="block mb-1">Numero documento</label>
+                    <input id="documento_numero" type="text" name="documento_numero" class="border rounded w-full p-2">
+                </div>
+
+                <div>
+                    <label for="documento_scadenza" class="block mb-1">Data di scadenza</label>
+                    <input id="documento_scadenza" type="date" name="documento_scadenza" class="border rounded w-full p-2">
+                </div>
+
+                <div>
+                    <label for="documento_file" class="block mb-1">File</label>
+                    <input id="documento_file" type="file" name="documento_file" class="border rounded w-full p-2">
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

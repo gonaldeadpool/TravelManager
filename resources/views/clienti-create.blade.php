@@ -26,7 +26,7 @@
 
         @endif
 
-        <form method="POST" action="{{ route('clienti.store') }}">
+        <form method="POST" action="{{ route('clienti.store') }}" enctype="multipart/form-data">
 
             @csrf
         <div class="max-w-6xl mx-auto">

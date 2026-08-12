@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ClienteController;
+use App\Http\Controllers\ViaggioController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -40,9 +41,10 @@ Route::post('/clienti', [ClienteController::class, 'store'])
     ->middleware(['auth'])
     ->name('clienti.store');
 
-Route::view('/viaggi', 'viaggi')
+Route::resource('viaggi', ViaggioController::class)
     ->middleware(['auth'])
-    ->name('viaggi');
+    ->parameters(['viaggi' => 'viaggio'])
+    ->except(['show']);
 
 Route::view('/pratiche', 'pratiche')
     ->middleware(['auth'])

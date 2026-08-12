@@ -18,7 +18,7 @@
                     <x-nav-link :href="route('clienti')" :active="request()->routeIs('clienti')">
                         {{ __('Clienti') }}
                     </x-nav-link>
-                    <x-nav-link :href="route('viaggi')" :active="request()->routeIs('viaggi')">
+                    <x-nav-link :href="route('viaggi.index')" :active="request()->routeIs('viaggi.*')">
                         {{ __('Viaggi') }}
                     </x-nav-link>
                     <x-nav-link :href="route('pratiche')" :active="request()->routeIs('pratiche')">
@@ -85,7 +85,7 @@
             <x-responsive-nav-link :href="route('clienti')" :active="request()->routeIs('clienti')">
                 {{ __('Clienti') }}
             </x-responsive-nav-link>
-            <x-responsive-nav-link :href="route('viaggi')" :active="request()->routeIs('viaggi')">
+            <x-responsive-nav-link :href="route('viaggi.index')" :active="request()->routeIs('viaggi.*')">
                 {{ __('Viaggi') }}
             </x-responsive-nav-link>
             <x-responsive-nav-link :href="route('pratiche')" :active="request()->routeIs('pratiche')">
