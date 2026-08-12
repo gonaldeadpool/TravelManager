@@ -30,4 +30,9 @@ class Cliente extends Model
         'note'
     ];
 
+    public function documenti()
+    {
+        return $this->hasMany(ClienteDocumento::class);
+    }
+
 }

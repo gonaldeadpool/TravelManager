@@ -9,6 +9,7 @@
                     <th class="px-4 py-3">Cognome</th>
                     <th class="px-4 py-3">Email</th>
                     <th class="px-4 py-3">Telefono</th>
+                    <th class="px-4 py-3">Documenti</th>
                     <th class="px-4 py-3 text-right">Azioni</th>
                 </tr>
             </thead>
@@ -19,6 +20,32 @@
                         <td class="px-4 py-3">{{ $cliente->cognome }}</td>
                         <td class="px-4 py-3">{{ $cliente->email ?: '-' }}</td>
                         <td class="px-4 py-3">{{ $cliente->telefono ?: '-' }}</td>
+                        <td class="px-4 py-3">
+                            @php($documentiPerTipo = $cliente->documenti->keyBy('tipo'))
+                            <div class="flex items-center gap-2">
+                                @foreach ([
+                                    'carta_identita' => ['label' => 'CI', 'title' => "Anteprima carta d'identità", 'class' => 'bg-sky-500 hover:bg-sky-600'],
+                                    'passaporto' => ['label' => 'PP', 'title' => 'Anteprima passaporto', 'class' => 'bg-red-500 hover:bg-red-600'],
+                                    'patente' => ['label' => 'P', 'title' => 'Anteprima patente', 'class' => 'bg-pink-400 hover:bg-pink-500'],
+                                ] as $tipo => $icona)
+                                    @if ($documentiPerTipo->has($tipo))
+                                        @php($documento = $documentiPerTipo->get($tipo))
+                                        @php($soglia = $scadenzeDocumenti[$tipo] ?? $scadenzeDocumenti['altro'])
+                                        @php($inScadenza = $documento->scadenza && $documento->scadenza->lte(now()->startOfDay()->addDays($soglia)))
+                                        <a href="{{ route('clienti.documenti.download', [$cliente, $documento]) }}" target="_blank" title="{{ $inScadenza ? 'Documento in scadenza' : $icona['title'] }}" aria-label="{{ $inScadenza ? 'Documento in scadenza' : $icona['title'] }}" class="inline-flex h-8 w-8 items-center justify-center text-xs font-bold transition {{ $inScadenza ? '' : 'rounded-full ' . $icona['class'] }}" style="color: {{ $inScadenza ? '#854d0e' : '#ffffff' }}; background-color: {{ $inScadenza ? '#facc15' : ($tipo === 'carta_identita' ? '#0ea5e9' : ($tipo === 'passaporto' ? '#ef4444' : '#ec4899')) }}; {{ $inScadenza ? 'clip-path: polygon(50% 0%, 100% 100%, 0% 100%);' : '' }}">
+                                            @if ($inScadenza)
+                                                <span aria-hidden="true" style="padding-top: 9px; color: #854d0e; font-size: 9px; line-height: 1;">{{ $icona['label'] }}</span>
+                                            @else
+                                                {{ $icona['label'] }}
+                                            @endif
+                                        </a>
+                                    @endif
+                                @endforeach
+                                @if ($documentiPerTipo->intersectByKeys(['carta_identita' => true, 'passaporto' => true, 'patente' => true])->isEmpty())
+                                    <span class="text-sm text-gray-400">-</span>
+                                @endif
+                            </div>
+                        </td>
                         <td class="px-4 py-3">
                             <div class="flex justify-end gap-2">
                                 <a href="{{ route('clienti.edit', $cliente->id) }}" title="Modifica cliente" aria-label="Modifica cliente" class="inline-flex h-8 w-8 items-center justify-center rounded text-blue-600 hover:bg-blue-50">

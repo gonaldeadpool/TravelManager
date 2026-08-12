@@ -60,7 +60,7 @@
         <input id="locandina" type="file" name="locandina" accept="image/*" @change="anteprimaLocandina($event)" class="w-full rounded border p-2 text-sm">
 
         @if ($viaggio->locandina)
-            <a href="{{ asset('storage/' . $viaggio->locandina) }}" target="_blank" class="mt-3 inline-block text-sm text-blue-600 hover:underline">Apri locandina attuale</a>
+            <a href="{{ route('viaggi.locandina', $viaggio) }}" target="_blank" class="mt-3 inline-block text-sm text-blue-600 hover:underline">Apri locandina attuale</a>
         @endif
     </aside>
 

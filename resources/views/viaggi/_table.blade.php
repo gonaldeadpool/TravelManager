@@ -21,8 +21,8 @@
                     <tr>
                         <td class="px-4 py-3">
                             @if ($viaggio->locandina)
-                                <a href="{{ asset('storage/' . $viaggio->locandina) }}" target="_blank" title="Apri locandina">
-                                    <img src="{{ asset('storage/' . $viaggio->locandina) }}" alt="Locandina di {{ $viaggio->nome }}" class="h-16 w-12 rounded object-cover border">
+                                <a href="{{ route('viaggi.locandina', $viaggio) }}" target="_blank" title="Apri locandina">
+                                    <img src="{{ route('viaggi.locandina', $viaggio) }}" alt="Locandina di {{ $viaggio->nome }}" class="h-16 w-12 rounded object-cover border">
                                 </a>
                             @else
                                 <div class="flex h-16 w-12 items-center justify-center rounded border border-dashed bg-gray-50 text-center text-xs text-gray-400">Nessuna immagine</div>

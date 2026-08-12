@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Viaggio;
+use App\Support\LocalStoragePaths;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -50,7 +51,11 @@ class ViaggioController extends Controller
         $validated['prezzi_cabine'] = $this->normalizzaPrezziCabine($request);
 
         if ($request->hasFile('locandina')) {
-            $validated['locandina'] = $request->file('locandina')->store('locandine', 'public');
+            LocalStoragePaths::ensureDirectories();
+            $file = $request->file('locandina');
+            $nome = \Illuminate\Support\Str::uuid()->toString() . '.' . $file->getClientOriginalExtension();
+            LocalStoragePaths::disk(LocalStoragePaths::locandine())->putFileAs('', $file, $nome);
+            $validated['locandina'] = $nome;
         }
 
         Viaggio::create($validated);
@@ -72,10 +77,14 @@ class ViaggioController extends Controller
 
         if ($request->hasFile('locandina')) {
             if ($viaggio->locandina) {
-                Storage::disk('public')->delete($viaggio->locandina);
+                $this->eliminaLocandina($viaggio->locandina);
             }
 
-            $validated['locandina'] = $request->file('locandina')->store('locandine', 'public');
+            LocalStoragePaths::ensureDirectories();
+            $file = $request->file('locandina');
+            $nome = \Illuminate\Support\Str::uuid()->toString() . '.' . $file->getClientOriginalExtension();
+            LocalStoragePaths::disk(LocalStoragePaths::locandine())->putFileAs('', $file, $nome);
+            $validated['locandina'] = $nome;
         }
 
         $viaggio->update($validated);
@@ -86,12 +95,26 @@ class ViaggioController extends Controller
     public function destroy(Viaggio $viaggio): RedirectResponse
     {
         if ($viaggio->locandina) {
-            Storage::disk('public')->delete($viaggio->locandina);
+            $this->eliminaLocandina($viaggio->locandina);
         }
 
         $viaggio->delete();
 
         return redirect()->route('viaggi.index')->with('success', 'Viaggio eliminato correttamente.');
+    }
+
+    public function downloadLocandina(Viaggio $viaggio)
+    {
+        $disk = LocalStoragePaths::disk(LocalStoragePaths::locandine());
+        $percorso = $viaggio->locandina;
+
+        if (! $disk->exists($percorso)) {
+            $disk = Storage::disk('public');
+        }
+
+        abort_unless($disk->exists($percorso), 404);
+
+        return $disk->response($percorso);
     }
 
     private function validateViaggio(Request $request): array
@@ -170,5 +193,11 @@ class ViaggioController extends Controller
             ])
             ->values()
             ->all();
+    }
+
+    private function eliminaLocandina(string $percorso): void
+    {
+        LocalStoragePaths::disk(LocalStoragePaths::locandine())->delete($percorso);
+        Storage::disk('public')->delete($percorso);
     }
 }
