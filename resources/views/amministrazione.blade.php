@@ -6,7 +6,7 @@
         </h2>
     </x-slot>
 
-    <div class="p-6">
+    <div class="p-6"> 
         Modulo amministrazione in costruzione
     </div>
 
