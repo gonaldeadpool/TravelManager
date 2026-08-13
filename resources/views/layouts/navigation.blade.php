@@ -21,6 +21,9 @@
                     <x-nav-link :href="route('viaggi.index')" :active="request()->routeIs('viaggi.*')">
                         {{ __('Viaggi') }}
                     </x-nav-link>
+                    <x-nav-link :href="route('calendario')" :active="request()->routeIs('calendario*')">
+                        {{ __('Calendario') }}
+                    </x-nav-link>
                     <x-nav-link :href="route('pratiche.index')" :active="request()->routeIs('pratiche.*')">
                         {{ __('Pratiche') }}
                     </x-nav-link>
@@ -87,6 +90,9 @@
             </x-responsive-nav-link>
             <x-responsive-nav-link :href="route('viaggi.index')" :active="request()->routeIs('viaggi.*')">
                 {{ __('Viaggi') }}
+            </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('calendario')" :active="request()->routeIs('calendario*')">
+                {{ __('Calendario') }}
             </x-responsive-nav-link>
             <x-responsive-nav-link :href="route('pratiche.index')" :active="request()->routeIs('pratiche.*')">
                 {{ __('Pratiche') }}

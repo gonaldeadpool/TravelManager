@@ -15,7 +15,10 @@
                 <h3 class="text-lg font-semibold">Elenco viaggi</h3>
                 <p class="text-sm text-gray-500 mt-1">Gestisci programmi, disponibilità e locandine.</p>
             </div>
-            <a href="{{ route('viaggi.create') }}" class="bg-green-600 text-white px-4 py-2 rounded whitespace-nowrap">Nuovo viaggio</a>
+            <div class="flex gap-3">
+                <a href="{{ route('calendario') }}" class="rounded border px-4 py-2 text-gray-700 whitespace-nowrap">Calendario</a>
+                <a href="{{ route('viaggi.create') }}" class="bg-green-600 text-white px-4 py-2 rounded whitespace-nowrap">Nuovo viaggio</a>
+            </div>
         </div>
 
         <form method="GET" class="mb-4 flex flex-col gap-3 md:flex-row md:items-center" onsubmit="return false;">

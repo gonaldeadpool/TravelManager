@@ -5,6 +5,7 @@ use App\Http\Controllers\ClienteController;
 use App\Http\Controllers\ViaggioController;
 use App\Http\Controllers\AmministrazioneController;
 use App\Http\Controllers\PraticaController;
+use App\Http\Controllers\CalendarioController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -62,6 +63,14 @@ Route::get('/viaggi/search', [ViaggioController::class, 'search'])
 Route::get('/viaggi/{viaggio}/locandina', [ViaggioController::class, 'downloadLocandina'])
     ->middleware(['auth'])
     ->name('viaggi.locandina');
+
+Route::get('/calendario', [CalendarioController::class, 'index'])
+    ->middleware(['auth'])
+    ->name('calendario');
+
+Route::get('/calendario/eventi', [CalendarioController::class, 'eventi'])
+    ->middleware(['auth'])
+    ->name('calendario.eventi');
 
 Route::resource('viaggi', ViaggioController::class)
     ->middleware(['auth'])
