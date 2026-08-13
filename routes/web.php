@@ -88,6 +88,10 @@ Route::post('/pratiche/creazione/clienti', [PraticaController::class, 'storeClie
     ->middleware(['auth'])
     ->name('pratiche.creazione.clienti.store');
 
+Route::get('/pratiche/search', [PraticaController::class, 'search'])
+    ->middleware(['auth'])
+    ->name('pratiche.search');
+
 Route::resource('pratiche', PraticaController::class)
     ->middleware(['auth'])
     ->parameters(['pratiche' => 'pratica'])

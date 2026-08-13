@@ -18,15 +18,29 @@ class PraticaController extends Controller
     {
         $viaggioId = $request->integer('viaggio_id');
         $viaggio = $viaggioId ? Viaggio::findOrFail($viaggioId) : null;
-        $pratiche = Pratica::with(['viaggio', 'clienti'])->latest();
-
-        if ($viaggio) {
-            $pratiche->where('viaggio_id', $viaggio->id);
-        }
+        $ricerca = $request->input('ricerca');
+        $mostraPassati = $request->boolean('mostra_passati');
+        $pratiche = $this->queryElenco($ricerca, $mostraPassati, $viaggioId);
 
         return view('pratiche.index', [
             'pratiche' => $pratiche->paginate(10)->withQueryString(),
             'viaggioFiltrato' => $viaggio,
+            'ricerca' => $ricerca,
+            'mostraPassati' => $mostraPassati,
+        ]);
+    }
+
+    public function search(Request $request): View
+    {
+        $viaggioId = $request->integer('viaggio_id');
+        $pratiche = $this->queryElenco(
+            $request->input('q'),
+            $request->boolean('mostra_passati'),
+            $viaggioId
+        );
+
+        return view('pratiche._table', [
+            'pratiche' => $pratiche->paginate(10)->withQueryString(),
         ]);
     }
 
@@ -234,6 +248,26 @@ class PraticaController extends Controller
             'pratica' => $pratica,
             'viaggi' => Viaggio::orderBy('nome')->get(),
         ];
+    }
+
+    private function queryElenco(?string $ricerca, bool $mostraPassati, ?int $viaggioId)
+    {
+        return Pratica::with(['viaggio', 'clienti'])
+            ->when($viaggioId, fn ($query) => $query->where('viaggio_id', $viaggioId))
+            ->when(! $viaggioId && ! $mostraPassati, fn ($query) => $query->whereHas('viaggio', fn ($viaggi) => $viaggi->whereDate('data_partenza', '>=', today())))
+            ->when($ricerca, function ($query, $ricerca) {
+                $query->where(function ($query) use ($ricerca) {
+                    $query->whereHas('viaggio', function ($viaggi) use ($ricerca) {
+                        $viaggi->where('nome', 'ilike', "%{$ricerca}%")
+                            ->orWhere('destinazione', 'ilike', "%{$ricerca}%")
+                            ->orWhere('tipologia', 'ilike', "%{$ricerca}%");
+                    })->orWhereHas('clienti', function ($clienti) use ($ricerca) {
+                        $clienti->where('nome', 'ilike', "%{$ricerca}%")
+                            ->orWhere('cognome', 'ilike', "%{$ricerca}%");
+                    });
+                });
+            })
+            ->latest();
     }
 
     private function validatePratica(Request $request, bool $richiedeClienti = false): array

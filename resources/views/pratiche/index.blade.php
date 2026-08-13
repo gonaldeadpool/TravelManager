@@ -18,57 +18,38 @@
             </div>
         @endif
 
-        <div class="mx-auto max-w-7xl overflow-hidden rounded bg-white shadow">
-            @if ($pratiche->isEmpty())
-                <p class="p-8 text-center text-gray-500">Nessuna pratica presente.</p>
-            @else
-                <div class="overflow-x-auto">
-                    <table class="min-w-full divide-y divide-gray-200 text-sm">
-                        <thead class="bg-gray-50 text-left text-gray-600">
-                            <tr>
-                                <th class="px-4 py-3">Viaggio</th>
-                                <th class="px-4 py-3">Clienti</th>
-                                <th class="px-4 py-3 text-right">Totale</th>
-                                <th class="px-4 py-3 text-right">Residuo</th>
-                                <th class="px-4 py-3"></th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-gray-200">
-                            @foreach ($pratiche as $pratica)
-                                <tr>
-                                    <td class="px-4 py-3 font-medium">{{ $pratica->viaggio->nome }}</td>
-                                    <td class="px-4 py-3">{{ $pratica->clienti->map(fn ($cliente) => $cliente->cognome . ' ' . $cliente->nome)->join(', ') }}</td>
-                                    <td class="px-4 py-3 text-right">{{ number_format($pratica->totale, 2, ',', '.') }} EUR</td>
-                                    <td class="px-4 py-3 text-right">{{ number_format($pratica->totale - $pratica->acconto - $pratica->saldo, 2, ',', '.') }} EUR</td>
-                                    <td class="px-4 py-3">
-                                        <div class="flex justify-end gap-2">
-                                            <a href="{{ route('pratiche.edit', $pratica) }}" title="Modifica pratica" aria-label="Modifica pratica" class="inline-flex h-8 w-8 items-center justify-center rounded text-blue-600 hover:bg-blue-50">
-                                                <svg aria-hidden="true" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                                    <path d="M12 20h9" />
-                                                    <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z" />
-                                                </svg>
-                                            </a>
-                                            <form method="POST" action="{{ route('pratiche.destroy', $pratica) }}" onsubmit="return confirm('Vuoi eliminare questa pratica?');">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit" title="Elimina pratica" aria-label="Elimina pratica" class="inline-flex h-8 w-8 items-center justify-center rounded text-red-600 hover:bg-red-50">
-                                                    <svg aria-hidden="true" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                                        <path d="M3 6h18" />
-                                                        <path d="M8 6V4h8v2" />
-                                                        <path d="M19 6l-1 14H6L5 6" />
-                                                        <path d="M10 11v5M14 11v5" />
-                                                    </svg>
-                                                </button>
-                                            </form>
-                                        </div>
-                                    </td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
-                <div class="border-t px-4 py-3">{{ $pratiche->links() }}</div>
-            @endif
+        <form method="GET" class="mx-auto mb-4 flex max-w-7xl flex-col gap-3 md:flex-row md:items-center" onsubmit="return false;">
+            <label for="ricerca-pratiche" class="sr-only">Cerca pratica</label>
+            <input id="ricerca-pratiche" type="search" name="ricerca" value="{{ $ricerca ?? '' }}" placeholder="Cerca per viaggio, destinazione, tipologia o cliente" autocomplete="off" class="w-full rounded border px-3 py-2 md:w-96">
+            <label class="flex items-center gap-2 text-sm text-gray-700"><input id="mostra-passati" type="checkbox" name="mostra_passati" value="1" @checked($mostraPassati ?? false) @disabled($viaggioFiltrato) class="rounded border-gray-300 text-blue-600"> Mostra pratiche di viaggi passati</label>
+        </form>
+
+        <div id="pratiche-table-container" class="mx-auto max-w-7xl overflow-hidden rounded bg-white shadow">
+            @include('pratiche._table')
         </div>
     </div>
 </x-app-layout>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    let timer;
+    const ricerca = document.getElementById('ricerca-pratiche');
+    const mostraPassati = document.getElementById('mostra-passati');
+    const tabella = document.getElementById('pratiche-table-container');
+    const viaggioId = @js($viaggioFiltrato?->id);
+
+    function aggiornaRisultati() {
+        clearTimeout(timer);
+        timer = setTimeout(async () => {
+            const parametri = new URLSearchParams({ q: ricerca.value });
+            if (mostraPassati.checked) parametri.set('mostra_passati', '1');
+            if (viaggioId) parametri.set('viaggio_id', viaggioId);
+            const response = await fetch(`{{ route('pratiche.search') }}?${parametri}`);
+            if (response.ok) tabella.innerHTML = await response.text();
+        }, 400);
+    }
+
+    ricerca.addEventListener('input', aggiornaRisultati);
+    mostraPassati.addEventListener('change', aggiornaRisultati);
+});
+</script>
