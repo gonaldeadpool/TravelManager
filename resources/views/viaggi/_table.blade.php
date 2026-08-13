@@ -13,6 +13,7 @@
                     <th class="px-4 py-3">Durata</th>
                     <th class="px-4 py-3">Prezzo</th>
                     <th class="px-4 py-3">Minimo</th>
+                    <th class="px-4 py-3">Partecipanti</th>
                     <th class="px-4 py-3 text-right">Azioni</th>
                 </tr>
             </thead>
@@ -28,7 +29,7 @@
                                 <div class="flex h-16 w-12 items-center justify-center rounded border border-dashed bg-gray-50 text-center text-xs text-gray-400">Nessuna immagine</div>
                             @endif
                         </td>
-                        <td class="px-4 py-3 font-medium">{{ $viaggio->nome }}</td>
+                        <td class="px-4 py-3 font-medium"><a href="{{ route('viaggi.show', $viaggio) }}" class="text-blue-600 hover:underline">{{ $viaggio->nome }}</a></td>
                         <td class="px-4 py-3">{{ ucfirst($viaggio->tipologia) }}</td>
                         <td class="px-4 py-3">{{ $viaggio->destinazione }}</td>
                         <td class="px-4 py-3 whitespace-nowrap">{{ $viaggio->data_partenza->format('d/m/Y') }} - {{ $viaggio->data_rientro->format('d/m/Y') }}</td>
@@ -38,9 +39,10 @@
                         </td>
                         <td class="px-4 py-3 whitespace-nowrap">{{ number_format((float) $viaggio->prezzo, 2, ',', '.') }} EUR</td>
                         <td class="px-4 py-3 whitespace-nowrap">{{ $viaggio->minimo_partecipanti ?? '-' }}</td>
+                        <td class="px-4 py-3 whitespace-nowrap">{{ $viaggio->pratiche->flatMap->clienti->unique('id')->count() }}</td>
                         <td class="px-4 py-3">
                             <div class="flex justify-end gap-2">
-                                <a href="{{ route('pratiche') }}" title="Pratiche" aria-label="Apri pratiche" class="inline-flex h-8 w-8 items-center justify-center rounded text-gray-600 hover:bg-gray-100 hover:text-gray-900">
+                                <a href="{{ route('pratiche.index', ['viaggio_id' => $viaggio->id]) }}" title="Pratiche" aria-label="Apri pratiche del viaggio" class="inline-flex h-8 w-8 items-center justify-center rounded text-gray-600 hover:bg-gray-100 hover:text-gray-900">
                                     <span aria-hidden="true" class="text-sm font-bold">P</span>
                                 </a>
                                 <a href="{{ route('viaggi.edit', $viaggio) }}" title="Modifica viaggio" aria-label="Modifica viaggio" class="inline-flex h-8 w-8 items-center justify-center rounded text-blue-600 hover:bg-blue-50">

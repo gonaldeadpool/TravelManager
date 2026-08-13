@@ -23,8 +23,8 @@
         <div class="mx-auto max-w-4xl" x-data="{ tab: 'tecnica' }">
             <div class="mb-6 border-b border-gray-200">
                 <nav class="flex gap-6" aria-label="Sezioni amministrazione">
-                    <button type="button" @click="tab = 'tecnica'" :class="tab === 'tecnica' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'" class="border-b-2 px-1 pb-3 text-sm font-semibold">Scheda tecnica</button>
                     <button type="button" @click="tab = 'configurazione'" :class="tab === 'configurazione' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'" class="border-b-2 px-1 pb-3 text-sm font-semibold">Configurazione</button>
+                    <button type="button" @click="tab = 'tecnica'" :class="tab === 'tecnica' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'" class="border-b-2 px-1 pb-3 text-sm font-semibold">Scheda tecnica</button>
                 </nav>
             </div>
 
@@ -46,6 +46,12 @@
                             <label for="documenti_path" class="mb-1 block">Cartella documenti</label>
                             <input id="documenti_path" type="text" name="documenti_path" value="{{ old('documenti_path', $documentiPath) }}" required class="w-full rounded border p-2">
                             <p class="mt-1 text-sm text-gray-500">I documenti saranno accessibili solo agli utenti autenticati.</p>
+                        </div>
+
+                        <div>
+                            <label for="documenti_pratiche_path" class="mb-1 block">Cartella documenti pratiche</label>
+                            <input id="documenti_pratiche_path" type="text" name="documenti_pratiche_path" value="{{ old('documenti_pratiche_path', $documentiPratichePath) }}" required class="w-full rounded border p-2">
+                            <p class="mt-1 text-sm text-gray-500">Gli allegati delle pratiche saranno accessibili solo agli utenti autenticati.</p>
                         </div>
                     </div>
                 </div>

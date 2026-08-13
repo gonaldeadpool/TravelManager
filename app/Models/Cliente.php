@@ -35,4 +35,9 @@ class Cliente extends Model
         return $this->hasMany(ClienteDocumento::class);
     }
 
+    public function pratiche()
+    {
+        return $this->belongsToMany(Pratica::class, 'cliente_pratica');
+    }
+
 }

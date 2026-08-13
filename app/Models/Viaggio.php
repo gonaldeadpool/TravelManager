@@ -37,4 +37,9 @@ class Viaggio extends Model
             'eta_gratuita' => 'integer',
         ];
     }
+
+    public function pratiche()
+    {
+        return $this->hasMany(Pratica::class);
+    }
 }

@@ -15,6 +15,7 @@ class AmministrazioneController extends Controller
         return view('amministrazione', [
             'locandinePath' => LocalStoragePaths::locandine(),
             'documentiPath' => LocalStoragePaths::documenti(),
+            'documentiPratichePath' => LocalStoragePaths::documentiPratiche(),
             'scadenze' => $this->scadenze(),
         ]);
     }
@@ -24,6 +25,7 @@ class AmministrazioneController extends Controller
         $validated = $request->validate([
             'locandine_path' => ['required', 'string', 'max:500'],
             'documenti_path' => ['required', 'string', 'max:500'],
+            'documenti_pratiche_path' => ['required', 'string', 'max:500'],
             'scadenza_carta_identita' => ['required', 'integer', 'min:0', 'max:3650'],
             'scadenza_passaporto' => ['required', 'integer', 'min:0', 'max:3650'],
             'scadenza_patente' => ['required', 'integer', 'min:0', 'max:3650'],
@@ -32,6 +34,7 @@ class AmministrazioneController extends Controller
 
         AppSetting::updateOrCreate(['key' => 'storage.locandine'], ['value' => trim($validated['locandine_path'])]);
         AppSetting::updateOrCreate(['key' => 'storage.documenti'], ['value' => trim($validated['documenti_path'])]);
+        AppSetting::updateOrCreate(['key' => 'storage.documenti_pratiche'], ['value' => trim($validated['documenti_pratiche_path'])]);
         foreach (['carta_identita', 'passaporto', 'patente', 'altro'] as $tipo) {
             AppSetting::updateOrCreate(
                 ['key' => "documenti.scadenza.{$tipo}"],

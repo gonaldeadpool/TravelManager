@@ -4,6 +4,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ClienteController;
 use App\Http\Controllers\ViaggioController;
 use App\Http\Controllers\AmministrazioneController;
+use App\Http\Controllers\PraticaController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -56,8 +57,7 @@ Route::post('/clienti', [ClienteController::class, 'store'])
 
 Route::resource('viaggi', ViaggioController::class)
     ->middleware(['auth'])
-    ->parameters(['viaggi' => 'viaggio'])
-    ->except(['show']);
+    ->parameters(['viaggi' => 'viaggio']);
 
 Route::get('/viaggi/search', [ViaggioController::class, 'search'])
     ->middleware(['auth'])
@@ -67,9 +67,46 @@ Route::get('/viaggi/{viaggio}/locandina', [ViaggioController::class, 'downloadLo
     ->middleware(['auth'])
     ->name('viaggi.locandina');
 
-Route::view('/pratiche', 'pratiche')
+Route::get('/pratiche/creazione/clienti', [PraticaController::class, 'selectClientiCreazione'])
     ->middleware(['auth'])
-    ->name('pratiche');
+    ->name('pratiche.creazione.clienti.select');
+
+Route::post('/pratiche/creazione/bozza', [PraticaController::class, 'storeBozzaCreazione'])
+    ->middleware(['auth'])
+    ->name('pratiche.creazione.bozza');
+
+Route::post('/pratiche/creazione/clienti', [PraticaController::class, 'storeClientiCreazione'])
+    ->middleware(['auth'])
+    ->name('pratiche.creazione.clienti.store');
+
+Route::resource('pratiche', PraticaController::class)
+    ->middleware(['auth'])
+    ->parameters(['pratiche' => 'pratica'])
+    ->except(['show']);
+
+Route::get('/pratiche/{pratica}/clienti', [PraticaController::class, 'selectClienti'])
+    ->middleware(['auth'])
+    ->name('pratiche.clienti.select');
+
+Route::post('/pratiche/{pratica}/clienti', [PraticaController::class, 'storeClienti'])
+    ->middleware(['auth'])
+    ->name('pratiche.clienti.store');
+
+Route::delete('/pratiche/{pratica}/clienti/{cliente}', [PraticaController::class, 'destroyCliente'])
+    ->middleware(['auth'])
+    ->name('pratiche.clienti.destroy');
+
+Route::get('/pratiche/{pratica}/documenti/{documento}', [PraticaController::class, 'downloadDocument'])
+    ->middleware(['auth'])
+    ->name('pratiche.documenti.download');
+
+Route::post('/pratiche/{pratica}/documenti', [PraticaController::class, 'storeDocument'])
+    ->middleware(['auth'])
+    ->name('pratiche.documenti.store');
+
+Route::delete('/pratiche/{pratica}/documenti/{documento}', [PraticaController::class, 'destroyDocument'])
+    ->middleware(['auth'])
+    ->name('pratiche.documenti.destroy');
 
 Route::get('/amministrazione', [AmministrazioneController::class, 'edit'])
     ->middleware(['auth'])

@@ -16,6 +16,7 @@ class ViaggioController extends Controller
         $ricerca = $request->input('ricerca');
 
         $viaggi = $this->queryRicerca($ricerca)
+            ->with('pratiche.clienti')
             ->orderBy('data_partenza')
             ->paginate(10)
             ->withQueryString();
@@ -29,6 +30,7 @@ class ViaggioController extends Controller
     public function search(Request $request): View
     {
         $viaggi = $this->queryRicerca($request->input('q'))
+            ->with('pratiche.clienti')
             ->orderBy('data_partenza')
             ->paginate(10)
             ->withQueryString();
@@ -66,6 +68,13 @@ class ViaggioController extends Controller
     public function edit(Viaggio $viaggio): View
     {
         return view('viaggi-edit', compact('viaggio'));
+    }
+
+    public function show(Viaggio $viaggio): View
+    {
+        $viaggio->load(['pratiche.clienti']);
+
+        return view('viaggi-show', compact('viaggio'));
     }
 
     public function update(Request $request, Viaggio $viaggio): RedirectResponse
