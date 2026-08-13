@@ -12,24 +12,12 @@
 
                 <!-- Navigation Links -->
                 <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
-                    <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
-                        {{ __('Travel Manager') }}
-                    </x-nav-link>
-                    <x-nav-link :href="route('clienti')" :active="request()->routeIs('clienti')">
-                        {{ __('Clienti') }}
-                    </x-nav-link>
-                    <x-nav-link :href="route('viaggi.index')" :active="request()->routeIs('viaggi.*')">
-                        {{ __('Viaggi') }}
-                    </x-nav-link>
-                    <x-nav-link :href="route('calendario')" :active="request()->routeIs('calendario*')">
-                        {{ __('Calendario') }}
-                    </x-nav-link>
-                    <x-nav-link :href="route('pratiche.index')" :active="request()->routeIs('pratiche.*')">
-                        {{ __('Pratiche') }}
-                    </x-nav-link>
-                    <x-nav-link :href="route('amministrazione')" :active="request()->routeIs('amministrazione')">
-                        {{ __('Amministrazione') }}
-                    </x-nav-link>
+                    @if (Auth::user()->canAccessMenu('dashboard'))<x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">{{ __('Travel Manager') }}</x-nav-link>@endif
+                    @if (Auth::user()->canAccessMenu('clienti'))<x-nav-link :href="route('clienti')" :active="request()->routeIs('clienti')">{{ __('Clienti') }}</x-nav-link>@endif
+                    @if (Auth::user()->canAccessMenu('viaggi'))<x-nav-link :href="route('viaggi.index')" :active="request()->routeIs('viaggi.*')">{{ __('Viaggi') }}</x-nav-link>@endif
+                    @if (Auth::user()->canAccessMenu('calendario'))<x-nav-link :href="route('calendario')" :active="request()->routeIs('calendario*')">{{ __('Calendario') }}</x-nav-link>@endif
+                    @if (Auth::user()->canAccessMenu('pratiche'))<x-nav-link :href="route('pratiche.index')" :active="request()->routeIs('pratiche.*')">{{ __('Pratiche') }}</x-nav-link>@endif
+                    @if (Auth::user()->canAccessMenu('amministrazione'))<x-nav-link :href="route('amministrazione')" :active="request()->routeIs('amministrazione')">{{ __('Amministrazione') }}</x-nav-link>@endif
                 </div>
             </div>
 
@@ -52,6 +40,12 @@
                         <x-dropdown-link :href="route('profile.edit')">
                             {{ __('Profile') }}
                         </x-dropdown-link>
+
+                        @if (Auth::user()->isAdmin())
+                            <x-dropdown-link :href="route('utenti.index')">
+                                {{ __('Utenti') }}
+                            </x-dropdown-link>
+                        @endif
 
                         <!-- Authentication -->
                         <form method="POST" action="{{ route('logout') }}">
@@ -82,24 +76,12 @@
     <!-- Responsive Navigation Menu -->
     <div :class="{'block': open, 'hidden': ! open}" class="hidden sm:hidden">
         <div class="pt-2 pb-3 space-y-1">
-            <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
-                {{ __('Dashboard') }}
-            </x-responsive-nav-link>
-            <x-responsive-nav-link :href="route('clienti')" :active="request()->routeIs('clienti')">
-                {{ __('Clienti') }}
-            </x-responsive-nav-link>
-            <x-responsive-nav-link :href="route('viaggi.index')" :active="request()->routeIs('viaggi.*')">
-                {{ __('Viaggi') }}
-            </x-responsive-nav-link>
-            <x-responsive-nav-link :href="route('calendario')" :active="request()->routeIs('calendario*')">
-                {{ __('Calendario') }}
-            </x-responsive-nav-link>
-            <x-responsive-nav-link :href="route('pratiche.index')" :active="request()->routeIs('pratiche.*')">
-                {{ __('Pratiche') }}
-            </x-responsive-nav-link>
-            <x-responsive-nav-link :href="route('amministrazione')" :active="request()->routeIs('amministrazione')">
-                {{ __('Amministrazione') }}
-            </x-responsive-nav-link>
+            @if (Auth::user()->canAccessMenu('dashboard'))<x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">{{ __('Dashboard') }}</x-responsive-nav-link>@endif
+            @if (Auth::user()->canAccessMenu('clienti'))<x-responsive-nav-link :href="route('clienti')" :active="request()->routeIs('clienti')">{{ __('Clienti') }}</x-responsive-nav-link>@endif
+            @if (Auth::user()->canAccessMenu('viaggi'))<x-responsive-nav-link :href="route('viaggi.index')" :active="request()->routeIs('viaggi.*')">{{ __('Viaggi') }}</x-responsive-nav-link>@endif
+            @if (Auth::user()->canAccessMenu('calendario'))<x-responsive-nav-link :href="route('calendario')" :active="request()->routeIs('calendario*')">{{ __('Calendario') }}</x-responsive-nav-link>@endif
+            @if (Auth::user()->canAccessMenu('pratiche'))<x-responsive-nav-link :href="route('pratiche.index')" :active="request()->routeIs('pratiche.*')">{{ __('Pratiche') }}</x-responsive-nav-link>@endif
+            @if (Auth::user()->canAccessMenu('amministrazione'))<x-responsive-nav-link :href="route('amministrazione')" :active="request()->routeIs('amministrazione')">{{ __('Amministrazione') }}</x-responsive-nav-link>@endif
         </div>
 
         <!-- Responsive Settings Options -->
@@ -113,6 +95,12 @@
                 <x-responsive-nav-link :href="route('profile.edit')">
                     {{ __('Profile') }}
                 </x-responsive-nav-link>
+
+                @if (Auth::user()->isAdmin())
+                    <x-responsive-nav-link :href="route('utenti.index')">
+                        {{ __('Utenti') }}
+                    </x-responsive-nav-link>
+                @endif
 
                 <!-- Authentication -->
                 <form method="POST" action="{{ route('logout') }}">
