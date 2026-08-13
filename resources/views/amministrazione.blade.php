@@ -76,6 +76,26 @@
                             </div>
                         @endforeach
                     </div>
+
+                    <div class="mt-8 border-t border-gray-200 pt-6">
+                        <h4 class="mb-1 font-semibold">Pagamenti</h4>
+                        <p class="mb-4 text-sm text-gray-500">Indica dopo quanti giorni considerare scaduti l'acconto e il saldo delle pratiche.</p>
+
+                        <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+                            @foreach ([
+                                'acconto' => 'Giorni scadenza acconto',
+                                'saldo' => 'Giorni scadenza saldo',
+                            ] as $tipo => $label)
+                                <div>
+                                    <label for="scadenza_{{ $tipo }}" class="mb-1 block">{{ $label }}</label>
+                                    <div class="relative">
+                                        <input id="scadenza_{{ $tipo }}" type="number" name="scadenza_{{ $tipo }}" min="0" max="3650" required value="{{ old('scadenza_' . $tipo, $scadenzePagamenti[$tipo]) }}" class="w-full rounded border p-2 pr-16">
+                                        <span class="absolute right-3 top-2 text-gray-500">giorni</span>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
                 </div>
 
                 <button type="submit" class="rounded bg-blue-600 px-4 py-2 text-white">Salva configurazione</button>

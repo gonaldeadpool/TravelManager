@@ -37,6 +37,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const mostraPassati = document.getElementById('mostra-passati');
     const tabella = document.getElementById('pratiche-table-container');
     const viaggioId = @js($viaggioFiltrato?->id);
+    const pagamento = @js($pagamento ?? null);
 
     function aggiornaRisultati() {
         clearTimeout(timer);
@@ -44,6 +45,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const parametri = new URLSearchParams({ q: ricerca.value });
             if (mostraPassati.checked) parametri.set('mostra_passati', '1');
             if (viaggioId) parametri.set('viaggio_id', viaggioId);
+            if (pagamento) parametri.set('pagamento', pagamento);
             const response = await fetch(`{{ route('pratiche.search') }}?${parametri}`);
             if (response.ok) tabella.innerHTML = await response.text();
         }, 400);

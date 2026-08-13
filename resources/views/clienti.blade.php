@@ -35,13 +35,14 @@ document.addEventListener('DOMContentLoaded', function () {
     let timer;
     const ricerca = document.getElementById('ricerca-clienti');
     const tabella = document.getElementById('clienti-table-container');
+    const documentiStato = @js($documentiStato ?? null);
 
     ricerca.addEventListener('input', function () {
         clearTimeout(timer);
 
         timer = setTimeout(async () => {
             const response = await fetch(
-                `/clienti/search?q=${encodeURIComponent(ricerca.value)}`
+                `/clienti/search?q=${encodeURIComponent(ricerca.value)}${documentiStato ? `&documenti_stato=${encodeURIComponent(documentiStato)}` : ''}`
             );
 
             if (response.ok) {

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Cliente;
+use App\Models\AppSetting;
 use App\Models\Pratica;
 use App\Models\PraticaDocumento;
 use App\Models\Viaggio;
@@ -20,13 +21,15 @@ class PraticaController extends Controller
         $viaggio = $viaggioId ? Viaggio::findOrFail($viaggioId) : null;
         $ricerca = $request->input('ricerca');
         $mostraPassati = $request->boolean('mostra_passati');
-        $pratiche = $this->queryElenco($ricerca, $mostraPassati, $viaggioId);
+        $pagamento = $request->input('pagamento');
+        $pratiche = $this->queryElenco($ricerca, $mostraPassati, $viaggioId, $pagamento);
 
         return view('pratiche.index', [
             'pratiche' => $pratiche->paginate(10)->withQueryString(),
             'viaggioFiltrato' => $viaggio,
             'ricerca' => $ricerca,
             'mostraPassati' => $mostraPassati,
+            'pagamento' => $pagamento,
         ]);
     }
 
@@ -36,7 +39,8 @@ class PraticaController extends Controller
         $pratiche = $this->queryElenco(
             $request->input('q'),
             $request->boolean('mostra_passati'),
-            $viaggioId
+            $viaggioId,
+            $request->input('pagamento')
         );
 
         return view('pratiche._table', [
@@ -250,9 +254,9 @@ class PraticaController extends Controller
         ];
     }
 
-    private function queryElenco(?string $ricerca, bool $mostraPassati, ?int $viaggioId)
+    private function queryElenco(?string $ricerca, bool $mostraPassati, ?int $viaggioId, ?string $pagamento = null)
     {
-        return Pratica::with(['viaggio', 'clienti'])
+        $query = Pratica::with(['viaggio', 'clienti'])
             ->when($viaggioId, fn ($query) => $query->where('viaggio_id', $viaggioId))
             ->when(! $viaggioId && ! $mostraPassati, fn ($query) => $query->whereHas('viaggio', fn ($viaggi) => $viaggi->whereDate('data_partenza', '>=', today())))
             ->when($ricerca, function ($query, $ricerca) {
@@ -267,7 +271,44 @@ class PraticaController extends Controller
                     });
                 });
             })
-            ->latest();
+            ;
+
+        if (in_array($pagamento, ['acconto_non_versato', 'acconto_non_versato_scadenza', 'acconto_versato', 'saldo_non_versato_scadenza', 'saldo_versato'], true)) {
+            $soglie = [
+                'acconto' => (int) (AppSetting::where('key', 'pratiche.scadenza.acconto')->value('value') ?? 30),
+                'saldo' => (int) (AppSetting::where('key', 'pratiche.scadenza.saldo')->value('value') ?? 30),
+            ];
+            $oggi = today();
+            $ids = (clone $query)->get()->filter(fn (Pratica $pratica) => $this->statoPagamento($pratica, $oggi, $soglie) === $pagamento)->modelKeys();
+            $query->whereKey($ids);
+        }
+
+        return $query->latest();
+    }
+
+    private function statoPagamento(Pratica $pratica, $oggi, array $soglie): string
+    {
+        $totale = (float) $pratica->totale;
+        $acconto = (float) $pratica->acconto;
+        $saldo = (float) $pratica->saldo;
+
+        if ($saldo > 0 && $totale - $acconto - $saldo <= 0) {
+            return 'saldo_versato';
+        }
+
+        if ($acconto <= 0) {
+            $dataAcconto = $pratica->viaggio->data_acconto ?? $pratica->viaggio->data_partenza;
+
+            return $oggi->diffInDays($dataAcconto, false) > $soglie['acconto']
+                ? 'acconto_non_versato'
+                : 'acconto_non_versato_scadenza';
+        }
+
+        $dataSaldo = $pratica->viaggio->data_saldo ?? $pratica->viaggio->data_partenza;
+
+        return $oggi->diffInDays($dataSaldo, false) > $soglie['saldo']
+            ? 'acconto_versato'
+            : 'saldo_non_versato_scadenza';
     }
 
     private function validatePratica(Request $request, bool $richiedeClienti = false): array

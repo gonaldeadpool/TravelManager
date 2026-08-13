@@ -6,15 +6,16 @@ use App\Http\Controllers\ViaggioController;
 use App\Http\Controllers\AmministrazioneController;
 use App\Http\Controllers\PraticaController;
 use App\Http\Controllers\CalendarioController;
+use App\Http\Controllers\DashboardController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     return view('welcome');
 });
 
-Route::get('/dashboard', function () {
-    return view('dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+Route::get('/dashboard', [DashboardController::class, 'index'])
+    ->middleware(['auth', 'verified'])
+    ->name('dashboard');
 
 Route::get('/clienti', [ClienteController::class, 'index'])
     ->middleware(['auth'])

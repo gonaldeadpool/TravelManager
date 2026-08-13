@@ -15,8 +15,9 @@ class ViaggioController extends Controller
     {
         $ricerca = $request->input('ricerca');
         $mostraPassati = $request->boolean('mostra_passati');
+        $tipologia = $request->input('tipologia');
 
-        $viaggi = $this->queryRicerca($ricerca, $mostraPassati)
+        $viaggi = $this->queryRicerca($ricerca, $mostraPassati, $tipologia)
             ->with('pratiche.clienti')
             ->orderBy('data_partenza')
             ->paginate(10)
@@ -26,12 +27,13 @@ class ViaggioController extends Controller
             'viaggi' => $viaggi,
             'ricerca' => $ricerca,
             'mostraPassati' => $mostraPassati,
+            'tipologia' => $tipologia,
         ]);
     }
 
     public function search(Request $request): View
     {
-        $viaggi = $this->queryRicerca($request->input('q'), $request->boolean('mostra_passati'))
+        $viaggi = $this->queryRicerca($request->input('q'), $request->boolean('mostra_passati'), $request->input('tipologia'))
             ->with('pratiche.clienti')
             ->orderBy('data_partenza')
             ->paginate(10)
@@ -170,10 +172,11 @@ class ViaggioController extends Controller
         ]);
     }
 
-    private function queryRicerca(?string $ricerca, bool $mostraPassati = false)
+    private function queryRicerca(?string $ricerca, bool $mostraPassati = false, ?string $tipologia = null)
     {
         return Viaggio::query()
             ->when(! $mostraPassati, fn ($query) => $query->whereDate('data_partenza', '>=', today()))
+            ->when(in_array($tipologia, ['viaggio', 'tour', 'crociera'], true), fn ($query) => $query->where('tipologia', $tipologia))
             ->when($ricerca, function ($query, $ricerca) {
             $query->where(function ($query) use ($ricerca) {
                 $query->where('nome', 'ilike', "%{$ricerca}%")

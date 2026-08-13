@@ -16,6 +16,7 @@ class ClienteController extends Controller
     public function index(Request $request): View
     {
         $ricerca = $request->input('ricerca');
+        $documentiStato = $request->input('documenti_stato');
         $clienti = Cliente::with('documenti');
 
         if ($ricerca) {
@@ -26,9 +27,34 @@ class ClienteController extends Controller
             });
         }
 
+        if (in_array($documentiStato, ['in_regola', 'in_scadenza', 'scaduti'], true)) {
+            $oggi = today();
+            $soglie = $this->scadenzeDocumenti();
+            if ($documentiStato === 'scaduti') {
+                $clienti->where(fn ($query) => $query->doesntHave('documenti')->orWhereHas('documenti', fn ($documenti) => $documenti->whereDate('scadenza', '<', $oggi)));
+            } elseif ($documentiStato === 'in_scadenza') {
+                $clienti->whereHas('documenti', function ($query) use ($oggi, $soglie) {
+                    $query->whereDate('scadenza', '>=', $oggi)->where(function ($query) use ($soglie, $oggi) {
+                        foreach ($soglie as $tipo => $giorni) {
+                            $query->orWhere(fn ($documenti) => $documenti->where('tipo', $tipo)->whereDate('scadenza', '<=', $oggi->copy()->addDays($giorni)));
+                        }
+                    });
+                });
+            } else {
+                $clienti->whereHas('documenti')->whereDoesntHave('documenti', function ($query) use ($oggi, $soglie) {
+                    $query->whereDate('scadenza', '<', $oggi)->orWhere(function ($query) use ($soglie, $oggi) {
+                        foreach ($soglie as $tipo => $giorni) {
+                            $query->orWhere(fn ($documenti) => $documenti->where('tipo', $tipo)->whereDate('scadenza', '<=', $oggi->copy()->addDays($giorni)));
+                        }
+                    });
+                });
+            }
+        }
+
         return view('clienti', [
             'clienti' => $clienti->paginate(5)->withQueryString(),
             'ricerca' => $ricerca,
+            'documentiStato' => $documentiStato,
             'scadenzeDocumenti' => $this->scadenzeDocumenti(),
         ]);
     }
@@ -41,6 +67,10 @@ class ClienteController extends Controller
                 ->orWhere('cognome', 'like', "%{$ricerca}%")
                 ->orWhere('email', 'like', "%{$ricerca}%");
         });
+
+            if ($request->input('documenti_stato') === 'scaduti') {
+                $clienti->where(fn ($query) => $query->doesntHave('documenti')->orWhereHas('documenti', fn ($documenti) => $documenti->whereDate('scadenza', '<', today())));
+            }
 
         return view('clienti._table', [
             'clienti' => $clienti->paginate(5)->withQueryString(),

@@ -17,6 +17,7 @@ class AmministrazioneController extends Controller
             'documentiPath' => LocalStoragePaths::documenti(),
             'documentiPratichePath' => LocalStoragePaths::documentiPratiche(),
             'scadenze' => $this->scadenze(),
+            'scadenzePagamenti' => $this->scadenzePagamenti(),
         ]);
     }
 
@@ -30,6 +31,8 @@ class AmministrazioneController extends Controller
             'scadenza_passaporto' => ['required', 'integer', 'min:0', 'max:3650'],
             'scadenza_patente' => ['required', 'integer', 'min:0', 'max:3650'],
             'scadenza_altro' => ['required', 'integer', 'min:0', 'max:3650'],
+            'scadenza_acconto' => ['required', 'integer', 'min:0', 'max:3650'],
+            'scadenza_saldo' => ['required', 'integer', 'min:0', 'max:3650'],
         ]);
 
         AppSetting::updateOrCreate(['key' => 'storage.locandine'], ['value' => trim($validated['locandine_path'])]);
@@ -41,9 +44,17 @@ class AmministrazioneController extends Controller
                 ['value' => (string) $validated["scadenza_{$tipo}"]]
             );
         }
+        AppSetting::updateOrCreate(
+            ['key' => 'pratiche.scadenza.acconto'],
+            ['value' => (string) $validated['scadenza_acconto']]
+        );
+        AppSetting::updateOrCreate(
+            ['key' => 'pratiche.scadenza.saldo'],
+            ['value' => (string) $validated['scadenza_saldo']]
+        );
         LocalStoragePaths::ensureDirectories();
 
-        return redirect()->route('amministrazione')->with('success', 'Percorsi salvati correttamente.');
+        return redirect()->route('amministrazione')->with('success', 'Configurazione salvata correttamente.');
     }
 
     private function scadenze(): array
@@ -51,5 +62,13 @@ class AmministrazioneController extends Controller
         return collect(['carta_identita', 'passaporto', 'patente', 'altro'])
             ->mapWithKeys(fn ($tipo) => [$tipo => (int) (AppSetting::where('key', "documenti.scadenza.{$tipo}")->value('value') ?? 30)])
             ->all();
+    }
+
+    private function scadenzePagamenti(): array
+    {
+        return [
+            'acconto' => (int) (AppSetting::where('key', 'pratiche.scadenza.acconto')->value('value') ?? 30),
+            'saldo' => (int) (AppSetting::where('key', 'pratiche.scadenza.saldo')->value('value') ?? 30),
+        ];
     }
 }

@@ -49,6 +49,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const ricerca = document.getElementById('ricerca-viaggi');
     const mostraPassati = document.getElementById('mostra-passati');
     const tabella = document.getElementById('viaggi-table-container');
+    const tipologia = @js($tipologia ?? null);
 
     function aggiornaRisultati() {
         clearTimeout(timer);
@@ -56,6 +57,7 @@ document.addEventListener('DOMContentLoaded', function () {
         timer = setTimeout(async () => {
             const parametri = new URLSearchParams({ q: ricerca.value });
             if (mostraPassati.checked) parametri.set('mostra_passati', '1');
+            if (tipologia) parametri.set('tipologia', tipologia);
             const response = await fetch(`/viaggi/search?${parametri}`);
 
             if (response.ok) {
