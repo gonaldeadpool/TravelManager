@@ -25,7 +25,7 @@ class PraticaController extends Controller
         $pratiche = $this->queryElenco($ricerca, $mostraPassati, $viaggioId, $pagamento);
 
         return view('pratiche.index', [
-            'pratiche' => $pratiche->paginate(10)->withQueryString(),
+            'pratiche' => $pratiche->paginate(5)->withQueryString(),
             'viaggioFiltrato' => $viaggio,
             'ricerca' => $ricerca,
             'mostraPassati' => $mostraPassati,
@@ -36,15 +36,25 @@ class PraticaController extends Controller
     public function search(Request $request): View
     {
         $viaggioId = $request->integer('viaggio_id');
+        $ricerca = $request->input('q');
+        $mostraPassati = $request->boolean('mostra_passati');
+        $pagamento = $request->input('pagamento');
         $pratiche = $this->queryElenco(
-            $request->input('q'),
-            $request->boolean('mostra_passati'),
+            $ricerca,
+            $mostraPassati,
             $viaggioId,
-            $request->input('pagamento')
+            $pagamento
         );
 
         return view('pratiche._table', [
-            'pratiche' => $pratiche->paginate(10)->withQueryString(),
+            'pratiche' => $pratiche->paginate(5)
+                ->withPath(route('pratiche.index'))
+                ->appends(array_filter([
+                    'ricerca' => $ricerca,
+                    'mostra_passati' => $mostraPassati ? 1 : null,
+                    'viaggio_id' => $viaggioId ?: null,
+                    'pagamento' => $pagamento,
+                ])),
         ]);
     }
 

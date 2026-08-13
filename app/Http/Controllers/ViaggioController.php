@@ -20,7 +20,7 @@ class ViaggioController extends Controller
         $viaggi = $this->queryRicerca($ricerca, $mostraPassati, $tipologia)
             ->with('pratiche.clienti')
             ->orderBy('data_partenza')
-            ->paginate(10)
+            ->paginate(5)
             ->withQueryString();
 
         return view('viaggi', [
@@ -33,11 +33,19 @@ class ViaggioController extends Controller
 
     public function search(Request $request): View
     {
+        $ricerca = $request->input('q');
+        $mostraPassati = $request->boolean('mostra_passati');
+        $tipologia = $request->input('tipologia');
         $viaggi = $this->queryRicerca($request->input('q'), $request->boolean('mostra_passati'), $request->input('tipologia'))
             ->with('pratiche.clienti')
             ->orderBy('data_partenza')
-            ->paginate(10)
-            ->withQueryString();
+            ->paginate(5)
+            ->withPath(route('viaggi.index'))
+            ->appends(array_filter([
+                'ricerca' => $ricerca,
+                'mostra_passati' => $mostraPassati ? 1 : null,
+                'tipologia' => $tipologia,
+            ]));
 
         return view('viaggi._table', compact('viaggi'));
     }

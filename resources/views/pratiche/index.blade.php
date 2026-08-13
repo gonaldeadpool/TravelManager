@@ -1,9 +1,6 @@
 <x-app-layout>
     <x-slot name="header">
-        <div class="flex items-center justify-between gap-4">
-            <h2 class="text-xl font-semibold leading-tight text-gray-800">Pratiche</h2>
-            <a href="{{ route('pratiche.create') }}" class="rounded bg-green-600 px-4 py-2 text-white">Nuova pratica</a>
-        </div>
+        <h2 class="text-xl font-semibold leading-tight text-gray-800">Pratiche</h2>
     </x-slot>
 
     <div class="p-6">
@@ -17,6 +14,14 @@
                 <a href="{{ route('pratiche.index') }}" class="text-sm underline">Mostra tutte</a>
             </div>
         @endif
+
+        <div class="mx-auto mb-6 flex max-w-7xl flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <div>
+                <h3 class="text-lg font-semibold">Elenco pratiche</h3>
+                <p class="mt-1 text-sm text-gray-500">Gestisci pratiche, pagamenti e partecipanti ai viaggi.</p>
+            </div>
+            <a href="{{ route('pratiche.create') }}" class="whitespace-nowrap rounded bg-green-600 px-4 py-2 text-white">Nuova pratica</a>
+        </div>
 
         <form method="GET" class="mx-auto mb-4 flex max-w-7xl flex-col gap-3 md:flex-row md:items-center" onsubmit="return false;">
             <label for="ricerca-pratiche" class="sr-only">Cerca pratica</label>
