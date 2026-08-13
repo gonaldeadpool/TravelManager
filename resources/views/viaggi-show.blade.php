@@ -80,7 +80,7 @@
                             for ($riga = 1; $riga <= 14; $riga++) {
                                 $righePosti[$riga] = [];
                                 for ($colonna = 1; $colonna <= 5; $colonna++) {
-                                    $assegnabile = $riga === 14 || ($colonna !== 3 && ! ($riga === 7 && in_array($colonna, [4, 5], true)));
+                                    $assegnabile = $riga === 14 || ($colonna !== 3 && ! (in_array($riga, [7, 8], true) && in_array($colonna, [4, 5], true)));
                                     $righePosti[$riga][$colonna] = $assegnabile ? ++$numeroSedile : null;
                                 }
                             }
