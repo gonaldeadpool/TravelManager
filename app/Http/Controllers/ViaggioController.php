@@ -6,7 +6,9 @@ use App\Models\Viaggio;
 use App\Support\LocalStoragePaths;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class ViaggioController extends Controller
@@ -92,13 +94,56 @@ class ViaggioController extends Controller
     public function show(Viaggio $viaggio): View
     {
         $viaggio->load(['pratiche.clienti']);
+        $busTrasporti = collect($viaggio->trasporti ?? [])
+            ->filter(fn ($trasporto) => ($trasporto['tipo'] ?? null) === 'bus')
+            ->values();
 
         return view('viaggi-show', [
             'viaggio' => $viaggio,
             'numeroPartecipanti' => $viaggio->pratiche->flatMap->clienti->unique('id')->count(),
             'importoAcconto' => $viaggio->pratiche->sum('acconto'),
             'importoSaldo' => $viaggio->pratiche->sum('saldo'),
+            'busTrasporti' => $busTrasporti,
         ]);
+    }
+
+    public function assegnaPosto(Request $request, Viaggio $viaggio): JsonResponse
+    {
+        $busIndex = $request->integer('bus');
+        $bus = collect($viaggio->trasporti ?? [])
+            ->filter(fn ($trasporto) => ($trasporto['tipo'] ?? null) === 'bus')
+            ->values()
+            ->get($busIndex);
+        $posti = (int) ($bus['posti'] ?? 0);
+        $validated = $request->validate([
+            'cliente_id' => ['required', 'integer', 'exists:clienti,id'],
+            'posto' => ['nullable', 'integer', 'min:1', 'max:' . max(55, $posti)],
+            'bus' => ['required', 'integer', 'min:0'],
+        ]);
+        abort_if(! $bus, 422, 'Bus non configurato per questo viaggio.');
+        $pratiche = $viaggio->pratiche()->whereHas('clienti', fn ($query) => $query->whereKey($validated['cliente_id']))->get();
+        abort_if($pratiche->isEmpty(), 422, 'Il cliente non partecipa a questo viaggio.');
+
+        $praticaIds = $viaggio->pratiche()->pluck('id');
+        DB::table('cliente_pratica')
+            ->whereIn('pratica_id', $praticaIds)
+            ->where('cliente_id', $validated['cliente_id'])
+            ->update(['posto' => null, 'posto_bus' => null]);
+        if ($validated['posto'] !== null) {
+            DB::table('cliente_pratica')
+                ->whereIn('pratica_id', $praticaIds)
+                ->where('posto_bus', $validated['bus'])
+                ->where('posto', $validated['posto'])
+                ->update(['posto' => null, 'posto_bus' => null]);
+        }
+        foreach ($pratiche as $pratica) {
+            $pratica->clienti()->updateExistingPivot($validated['cliente_id'], [
+                'posto' => $validated['posto'],
+                'posto_bus' => $validated['posto'] === null ? null : $validated['bus'],
+            ]);
+        }
+
+        return response()->json(['ok' => true]);
     }
 
     public function update(Request $request, Viaggio $viaggio): RedirectResponse

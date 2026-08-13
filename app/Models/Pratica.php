@@ -36,7 +36,7 @@ class Pratica extends Model
 
     public function clienti()
     {
-        return $this->belongsToMany(Cliente::class, 'cliente_pratica')->withPivot('gratuito');
+        return $this->belongsToMany(Cliente::class, 'cliente_pratica')->withPivot(['gratuito', 'posto', 'posto_bus']);
     }
 
     public function documenti()

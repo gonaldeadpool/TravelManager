@@ -7,10 +7,18 @@
     </x-slot>
 
     <div class="p-6" x-data="{ tab: 'riepilogo' }">
+        @php
+            $partecipanti = $viaggio->pratiche->flatMap->clienti->unique('id')->values();
+            $postiAssegnati = $partecipanti->filter(fn ($cliente) => filled($cliente->pivot->posto ?? null))->keyBy(fn ($cliente) => ($cliente->pivot->posto_bus ?? 0) . ':' . $cliente->pivot->posto);
+            $clientiDisponibili = $partecipanti->reject(fn ($cliente) => filled($cliente->pivot->posto ?? null));
+        @endphp
         <div class="mx-auto mb-6 max-w-6xl border-b border-gray-200">
             <nav class="flex gap-6" aria-label="Sezioni viaggio">
                 <button type="button" @click="tab = 'riepilogo'" :class="tab === 'riepilogo' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'" class="border-b-2 px-1 pb-3 text-sm font-semibold">Riepilogo</button>
                 <button type="button" @click="tab = 'partecipanti'" :class="tab === 'partecipanti' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'" class="border-b-2 px-1 pb-3 text-sm font-semibold">Partecipanti</button>
+                @foreach ($busTrasporti as $indiceBus => $bus)
+                    <button type="button" @click="tab = 'posti-{{ $indiceBus }}'" :class="tab === 'posti-{{ $indiceBus }}' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'" class="border-b-2 px-1 pb-3 text-sm font-semibold">Bus {{ $indiceBus + 1 }}</button>
+                @endforeach
             </nav>
         </div>
 
@@ -66,6 +74,68 @@
             </div>
         </div>
 
+        @if ($busTrasporti->isNotEmpty())
+            <div x-cloak :style="tab.startsWith('posti-') ? 'display: flex; align-items: flex-start; gap: 1.5rem;' : 'display: none;'" class="mx-auto max-w-6xl">
+                <div style="flex: 1 1 auto; min-width: 0;">
+                    @foreach ($busTrasporti as $indiceBus => $bus)
+                        @php
+                            $postiBus = (int) ($bus['posti'] ?? 0);
+                            $numeroSedile = 0;
+                            $righePosti = [];
+                            for ($riga = 1; $riga <= 14; $riga++) {
+                                $righePosti[$riga] = [];
+                                for ($colonna = 1; $colonna <= 5; $colonna++) {
+                                    $assegnabile = $riga === 14 || ($colonna !== 3 && ! ($riga === 7 && in_array($colonna, [4, 5], true)));
+                                    $righePosti[$riga][$colonna] = $assegnabile ? ++$numeroSedile : null;
+                                }
+                            }
+                        @endphp
+                        <div x-show="tab === 'posti-{{ $indiceBus }}'" x-cloak class="rounded bg-white p-6 shadow">
+                            <div class="mb-5"><h3 class="text-lg font-semibold">Assegnazione posti bus {{ $indiceBus + 1 }}</h3><p class="mt-1 text-sm text-gray-500">Trascina un cliente sul posto desiderato.</p></div>
+                            <div class="overflow-x-auto rounded-xl bg-slate-700 p-5">
+                                <div class="mx-auto max-w-2xl rounded-[3rem] border-4 border-slate-300 bg-slate-100 p-5 shadow-inner">
+                                    <div class="mb-5 flex items-center justify-between rounded-full bg-slate-300 px-5 py-3 text-xs font-semibold uppercase tracking-wider text-slate-600"><span>Autista</span><span>Bus {{ $indiceBus + 1 }} - {{ $postiBus }} posti</span><span>Hostess</span></div>
+                                    <div class="space-y-2">
+                                        @foreach ($righePosti as $riga)
+                                            <div class="grid grid-cols-5 gap-2" style="display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 0.5rem;">
+                                                @for ($colonna = 1; $colonna <= 5; $colonna++)
+                                                    @php($posto = $riga[$colonna])
+                                                    @if ($posto)
+                                                        @php($chiavePosto = $indiceBus . ':' . $posto)
+                                                        <div class="seat min-h-16 rounded-lg bg-white p-2 text-xs" style="border: 3px solid {{ $postiAssegnati->has($chiavePosto) ? '#dc2626' : '#16a34a' }};" data-bus="{{ $indiceBus }}" data-seat="{{ $posto }}" ondragover="event.preventDefault()" ondrop="assegnaPosto(event, {{ $indiceBus }}, {{ $posto }})">
+                                                            <div class="font-bold text-slate-700">{{ $posto }}</div>
+                                                            @if ($postiAssegnati->has($chiavePosto))
+                                                                @php($clienteSeduto = $postiAssegnati->get($chiavePosto))
+                                                                <div draggable="true" data-client-id="{{ $clienteSeduto->id }}" data-client-name="{{ $clienteSeduto->cognome }} {{ $clienteSeduto->nome }}" data-seat-client class="mt-2 cursor-grab truncate rounded bg-blue-100 px-1 py-1 text-[11px] text-blue-800 active:cursor-grabbing">{{ $clienteSeduto->cognome }} {{ $clienteSeduto->nome }}</div>
+                                                            @else
+                                                                <div class="seat-placeholder mt-2 h-5 rounded border border-dashed border-slate-300"></div>
+                                                            @endif
+                                                        </div>
+                                                    @else
+                                                        <div aria-hidden="true" class="min-h-16 rounded-lg border-2 border-dashed border-slate-200 bg-slate-50"></div>
+                                                    @endif
+                                                @endfor
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+                <aside class="rounded bg-gray-50 p-4 shadow" style="flex: 0 0 300px; width: 300px;">
+                    <h4 class="mb-3 font-semibold">Clienti disponibili</h4>
+                    <div id="clienti-disponibili" class="space-y-2" ondragover="event.preventDefault()" ondrop="rimuoviPosto(event)">
+                        @forelse ($clientiDisponibili as $cliente)
+                            <div draggable="true" data-client-id="{{ $cliente->id }}" data-client-name="{{ $cliente->cognome }} {{ $cliente->nome }}" class="client-card cursor-grab rounded border bg-white p-3 text-sm shadow-sm active:cursor-grabbing"><div class="font-medium">{{ $cliente->cognome }} {{ $cliente->nome }}</div><div class="text-xs text-gray-500">Nessun posto assegnato</div></div>
+                        @empty
+                            <p id="nessun-cliente-disponibile" class="rounded border border-dashed p-3 text-sm text-gray-500">Tutti i clienti hanno un posto assegnato.</p>
+                        @endforelse
+                    </div>
+                </aside>
+            </div>
+        @endif
+
         <div x-show="tab === 'partecipanti'" x-cloak class="mx-auto max-w-6xl overflow-hidden rounded bg-white shadow">
             @if ($viaggio->pratiche->flatMap->clienti->isEmpty())
                 <p class="p-8 text-center text-gray-500">Nessun partecipante associato a questo viaggio.</p>
@@ -91,3 +161,122 @@
         </div>
     </div>
 </x-app-layout>
+
+@if ($busTrasporti->isNotEmpty())
+    <script>
+        let clienteTrascinato = null;
+
+        document.querySelectorAll('[data-client-id]').forEach((cliente) => {
+            cliente.addEventListener('dragstart', () => {
+                clienteTrascinato = cliente.dataset.clientId;
+            });
+        });
+
+        function collegaTrascinamento(cliente) {
+            cliente.addEventListener('dragstart', () => {
+                clienteTrascinato = cliente.dataset.clientId;
+            });
+        }
+
+        function creaSchedaCliente(id, nome) {
+            const scheda = document.createElement('div');
+            scheda.draggable = true;
+            scheda.dataset.clientId = id;
+            scheda.dataset.clientName = nome;
+            scheda.className = 'client-card cursor-grab rounded border bg-white p-3 text-sm shadow-sm active:cursor-grabbing';
+            scheda.innerHTML = `<div class="font-medium"></div><div class="text-xs text-gray-500">Nessun posto assegnato</div>`;
+            scheda.querySelector('.font-medium').textContent = nome;
+            collegaTrascinamento(scheda);
+            return scheda;
+        }
+
+        function mostraClienteDisponibile(id, nome) {
+            const lista = document.getElementById('clienti-disponibili');
+            document.getElementById('nessun-cliente-disponibile')?.remove();
+            if (!lista.querySelector(`[data-client-id="${CSS.escape(id)}"]`)) lista.appendChild(creaSchedaCliente(id, nome));
+        }
+
+        function aggiornaSedile(sedile, id, nome) {
+            sedile.querySelector('[data-seat-client]')?.remove();
+            sedile.querySelector('.seat-placeholder')?.remove();
+            sedile.style.border = '3px solid #dc2626';
+            const cliente = document.createElement('div');
+            cliente.draggable = true;
+            cliente.dataset.clientId = id;
+            cliente.dataset.clientName = nome;
+            cliente.dataset.seatClient = '';
+            cliente.className = 'mt-2 cursor-grab truncate rounded bg-blue-100 px-1 py-1 text-[11px] text-blue-800 active:cursor-grabbing';
+            cliente.textContent = nome;
+            collegaTrascinamento(cliente);
+            sedile.appendChild(cliente);
+        }
+
+        async function assegnaPosto(event, bus, posto) {
+            event.preventDefault();
+            if (!clienteTrascinato) return;
+
+            const response = await fetch('{{ route('viaggi.posti.store', $viaggio) }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                    'Accept': 'application/json',
+                },
+                body: JSON.stringify({ cliente_id: clienteTrascinato, bus, posto }),
+            });
+
+            if (response.ok) {
+                const sorgente = document.querySelector(`[data-client-id="${CSS.escape(clienteTrascinato)}"]`);
+                const sedileDestinazione = document.querySelector(`[data-bus="${bus}"][data-seat="${posto}"]`);
+                const occupante = sedileDestinazione.querySelector('[data-seat-client]');
+                const nomeSorgente = sorgente.dataset.clientName;
+
+                if (occupante && occupante.dataset.clientId !== clienteTrascinato) {
+                    mostraClienteDisponibile(occupante.dataset.clientId, occupante.dataset.clientName);
+                }
+                const sedileOrigine = sorgente.closest('[data-seat]');
+                if (sedileOrigine && sedileOrigine !== sedileDestinazione) {
+                    const placeholderOrigine = document.createElement('div');
+                    placeholderOrigine.className = 'seat-placeholder mt-2 h-5 rounded border border-dashed border-slate-300';
+                    sedileOrigine.appendChild(placeholderOrigine);
+                    sedileOrigine.style.border = '3px solid #16a34a';
+                    sorgente.remove();
+                } else if (!sedileOrigine) {
+                    sorgente.remove();
+                }
+                aggiornaSedile(sedileDestinazione, clienteTrascinato, nomeSorgente);
+            }
+            clienteTrascinato = null;
+        }
+
+        async function rimuoviPosto(event) {
+            event.preventDefault();
+            if (!clienteTrascinato) return;
+
+            const sorgente = document.querySelector(`[data-client-id="${CSS.escape(clienteTrascinato)}"]`);
+            const sedileOrigine = sorgente?.closest('[data-seat]');
+            const response = await fetch('{{ route('viaggi.posti.store', $viaggio) }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                    'Accept': 'application/json',
+                },
+                body: JSON.stringify({ cliente_id: clienteTrascinato, bus: sedileOrigine?.dataset.bus ?? 0, posto: null }),
+            });
+
+            if (response.ok && sorgente) {
+                const nome = sorgente.dataset.clientName;
+                if (sedileOrigine) {
+                    sorgente.remove();
+                    sedileOrigine.style.border = '3px solid #16a34a';
+                    const placeholder = document.createElement('div');
+                    placeholder.className = 'seat-placeholder mt-2 h-5 rounded border border-dashed border-slate-300';
+                    sedileOrigine.appendChild(placeholder);
+                }
+                mostraClienteDisponibile(clienteTrascinato, nome);
+            }
+            clienteTrascinato = null;
+        }
+    </script>
+@endif

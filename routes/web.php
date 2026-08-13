@@ -78,6 +78,10 @@ Route::resource('viaggi', ViaggioController::class)
     ->middleware(['auth'])
     ->parameters(['viaggi' => 'viaggio']);
 
+Route::post('/viaggi/{viaggio}/posti', [ViaggioController::class, 'assegnaPosto'])
+    ->middleware(['auth'])
+    ->name('viaggi.posti.store');
+
 Route::get('/pratiche/creazione/clienti', [PraticaController::class, 'selectClientiCreazione'])
     ->middleware(['auth'])
     ->name('pratiche.creazione.clienti.select');
