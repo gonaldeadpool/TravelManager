@@ -33,6 +33,11 @@
                         <div><dt class="text-gray-500">Durata</dt><dd class="mt-1 font-medium">{{ $viaggio->data_partenza->diffInDays($viaggio->data_rientro) + 1 }} giorni, {{ $viaggio->data_partenza->diffInDays($viaggio->data_rientro) }} notti</dd></div>
                         <div><dt class="text-gray-500">Prezzo a persona</dt><dd class="mt-1 font-medium">{{ $viaggio->prezzo !== null ? number_format($viaggio->prezzo, 2, ',', '.') . ' EUR' : '-' }}</dd></div>
                         <div><dt class="text-gray-500">Minimo partecipanti</dt><dd class="mt-1 font-medium">{{ $viaggio->minimo_partecipanti }}</dd></div>
+                        <div><dt class="text-gray-500">Massimo partecipanti</dt><dd class="mt-1 font-medium">{{ $viaggio->massimo_partecipanti ?? '-' }}</dd></div>
+                        <div><dt class="text-gray-500">Numero partecipanti</dt><dd class="mt-1 font-medium">{{ $numeroPartecipanti }}</dd></div>
+                        <div><dt class="text-gray-500">Data acconto</dt><dd class="mt-1 font-medium">{{ $viaggio->data_acconto?->format('d/m/Y') ?? '-' }}</dd></div>
+                        <div><dt class="text-gray-500">Importo acconto</dt><dd class="mt-1 font-medium">{{ number_format($importoAcconto, 2, ',', '.') }} EUR</dd></div>
+                        <div><dt class="text-gray-500">Data saldo</dt><dd class="mt-1 font-medium">{{ $viaggio->data_saldo?->format('d/m/Y') ?? '-' }}</dd></div>
                         <div class="md:col-span-2"><dt class="text-gray-500">Note</dt><dd class="mt-1 whitespace-pre-line font-medium">{{ $viaggio->note ?: '-' }}</dd></div>
                     </dl>
                 </section>

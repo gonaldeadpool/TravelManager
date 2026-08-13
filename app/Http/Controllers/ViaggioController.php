@@ -83,7 +83,12 @@ class ViaggioController extends Controller
     {
         $viaggio->load(['pratiche.clienti']);
 
-        return view('viaggi-show', compact('viaggio'));
+        return view('viaggi-show', [
+            'viaggio' => $viaggio,
+            'numeroPartecipanti' => $viaggio->pratiche->flatMap->clienti->unique('id')->count(),
+            'importoAcconto' => $viaggio->pratiche->sum('acconto'),
+            'importoSaldo' => $viaggio->pratiche->sum('saldo'),
+        ]);
     }
 
     public function update(Request $request, Viaggio $viaggio): RedirectResponse
@@ -145,6 +150,10 @@ class ViaggioController extends Controller
             'data_rientro' => ['required', 'date', 'after_or_equal:data_partenza'],
             'prezzo' => ['nullable', 'required_unless:tipologia,crociera', 'numeric', 'min:0'],
             'minimo_partecipanti' => ['required', 'integer', 'min:1'],
+            'massimo_partecipanti' => ['nullable', 'integer', 'gte:minimo_partecipanti'],
+            'data_acconto' => ['nullable', 'date'],
+            'importo_minimo_acconto' => ['nullable', 'numeric', 'min:0'],
+            'data_saldo' => ['nullable', 'date', 'after_or_equal:data_acconto'],
             'prezzi_cabine' => ['nullable', 'array'],
             'prezzi_cabine.*.tipo' => ['required', 'in:interna,vista_mare,balcone'],
             'prezzi_cabine.*.prezzo' => ['required_if:tipologia,crociera', 'nullable', 'numeric', 'min:0'],

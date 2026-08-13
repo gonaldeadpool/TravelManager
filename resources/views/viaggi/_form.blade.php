@@ -88,9 +88,15 @@
                 <input id="destinazione" type="text" name="destinazione" value="{{ old('destinazione', $viaggio->destinazione ?? '') }}" required class="border rounded w-full p-2">
             </div>
 
-            <div>
-                <label for="minimo_partecipanti" class="block mb-1">Minimo partecipanti *</label>
-                <input id="minimo_partecipanti" type="number" name="minimo_partecipanti" min="1" value="{{ old('minimo_partecipanti', $viaggio->minimo_partecipanti ?? '') }}" required class="border rounded w-full p-2">
+            <div class="grid grid-cols-1 gap-4 md:col-span-2 md:grid-cols-2">
+                <div>
+                    <label for="minimo_partecipanti" class="block mb-1">Minimo partecipanti *</label>
+                    <input id="minimo_partecipanti" type="number" name="minimo_partecipanti" min="1" value="{{ old('minimo_partecipanti', $viaggio->minimo_partecipanti ?? '') }}" required class="border rounded w-full p-2">
+                </div>
+                <div>
+                    <label for="massimo_partecipanti" class="block mb-1">Massimo partecipanti</label>
+                    <input id="massimo_partecipanti" type="number" name="massimo_partecipanti" min="1" value="{{ old('massimo_partecipanti', $viaggio->massimo_partecipanti ?? '') }}" class="border rounded w-full p-2">
+                </div>
             </div>
 
             <div>
@@ -109,6 +115,24 @@
                     <input id="prezzo" type="number" name="prezzo" min="0" step="0.01" value="{{ old('prezzo', $viaggio->prezzo ?? '') }}" :disabled="tipologia === 'crociera'" required class="border rounded w-full p-2 pr-8">
                     <span class="absolute right-3 top-2 text-gray-500">EUR</span>
                 </div>
+            </div>
+
+            <div>
+                <label for="data_acconto" class="block mb-1">Data acconto</label>
+                <input id="data_acconto" type="date" name="data_acconto" value="{{ old('data_acconto', optional($viaggio->data_acconto)->format('Y-m-d')) }}" class="border rounded w-full p-2">
+            </div>
+
+            <div>
+                <label for="importo_minimo_acconto" class="block mb-1">Importo minimo acconto</label>
+                <div class="relative">
+                    <input id="importo_minimo_acconto" type="number" name="importo_minimo_acconto" min="0" step="0.01" value="{{ old('importo_minimo_acconto', $viaggio->importo_minimo_acconto ?? '') }}" class="border rounded w-full p-2 pr-12">
+                    <span class="absolute right-3 top-2 text-gray-500">EUR</span>
+                </div>
+            </div>
+
+            <div>
+                <label for="data_saldo" class="block mb-1">Data saldo</label>
+                <input id="data_saldo" type="date" name="data_saldo" value="{{ old('data_saldo', optional($viaggio->data_saldo)->format('Y-m-d')) }}" class="border rounded w-full p-2">
             </div>
 
             <div class="md:col-span-2" x-show="durata()" x-cloak>
