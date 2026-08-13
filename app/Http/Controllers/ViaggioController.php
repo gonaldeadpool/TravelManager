@@ -14,8 +14,9 @@ class ViaggioController extends Controller
     public function index(Request $request): View
     {
         $ricerca = $request->input('ricerca');
+        $mostraPassati = $request->boolean('mostra_passati');
 
-        $viaggi = $this->queryRicerca($ricerca)
+        $viaggi = $this->queryRicerca($ricerca, $mostraPassati)
             ->with('pratiche.clienti')
             ->orderBy('data_partenza')
             ->paginate(10)
@@ -24,12 +25,13 @@ class ViaggioController extends Controller
         return view('viaggi', [
             'viaggi' => $viaggi,
             'ricerca' => $ricerca,
+            'mostraPassati' => $mostraPassati,
         ]);
     }
 
     public function search(Request $request): View
     {
-        $viaggi = $this->queryRicerca($request->input('q'))
+        $viaggi = $this->queryRicerca($request->input('q'), $request->boolean('mostra_passati'))
             ->with('pratiche.clienti')
             ->orderBy('data_partenza')
             ->paginate(10)
@@ -152,13 +154,15 @@ class ViaggioController extends Controller
         ]);
     }
 
-    private function queryRicerca(?string $ricerca)
+    private function queryRicerca(?string $ricerca, bool $mostraPassati = false)
     {
-        return Viaggio::query()->when($ricerca, function ($query, $ricerca) {
+        return Viaggio::query()
+            ->when(! $mostraPassati, fn ($query) => $query->whereDate('data_partenza', '>=', today()))
+            ->when($ricerca, function ($query, $ricerca) {
             $query->where(function ($query) use ($ricerca) {
-                $query->where('nome', 'like', "%{$ricerca}%")
-                    ->orWhere('destinazione', 'like', "%{$ricerca}%")
-                    ->orWhere('tipologia', 'like', "%{$ricerca}%");
+                $query->where('nome', 'ilike', "%{$ricerca}%")
+                    ->orWhere('destinazione', 'ilike', "%{$ricerca}%")
+                    ->orWhere('tipologia', 'ilike', "%{$ricerca}%");
             });
         });
     }

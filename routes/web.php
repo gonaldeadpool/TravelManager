@@ -55,10 +55,6 @@ Route::post('/clienti', [ClienteController::class, 'store'])
     ->middleware(['auth'])
     ->name('clienti.store');
 
-Route::resource('viaggi', ViaggioController::class)
-    ->middleware(['auth'])
-    ->parameters(['viaggi' => 'viaggio']);
-
 Route::get('/viaggi/search', [ViaggioController::class, 'search'])
     ->middleware(['auth'])
     ->name('viaggi.search');
@@ -66,6 +62,10 @@ Route::get('/viaggi/search', [ViaggioController::class, 'search'])
 Route::get('/viaggi/{viaggio}/locandina', [ViaggioController::class, 'downloadLocandina'])
     ->middleware(['auth'])
     ->name('viaggi.locandina');
+
+Route::resource('viaggi', ViaggioController::class)
+    ->middleware(['auth'])
+    ->parameters(['viaggi' => 'viaggio']);
 
 Route::get('/pratiche/creazione/clienti', [PraticaController::class, 'selectClientiCreazione'])
     ->middleware(['auth'])

@@ -18,7 +18,7 @@
             <a href="{{ route('viaggi.create') }}" class="bg-green-600 text-white px-4 py-2 rounded whitespace-nowrap">Nuovo viaggio</a>
         </div>
 
-        <form method="GET" class="mb-4" onsubmit="return false;">
+        <form method="GET" class="mb-4 flex flex-col gap-3 md:flex-row md:items-center" onsubmit="return false;">
             <label for="ricerca-viaggi" class="sr-only">Cerca viaggio</label>
             <input
                 type="search"
@@ -28,6 +28,10 @@
                 placeholder="Cerca per nome, destinazione o tipologia"
                 autocomplete="off"
                 class="border rounded px-3 py-2 w-full md:w-96">
+            <label class="flex items-center gap-2 text-sm text-gray-700">
+                <input id="mostra-passati" type="checkbox" name="mostra_passati" value="1" @checked($mostraPassati ?? false) class="rounded border-gray-300 text-blue-600">
+                Mostra viaggi passati
+            </label>
         </form>
 
         <div id="viaggi-table-container">
@@ -40,20 +44,24 @@
 document.addEventListener('DOMContentLoaded', function () {
     let timer;
     const ricerca = document.getElementById('ricerca-viaggi');
+    const mostraPassati = document.getElementById('mostra-passati');
     const tabella = document.getElementById('viaggi-table-container');
 
-    ricerca.addEventListener('input', function () {
+    function aggiornaRisultati() {
         clearTimeout(timer);
 
         timer = setTimeout(async () => {
-            const response = await fetch(
-                `/viaggi/search?q=${encodeURIComponent(ricerca.value)}`
-            );
+            const parametri = new URLSearchParams({ q: ricerca.value });
+            if (mostraPassati.checked) parametri.set('mostra_passati', '1');
+            const response = await fetch(`/viaggi/search?${parametri}`);
 
             if (response.ok) {
                 tabella.innerHTML = await response.text();
             }
         }, 400);
-    });
+    }
+
+    ricerca.addEventListener('input', aggiornaRisultati);
+    mostraPassati.addEventListener('change', aggiornaRisultati);
 });
 </script>
