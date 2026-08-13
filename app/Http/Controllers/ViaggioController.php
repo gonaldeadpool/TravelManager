@@ -40,10 +40,17 @@ class ViaggioController extends Controller
         return view('viaggi._table', compact('viaggi'));
     }
 
-    public function create(): View
+    public function create(Request $request): View
     {
+        $data = $request->date('data_partenza');
+
         return view('viaggi-create', [
-            'viaggio' => new Viaggio(['trasporti' => [], 'sistemazioni' => []]),
+            'viaggio' => new Viaggio([
+                'trasporti' => [],
+                'sistemazioni' => [],
+                'data_partenza' => $data,
+                'data_rientro' => $data,
+            ]),
         ]);
     }
 
