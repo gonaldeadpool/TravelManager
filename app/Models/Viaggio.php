@@ -23,7 +23,6 @@ class Viaggio extends Model
         'note',
         'locandina',
         'trasporti',
-        'sistemazioni',
         'prezzi_cabine',
         'eta_gratuita',
     ];
@@ -40,7 +39,6 @@ class Viaggio extends Model
             'importo_minimo_acconto' => 'decimal:2',
             'data_saldo' => 'date',
             'trasporti' => 'array',
-            'sistemazioni' => 'array',
             'prezzi_cabine' => 'array',
             'eta_gratuita' => 'integer',
         ];
@@ -49,5 +47,10 @@ class Viaggio extends Model
     public function pratiche()
     {
         return $this->hasMany(Pratica::class);
+    }
+
+    public function tappeRaccolta()
+    {
+        return $this->hasMany(TappaRaccolta::class)->orderBy('orario')->orderBy('nome');
     }
 }

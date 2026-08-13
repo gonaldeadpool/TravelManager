@@ -11,6 +11,8 @@
             $partecipanti = $viaggio->pratiche->flatMap->clienti->unique('id')->values();
             $postiAssegnati = $partecipanti->filter(fn ($cliente) => filled($cliente->pivot->posto ?? null))->keyBy(fn ($cliente) => ($cliente->pivot->posto_bus ?? 0) . ':' . $cliente->pivot->posto);
             $clientiDisponibili = $partecipanti->reject(fn ($cliente) => filled($cliente->pivot->posto ?? null));
+            $clientiInTappa = $tappeRaccolta->flatMap->clienti->pluck('id')->unique();
+            $clientiDisponibiliTappe = $partecipanti->whereNotIn('id', $clientiInTappa);
         @endphp
         <div class="mx-auto mb-6 max-w-6xl border-b border-gray-200">
             <nav class="flex gap-6" aria-label="Sezioni viaggio">
@@ -19,6 +21,9 @@
                 @foreach ($busTrasporti as $indiceBus => $bus)
                     <button type="button" @click="tab = 'posti-{{ $indiceBus }}'" :class="tab === 'posti-{{ $indiceBus }}' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'" class="border-b-2 px-1 pb-3 text-sm font-semibold">Bus {{ $indiceBus + 1 }}</button>
                 @endforeach
+                @if ($busTrasporti->isNotEmpty())
+                    <button type="button" @click="tab = 'tappe'" :class="tab === 'tappe' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'" class="border-b-2 px-1 pb-3 text-sm font-semibold">Tappe di raccolta</button>
+                @endif
             </nav>
         </div>
 
@@ -61,16 +66,6 @@
                     </div>
                 </section>
 
-                <section class="rounded bg-white p-6 shadow">
-                    <h3 class="mb-3 text-lg font-semibold">Sistemazioni</h3>
-                    <div class="space-y-2">
-                        @forelse ($viaggio->sistemazioni ?? [] as $sistemazione)
-                            <p class="rounded border p-3 text-sm">{{ ucfirst($sistemazione['tipo'] ?? '') }} {{ $sistemazione['formato'] ?? '' }} @if (!empty($sistemazione['quantita'])) - {{ $sistemazione['quantita'] }} disponibili @endif</p>
-                        @empty
-                            <p class="text-sm text-gray-500">Nessuna sistemazione configurata.</p>
-                        @endforelse
-                    </div>
-                </section>
             </div>
         </div>
 
@@ -134,6 +129,49 @@
                     </div>
                 </aside>
             </div>
+        @endif
+
+        @if ($busTrasporti->isNotEmpty())
+        <div x-cloak :style="tab === 'tappe' ? 'display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 1.5rem;' : 'display: none;'" class="mx-auto max-w-6xl">
+            <section class="rounded bg-white p-6 shadow">
+                <div class="mb-5 flex items-center justify-between gap-4">
+                    <div><h3 class="text-lg font-semibold">Tappe di raccolta</h3><p class="mt-1 text-sm text-gray-500">Crea le fermate e assegna i partecipanti con il drag & drop.</p></div>
+                    <button type="button" id="mostra-form-tappa" class="whitespace-nowrap rounded bg-blue-600 px-4 py-2 text-sm text-white">Aggiungi tappa</button>
+                </div>
+                <form id="form-tappa" class="mb-5 hidden rounded border border-blue-200 bg-blue-50 p-4" data-url="{{ route('viaggi.tappe-raccolta.store', $viaggio) }}">
+                    <div class="grid grid-cols-1 gap-3 md:grid-cols-[1fr_160px_auto] md:items-end">
+                        <div><label for="tappa-nome" class="mb-1 block text-sm font-medium">Nome tappa</label><input id="tappa-nome" name="nome" required class="w-full rounded border p-2"></div>
+                        <div><label for="tappa-orario" class="mb-1 block text-sm font-medium">Orario</label><input id="tappa-orario" name="orario" type="time" required class="w-full rounded border p-2"></div>
+                        <button class="rounded bg-green-600 px-4 py-2 text-sm text-white">Crea</button>
+                    </div>
+                </form>
+                <div id="tappe-raccolta-lista" class="space-y-4">
+                    @forelse ($tappeRaccolta as $tappa)
+                        <div class="tappa-card rounded border p-4" data-tappa-id="{{ $tappa->id }}" data-tappa-url="{{ route('viaggi.tappe-raccolta.clienti.store', [$viaggio, $tappa]) }}">
+                            <div class="mb-3 flex items-center justify-between"><h4 class="font-semibold">{{ $tappa->nome }} <span class="font-normal text-gray-500">- {{ $tappa->orario->format('H:i') }}</span></h4><span class="text-xs text-gray-500">Trascina qui i clienti</span></div>
+                            <div class="tappa-clienti min-h-16 space-y-2 rounded border-2 border-dashed border-blue-200 p-3" data-drop-tappa ondragover="event.preventDefault()" ondrop="assegnaTappa(event, this.closest('[data-tappa-id]').dataset.tappaId, this.closest('[data-tappa-id]').dataset.tappaUrl)">
+                                @foreach ($tappa->clienti as $cliente)
+                                    <div class="flex items-center justify-between rounded bg-blue-50 px-3 py-2 text-sm" data-tappa-cliente="{{ $cliente->id }}" data-tappa-cliente-name="{{ $cliente->cognome }} {{ $cliente->nome }}"><span>{{ $cliente->cognome }} {{ $cliente->nome }}</span><button type="button" title="Rimuovi dalla tappa" aria-label="Rimuovi dalla tappa" class="text-red-600" onclick="rimuoviDaTappa(event, {{ $tappa->id }}, {{ $cliente->id }})">&#10005;</button></div>
+                                @endforeach
+                                @if ($tappa->clienti->isEmpty())<span class="text-sm text-gray-400">Nessun cliente assegnato.</span>@endif
+                            </div>
+                        </div>
+                    @empty
+                        <p id="nessuna-tappa" class="rounded border border-dashed p-4 text-sm text-gray-500">Nessuna tappa creata.</p>
+                    @endforelse
+                </div>
+            </section>
+            <aside class="rounded bg-gray-50 p-4 shadow">
+                <h4 class="mb-3 font-semibold">Partecipanti disponibili</h4>
+                <div id="clienti-disponibili-tappe" class="space-y-2">
+                    @forelse ($clientiDisponibiliTappe as $cliente)
+                        <div draggable="true" ondragstart="event.dataTransfer.setData('text/plain', this.dataset.tappaClientId)" data-tappa-client-id="{{ $cliente->id }}" data-tappa-client-name="{{ $cliente->cognome }} {{ $cliente->nome }}" class="cursor-grab rounded border bg-white p-3 text-sm shadow-sm active:cursor-grabbing">{{ $cliente->cognome }} {{ $cliente->nome }}</div>
+                    @empty
+                        <p id="nessun-cliente-tappa" class="rounded border border-dashed p-3 text-sm text-gray-500">Tutti i partecipanti sono assegnati.</p>
+                    @endforelse
+                </div>
+            </aside>
+        </div>
         @endif
 
         <div x-show="tab === 'partecipanti'" x-cloak class="mx-auto max-w-6xl overflow-hidden rounded bg-white shadow">
@@ -280,3 +318,103 @@
         }
     </script>
 @endif
+
+<script>
+    const csrfTokenTappe = document.querySelector('meta[name="csrf-token"]')?.content;
+    const formTappa = document.getElementById('form-tappa');
+    const listaTappe = document.getElementById('tappe-raccolta-lista');
+    const listaClientiTappe = document.getElementById('clienti-disponibili-tappe');
+    let clienteTappaTrascinato = null;
+
+    document.querySelectorAll('[data-tappa-client-id]').forEach((cliente) => {
+        cliente.addEventListener('dragstart', (event) => {
+            clienteTappaTrascinato = cliente.dataset.tappaClientId;
+            event.dataTransfer.setData('text/plain', clienteTappaTrascinato);
+            event.dataTransfer.effectAllowed = 'move';
+        });
+    });
+
+    document.getElementById('mostra-form-tappa')?.addEventListener('click', () => {
+        formTappa.classList.toggle('hidden');
+        if (!formTappa.classList.contains('hidden')) document.getElementById('tappa-nome').focus();
+    });
+
+    formTappa?.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const response = await fetch(formTappa.dataset.url, {
+            method: 'POST',
+            headers: {'X-CSRF-TOKEN': csrfTokenTappe, 'Accept': 'application/json', 'Content-Type': 'application/json'},
+            body: JSON.stringify({nome: document.getElementById('tappa-nome').value, orario: document.getElementById('tappa-orario').value}),
+        });
+        if (!response.ok) return;
+        const tappa = await response.json();
+        document.getElementById('nessuna-tappa')?.remove();
+        listaTappe.insertAdjacentHTML('beforeend', `<div class="tappa-card rounded border p-4" data-tappa-id="${tappa.id}" data-tappa-url="${formTappa.dataset.url}/${tappa.id}/clienti"><div class="mb-3 flex items-center justify-between"><h4 class="font-semibold">${escapeHtmlTappa(tappa.nome)} <span class="font-normal text-gray-500">- ${tappa.orario}</span></h4><span class="text-xs text-gray-500">Trascina qui i clienti</span></div><div class="tappa-clienti min-h-16 space-y-2 rounded border-2 border-dashed border-blue-200 p-3" data-drop-tappa ondragover="event.preventDefault()" ondrop="assegnaTappa(event, this.closest('[data-tappa-id]').dataset.tappaId, this.closest('[data-tappa-id]').dataset.tappaUrl)"><span class="text-sm text-gray-400">Nessun cliente assegnato.</span></div></div>`);
+        formTappa.reset();
+        formTappa.classList.add('hidden');
+    });
+
+    function escapeHtmlTappa(value) {
+        const element = document.createElement('span');
+        element.textContent = value;
+        return element.innerHTML;
+    }
+
+    function aggiungiClienteDisponibileTappa(id, nome) {
+        document.getElementById('nessun-cliente-tappa')?.remove();
+        if (listaClientiTappe.querySelector(`[data-tappa-client-id="${CSS.escape(String(id))}"]`)) return;
+        const cliente = document.createElement('div');
+        cliente.draggable = true;
+        cliente.dataset.tappaClientId = id;
+        cliente.dataset.tappaClientName = nome;
+        cliente.className = 'cursor-grab rounded border bg-white p-3 text-sm shadow-sm active:cursor-grabbing';
+        cliente.ondragstart = (event) => event.dataTransfer.setData('text/plain', String(id));
+        cliente.textContent = nome;
+        cliente.addEventListener('dragstart', (event) => {
+            clienteTappaTrascinato = String(id);
+            event.dataTransfer.setData('text/plain', clienteTappaTrascinato);
+            event.dataTransfer.effectAllowed = 'move';
+        });
+        listaClientiTappe.appendChild(cliente);
+    }
+
+    async function assegnaTappa(event, tappaId, url) {
+        event.preventDefault();
+        clienteTappaTrascinato = event.dataTransfer?.getData('text/plain') || clienteTappaTrascinato;
+        if (!clienteTappaTrascinato) return;
+        const lista = event.currentTarget;
+        const cliente = document.querySelector(`[data-tappa-client-id="${CSS.escape(String(clienteTappaTrascinato))}"]`);
+        const response = await fetch(url, {method: 'POST', headers: {'X-CSRF-TOKEN': csrfTokenTappe, 'Accept': 'application/json', 'Content-Type': 'application/json'}, body: JSON.stringify({cliente_id: clienteTappaTrascinato})});
+        if (response.ok && cliente) {
+            lista.querySelector('[data-tappa-empty]')?.remove();
+            lista.querySelector('span.text-sm.text-gray-400')?.remove();
+            const card = document.createElement('div');
+            card.className = 'flex items-center justify-between rounded bg-blue-50 px-3 py-2 text-sm';
+            card.dataset.tappaCliente = clienteTappaTrascinato;
+            card.dataset.tappaClienteName = cliente.dataset.tappaClientName;
+            card.innerHTML = `<span>${escapeHtmlTappa(cliente.dataset.tappaClientName)}</span><button type="button" title="Rimuovi dalla tappa" aria-label="Rimuovi dalla tappa" class="text-red-600">&#10005;</button>`;
+            card.querySelector('button').addEventListener('click', (clickEvent) => rimuoviDaTappa(clickEvent, tappaId, card.dataset.tappaCliente));
+            lista.appendChild(card);
+            cliente.remove();
+        }
+        clienteTappaTrascinato = null;
+    }
+
+    async function rimuoviDaTappa(event, tappaId, clienteId) {
+        event.preventDefault();
+        event.stopPropagation();
+        const card = event.currentTarget?.closest('[data-tappa-cliente]')
+            ?? document.querySelector(`[data-tappa-cliente="${CSS.escape(String(clienteId))}"]`);
+        const url = `{{ url('/viaggi/' . $viaggio->id . '/tappe-raccolta') }}/${tappaId}/clienti/${clienteId}`;
+        const response = await fetch(url, {method: 'DELETE', headers: {'X-CSRF-TOKEN': csrfTokenTappe, 'Accept': 'application/json'}});
+        if (response.ok) {
+            const nome = card?.dataset.tappaClienteName ?? '';
+            if (nome) aggiungiClienteDisponibileTappa(clienteId, nome);
+            card?.remove();
+            const contenitore = document.querySelector(`[data-tappa-id="${CSS.escape(String(tappaId))}"] [data-drop-tappa]`);
+            if (contenitore && !contenitore.querySelector('[data-tappa-cliente]')) {
+                contenitore.insertAdjacentHTML('beforeend', '<span class="tappa-empty-message text-sm text-gray-400">Nessun cliente assegnato.</span>');
+            }
+        }
+    }
+</script>

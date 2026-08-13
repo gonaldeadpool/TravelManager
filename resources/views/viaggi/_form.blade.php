@@ -1,6 +1,5 @@
 @php
     $trasporti = old('trasporti', $viaggio->trasporti ?? []);
-    $sistemazioni = old('sistemazioni', $viaggio->sistemazioni ?? []);
     $prezziCabine = old('prezzi_cabine', $viaggio->prezzi_cabine ?? [
         ['tipo' => 'interna', 'prezzo' => ''],
         ['tipo' => 'vista_mare', 'prezzo' => ''],
@@ -10,18 +9,11 @@
 
 <div x-data="{
     trasporti: @js($trasporti),
-    sistemazioni: @js($sistemazioni),
     prezziCabine: @js($prezziCabine),
     etaGratuita: @js(old('eta_gratuita', $viaggio->eta_gratuita ?? '')),
     tipologia: @js(old('tipologia', $viaggio->tipologia ?? 'viaggio')),
     locandinaPreview: @js($viaggio->locandina ? asset('storage/' . $viaggio->locandina) : null),
     aggiungiTrasporto() { this.trasporti.push({ tipo: 'bus', posti: '' }) },
-    aggiungiSistemazione() { this.sistemazioni.push({ tipo: 'camera', formato: 'doppia', quantita: '' }) },
-    cambiaTipologia() {
-        if (this.tipologia !== 'crociera') {
-            this.sistemazioni = this.sistemazioni.filter(sistemazione => sistemazione.tipo !== 'cabina');
-        }
-    },
     rimuovi(array, indice) { array.splice(indice, 1) },
     durata() {
         if (!this.dataPartenza || !this.dataRientro) return null;
@@ -45,7 +37,7 @@
     },
     dataPartenza: @js(old('data_partenza', optional($viaggio->data_partenza)->format('Y-m-d'))),
     dataRientro: @js(old('data_rientro', optional($viaggio->data_rientro)->format('Y-m-d')))
-}" x-init="cambiaTipologia()" class="grid grid-cols-1 gap-6 lg:grid-cols-[280px_minmax(0,1fr)] lg:items-start">
+}" class="grid grid-cols-1 gap-6 lg:grid-cols-[280px_minmax(0,1fr)] lg:items-start">
     <aside class="bg-white shadow rounded p-6 lg:sticky lg:top-6">
         <h3 class="text-lg font-semibold mb-4">Locandina</h3>
 
@@ -141,34 +133,22 @@
                 </div>
             </div>
 
-            <div class="md:col-span-2 rounded border border-blue-200 bg-blue-50 p-4" x-show="tipologia === 'crociera'" x-cloak>
-                <div class="mb-4">
-                    <h4 class="font-semibold text-blue-900">Prezzi cabine</h4>
-                    <p class="mt-1 text-sm text-blue-800">Imposta il prezzo per ogni tipologia di cabina.</p>
-                </div>
+            <div class="md:col-span-2">
+                <label for="note" class="block mb-1">Note</label>
+                <textarea id="note" name="note" rows="4" class="border rounded w-full p-2" placeholder="Aggiungi eventuali note sul viaggio">{{ old('note', $viaggio->note ?? '') }}</textarea>
+            </div>
 
+            <div class="md:col-span-2 rounded border border-blue-200 bg-blue-50 p-4" x-show="tipologia === 'crociera'" x-cloak>
+                <div class="mb-4"><h4 class="font-semibold text-blue-900">Prezzi cabine</h4><p class="mt-1 text-sm text-blue-800">Imposta il prezzo per ogni tipologia di cabina.</p></div>
                 <div class="grid grid-cols-1 gap-3 md:grid-cols-3">
                     <template x-for="(cabina, indice) in prezziCabine" :key="cabina.tipo">
                         <div>
                             <label :for="`prezzo-cabina-${cabina.tipo}`" class="mb-1 block text-sm font-medium" x-text="cabina.tipo === 'interna' ? 'Cabina interna' : (cabina.tipo === 'vista_mare' ? 'Cabina vista mare' : 'Cabina con balcone')"></label>
-                            <div class="relative">
-                                <input :id="`prezzo-cabina-${cabina.tipo}`" type="number" min="0" step="0.01" :name="`prezzi_cabine[${indice}][prezzo]`" x-model="cabina.prezzo" :disabled="tipologia !== 'crociera'" class="w-full rounded border p-2 pr-8">
-                                <span class="absolute right-3 top-2 text-gray-500">EUR</span>
-                            </div>
+                            <div class="relative"><input :id="`prezzo-cabina-${cabina.tipo}`" type="number" min="0" step="0.01" :name="`prezzi_cabine[${indice}][prezzo]`" x-model="cabina.prezzo" :disabled="tipologia !== 'crociera'" class="w-full rounded border p-2 pr-8"><span class="absolute right-3 top-2 text-gray-500">EUR</span></div>
                             <input type="hidden" :name="`prezzi_cabine[${indice}][tipo]`" :value="cabina.tipo" :disabled="tipologia !== 'crociera'">
                         </div>
                     </template>
                 </div>
-
-                <div class="mt-4 max-w-xs">
-                    <label for="eta_gratuita" class="mb-1 block text-sm font-medium">Crociera gratis fino a (anni)</label>
-                    <input id="eta_gratuita" type="number" min="0" max="17" name="eta_gratuita" x-model="etaGratuita" :disabled="tipologia !== 'crociera'" class="w-full rounded border p-2">
-                </div>
-            </div>
-
-            <div class="md:col-span-2">
-                <label for="note" class="block mb-1">Note</label>
-                <textarea id="note" name="note" rows="4" class="border rounded w-full p-2" placeholder="Aggiungi eventuali note sul viaggio">{{ old('note', $viaggio->note ?? '') }}</textarea>
             </div>
 
             </div>
@@ -205,43 +185,5 @@
         </div>
         </div>
 
-        <div class="bg-white shadow rounded p-6">
-        <div class="flex items-center justify-between gap-4 mb-4">
-            <div>
-                <h3 class="text-lg font-semibold">Camere e cabine</h3>
-                <p class="text-sm text-gray-500 mt-1">Indica la sistemazione, il formato e la quantità disponibile.</p>
-            </div>
-            <button type="button" @click="aggiungiSistemazione()" class="bg-gray-800 text-white px-3 py-2 rounded text-sm">Aggiungi sistemazione</button>
-        </div>
-
-        <div class="space-y-3">
-            <template x-for="(sistemazione, indice) in sistemazioni" :key="indice">
-                <div class="grid grid-cols-1 md:grid-cols-[1fr_1fr_1fr_auto] gap-3 items-end rounded border p-3">
-                    <div>
-                        <label class="block mb-1">Tipo</label>
-                        <select :name="`sistemazioni[${indice}][tipo]`" x-model="sistemazione.tipo" class="border rounded w-full p-2">
-                            <option value="camera">Camera</option>
-                            <option value="cabina" x-show="tipologia === 'crociera'">Cabina</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block mb-1">Formato</label>
-                        <select :name="`sistemazioni[${indice}][formato]`" x-model="sistemazione.formato" class="border rounded w-full p-2">
-                            <option value="singola">Singola</option>
-                            <option value="doppia">Doppia</option>
-                            <option value="tripla">Tripla</option>
-                            <option value="quadrupla">Quadrupla</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block mb-1">Quantità</label>
-                        <input type="number" min="1" :name="`sistemazioni[${indice}][quantita]`" x-model="sistemazione.quantita" class="border rounded w-full p-2">
-                    </div>
-                    <button type="button" @click="rimuovi(sistemazioni, indice)" class="text-red-600 px-2 py-2 text-sm">Rimuovi</button>
-                </div>
-            </template>
-            <p x-show="sistemazioni.length === 0" class="text-sm text-gray-500">Nessuna sistemazione configurata.</p>
-        </div>
-        </div>
     </div>
 </div>

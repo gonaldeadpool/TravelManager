@@ -82,6 +82,16 @@ Route::post('/viaggi/{viaggio}/posti', [ViaggioController::class, 'assegnaPosto'
     ->middleware(['auth'])
     ->name('viaggi.posti.store');
 
+Route::post('/viaggi/{viaggio}/tappe-raccolta', [ViaggioController::class, 'creaTappaRaccolta'])
+    ->middleware(['auth'])
+    ->name('viaggi.tappe-raccolta.store');
+Route::post('/viaggi/{viaggio}/tappe-raccolta/{tappa}/clienti', [ViaggioController::class, 'assegnaClienteTappa'])
+    ->middleware(['auth'])
+    ->name('viaggi.tappe-raccolta.clienti.store');
+Route::delete('/viaggi/{viaggio}/tappe-raccolta/{tappa}/clienti/{cliente}', [ViaggioController::class, 'rimuoviClienteTappa'])
+    ->middleware(['auth'])
+    ->name('viaggi.tappe-raccolta.clienti.destroy');
+
 Route::get('/pratiche/creazione/clienti', [PraticaController::class, 'selectClientiCreazione'])
     ->middleware(['auth'])
     ->name('pratiche.creazione.clienti.select');

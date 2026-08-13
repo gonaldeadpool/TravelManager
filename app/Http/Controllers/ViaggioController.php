@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Viaggio;
+use App\Models\TappaRaccolta;
+use App\Models\Cliente;
 use App\Support\LocalStoragePaths;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -59,7 +61,6 @@ class ViaggioController extends Controller
         return view('viaggi-create', [
             'viaggio' => new Viaggio([
                 'trasporti' => [],
-                'sistemazioni' => [],
                 'data_partenza' => $data,
                 'data_rientro' => $data,
             ]),
@@ -70,7 +71,6 @@ class ViaggioController extends Controller
     {
         $validated = $this->validateViaggio($request);
         $validated['trasporti'] = $this->normalizzaOpzioni($request->input('trasporti', []));
-        $validated['sistemazioni'] = $this->normalizzaSistemazioni($request);
         $validated['prezzi_cabine'] = $this->normalizzaPrezziCabine($request);
 
         if ($request->hasFile('locandina')) {
@@ -93,7 +93,7 @@ class ViaggioController extends Controller
 
     public function show(Viaggio $viaggio): View
     {
-        $viaggio->load(['pratiche.clienti']);
+        $viaggio->load(['pratiche.clienti', 'tappeRaccolta.clienti']);
         $busTrasporti = collect($viaggio->trasporti ?? [])
             ->filter(fn ($trasporto) => ($trasporto['tipo'] ?? null) === 'bus')
             ->values();
@@ -104,7 +104,50 @@ class ViaggioController extends Controller
             'importoAcconto' => $viaggio->pratiche->sum('acconto'),
             'importoSaldo' => $viaggio->pratiche->sum('saldo'),
             'busTrasporti' => $busTrasporti,
+            'tappeRaccolta' => $viaggio->tappeRaccolta,
         ]);
+    }
+
+    public function creaTappaRaccolta(Request $request, Viaggio $viaggio): JsonResponse
+    {
+        $validated = $request->validate([
+            'nome' => ['required', 'string', 'max:150'],
+            'orario' => ['required', 'date_format:H:i'],
+        ]);
+
+        $tappa = $viaggio->tappeRaccolta()->create($validated);
+
+        return response()->json([
+            'id' => $tappa->id,
+            'nome' => $tappa->nome,
+            'orario' => $tappa->orario->format('H:i'),
+        ]);
+    }
+
+    public function assegnaClienteTappa(Request $request, Viaggio $viaggio, TappaRaccolta $tappa): JsonResponse
+    {
+        abort_unless($tappa->viaggio_id === $viaggio->id, 404);
+        $validated = $request->validate(['cliente_id' => ['required', 'integer', 'exists:clienti,id']]);
+        $partecipa = $viaggio->pratiche()->whereHas('clienti', fn ($query) => $query->whereKey($validated['cliente_id']))->exists();
+        abort_unless($partecipa, 422, 'Il cliente non partecipa a questo viaggio.');
+
+        $tappaIds = $viaggio->tappeRaccolta()->pluck('id');
+        DB::table('viaggio_tappa_cliente')->whereIn('tappa_id', $tappaIds)->where('cliente_id', $validated['cliente_id'])->delete();
+        DB::table('viaggio_tappa_cliente')->insert([
+            'viaggio_id' => $viaggio->id,
+            'tappa_id' => $tappa->id,
+            'cliente_id' => $validated['cliente_id'],
+        ]);
+
+        return response()->json(['ok' => true]);
+    }
+
+    public function rimuoviClienteTappa(Request $request, Viaggio $viaggio, TappaRaccolta $tappa, Cliente $cliente): JsonResponse
+    {
+        abort_unless($tappa->viaggio_id === $viaggio->id, 404);
+        DB::table('viaggio_tappa_cliente')->where('tappa_id', $tappa->id)->where('cliente_id', $cliente->id)->delete();
+
+        return response()->json(['ok' => true]);
     }
 
     public function assegnaPosto(Request $request, Viaggio $viaggio): JsonResponse
@@ -150,7 +193,6 @@ class ViaggioController extends Controller
     {
         $validated = $this->validateViaggio($request);
         $validated['trasporti'] = $this->normalizzaOpzioni($request->input('trasporti', []));
-        $validated['sistemazioni'] = $this->normalizzaSistemazioni($request);
         $validated['prezzi_cabine'] = $this->normalizzaPrezziCabine($request);
 
         if ($request->hasFile('locandina')) {
@@ -210,7 +252,7 @@ class ViaggioController extends Controller
             'importo_minimo_acconto' => ['nullable', 'numeric', 'min:0'],
             'data_saldo' => ['nullable', 'date', 'after_or_equal:data_acconto'],
             'prezzi_cabine' => ['nullable', 'array'],
-            'prezzi_cabine.*.tipo' => ['required', 'in:interna,vista_mare,balcone'],
+            'prezzi_cabine.*.tipo' => ['required_if:tipologia,crociera', 'in:interna,vista_mare,balcone'],
             'prezzi_cabine.*.prezzo' => ['required_if:tipologia,crociera', 'nullable', 'numeric', 'min:0'],
             'eta_gratuita' => ['nullable', 'integer', 'min:0', 'max:17'],
             'note' => ['nullable', 'string'],
@@ -218,10 +260,6 @@ class ViaggioController extends Controller
             'trasporti' => ['nullable', 'array'],
             'trasporti.*.tipo' => ['required', 'in:bus,aereo,treno'],
             'trasporti.*.posti' => ['nullable', 'integer', 'min:1'],
-            'sistemazioni' => ['nullable', 'array'],
-            'sistemazioni.*.tipo' => ['required', 'in:camera,cabina'],
-            'sistemazioni.*.formato' => ['required', 'in:singola,doppia,tripla,quadrupla'],
-            'sistemazioni.*.quantita' => ['nullable', 'integer', 'min:1'],
         ]);
     }
 
@@ -249,19 +287,6 @@ class ViaggioController extends Controller
                 ->all())
             ->values()
             ->all();
-    }
-
-    private function normalizzaSistemazioni(Request $request): array
-    {
-        $sistemazioni = $request->input('sistemazioni', []);
-
-        if ($request->input('tipologia') !== 'crociera') {
-            $sistemazioni = collect($sistemazioni)
-                ->reject(fn ($sistemazione) => ($sistemazione['tipo'] ?? null) === 'cabina')
-                ->all();
-        }
-
-        return $this->normalizzaOpzioni($sistemazioni);
     }
 
     private function normalizzaPrezziCabine(Request $request): array
