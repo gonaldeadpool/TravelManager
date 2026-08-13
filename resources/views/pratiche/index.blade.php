@@ -44,6 +44,17 @@ document.addEventListener('DOMContentLoaded', function () {
     const viaggioId = @js($viaggioFiltrato?->id);
     const pagamento = @js($pagamento ?? null);
 
+    async function aggiornaPagina(url) {
+        const pagina = new URL(url, window.location.origin).searchParams.get('page');
+        const parametri = new URLSearchParams({ q: ricerca.value });
+        if (mostraPassati.checked) parametri.set('mostra_passati', '1');
+        if (viaggioId) parametri.set('viaggio_id', viaggioId);
+        if (pagamento) parametri.set('pagamento', pagamento);
+        if (pagina) parametri.set('page', pagina);
+        const response = await fetch(`{{ route('pratiche.search') }}?${parametri}`);
+        if (response.ok) tabella.innerHTML = await response.text();
+    }
+
     function aggiornaRisultati() {
         clearTimeout(timer);
         timer = setTimeout(async () => {
@@ -58,5 +69,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
     ricerca.addEventListener('input', aggiornaRisultati);
     mostraPassati.addEventListener('change', aggiornaRisultati);
+    tabella.addEventListener('click', function (event) {
+        const link = event.target.closest('a[href*="page="]');
+        if (!link) return;
+        event.preventDefault();
+        aggiornaPagina(link.href);
+    });
 });
 </script>

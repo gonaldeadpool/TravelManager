@@ -51,6 +51,16 @@ document.addEventListener('DOMContentLoaded', function () {
     const tabella = document.getElementById('viaggi-table-container');
     const tipologia = @js($tipologia ?? null);
 
+    async function aggiornaPagina(url) {
+        const pagina = new URL(url, window.location.origin).searchParams.get('page');
+        const parametri = new URLSearchParams({ q: ricerca.value });
+        if (mostraPassati.checked) parametri.set('mostra_passati', '1');
+        if (tipologia) parametri.set('tipologia', tipologia);
+        if (pagina) parametri.set('page', pagina);
+        const response = await fetch(`/viaggi/search?${parametri}`);
+        if (response.ok) tabella.innerHTML = await response.text();
+    }
+
     function aggiornaRisultati() {
         clearTimeout(timer);
 
@@ -68,5 +78,12 @@ document.addEventListener('DOMContentLoaded', function () {
 
     ricerca.addEventListener('input', aggiornaRisultati);
     mostraPassati.addEventListener('change', aggiornaRisultati);
+    document.addEventListener('click', function (event) {
+        const link = event.target.closest?.('#viaggi-table-container a[href*="page="]');
+        if (!link) return;
+        event.preventDefault();
+        event.stopPropagation();
+        aggiornaPagina(link.href);
+    }, true);
 });
 </script>

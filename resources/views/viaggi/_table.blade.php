@@ -1,7 +1,4 @@
-@if ($viaggi->isEmpty())
-    <div class="bg-white shadow rounded p-8 text-center text-gray-500">Nessun viaggio trovato.</div>
-@else
-    <div class="overflow-x-auto bg-white shadow rounded">
+<div class="overflow-x-auto bg-white shadow rounded">
         <table class="w-full text-left">
             <thead class="border-b bg-gray-50 text-sm text-gray-600">
                 <tr>
@@ -67,9 +64,13 @@
                         </td>
                     </tr>
                 @endforeach
+                @for ($indice = $viaggi->count(); $indice < 5; $indice++)
+                    <tr class="h-16">
+                        <td colspan="10" class="px-4 py-3 text-center text-sm text-gray-400">{{ $indice === 0 ? 'Nessun viaggio trovato.' : '' }}</td>
+                    </tr>
+                @endfor
             </tbody>
         </table>
     </div>
 
     <div class="mt-4">{{ $viaggi->links() }}</div>
-@endif

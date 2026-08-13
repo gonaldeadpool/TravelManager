@@ -37,6 +37,15 @@ document.addEventListener('DOMContentLoaded', function () {
     const tabella = document.getElementById('clienti-table-container');
     const documentiStato = @js($documentiStato ?? null);
 
+    async function aggiornaPagina(url) {
+        const pagina = new URL(url, window.location.origin).searchParams.get('page');
+        const parametri = new URLSearchParams({ q: ricerca.value });
+        if (documentiStato) parametri.set('documenti_stato', documentiStato);
+        if (pagina) parametri.set('page', pagina);
+        const response = await fetch(`{{ route('clienti.search') }}?${parametri}`);
+        if (response.ok) tabella.innerHTML = await response.text();
+    }
+
     ricerca.addEventListener('input', function () {
         clearTimeout(timer);
 
@@ -49,6 +58,13 @@ document.addEventListener('DOMContentLoaded', function () {
                 tabella.innerHTML = await response.text();
             }
         }, 400);
+    });
+
+    tabella.addEventListener('click', function (event) {
+        const link = event.target.closest('a[href*="page="]');
+        if (!link) return;
+        event.preventDefault();
+        aggiornaPagina(link.href);
     });
 });
 </script>

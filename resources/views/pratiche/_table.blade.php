@@ -1,7 +1,4 @@
-@if ($pratiche->isEmpty())
-    <p class="p-8 text-center text-gray-500">Nessuna pratica trovata.</p>
-@else
-    <div class="overflow-x-auto">
+<div class="overflow-x-auto">
         <table class="min-w-full divide-y divide-gray-200 text-sm">
             <thead class="bg-gray-50 text-left text-gray-600">
                 <tr>
@@ -25,8 +22,12 @@
                         </div></td>
                     </tr>
                 @endforeach
+                @for ($indice = $pratiche->count(); $indice < 5; $indice++)
+                    <tr class="h-16">
+                        <td colspan="5" class="px-4 py-3 text-center text-sm text-gray-400">{{ $indice === 0 ? 'Nessuna pratica trovata.' : '' }}</td>
+                    </tr>
+                @endfor
             </tbody>
         </table>
     </div>
     <div class="border-t px-4 py-3">{{ $pratiche->links() }}</div>
-@endif
