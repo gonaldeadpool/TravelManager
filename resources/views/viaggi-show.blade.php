@@ -1,8 +1,22 @@
 <x-app-layout>
+    <style>
+        @media print {
+            nav, button, a, form, [draggable="true"] { display: none !important; }
+            .viaggio-print-panel { display: block !important; break-inside: avoid; margin-bottom: 1rem; }
+            .viaggio-print-layout { display: block !important; }
+            body, .min-h-screen, main { background: #ffffff !important; }
+            .shadow, .shadow-sm { box-shadow: none !important; }
+        }
+    </style>
     <x-slot name="header">
         <div class="flex items-center justify-between gap-4">
             <h2 class="text-xl font-semibold leading-tight text-gray-800">{{ $viaggio->nome }}</h2>
-            <a href="{{ route('viaggi.index') }}" class="rounded border px-4 py-2 text-sm text-gray-700">Torna ai viaggi</a>
+            <div class="flex items-center gap-2">
+                <button type="button" onclick="stampaRiepilogoViaggio()" title="Stampa riepilogo viaggio" aria-label="Stampa riepilogo viaggio" class="inline-flex h-9 w-9 items-center justify-center rounded border text-gray-700 hover:bg-gray-100">
+                    <svg aria-hidden="true" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+                </button>
+                <a href="{{ route('viaggi.index') }}" class="rounded border px-4 py-2 text-sm text-gray-700">Torna ai viaggi</a>
+            </div>
         </div>
     </x-slot>
 
@@ -27,7 +41,7 @@
             </nav>
         </div>
 
-        <div x-show="tab === 'riepilogo'" class="mx-auto grid max-w-6xl grid-cols-1 gap-6 lg:grid-cols-[280px_minmax(0,1fr)]">
+        <div x-show="tab === 'riepilogo'" class="viaggio-print-panel mx-auto grid max-w-6xl grid-cols-1 gap-6 lg:grid-cols-[280px_minmax(0,1fr)]">
             <aside class="rounded bg-white p-6 shadow">
                 @if ($viaggio->locandina)
                     <img src="{{ route('viaggi.locandina', $viaggio) }}" alt="Locandina di {{ $viaggio->nome }}" class="max-h-[360px] w-full rounded object-contain">
@@ -70,7 +84,7 @@
         </div>
 
         @if ($busTrasporti->isNotEmpty())
-            <div x-cloak :style="tab.startsWith('posti-') ? 'display: flex; align-items: flex-start; gap: 1.5rem;' : 'display: none;'" class="mx-auto max-w-6xl">
+            <div x-cloak :style="tab.startsWith('posti-') ? 'display: flex; align-items: flex-start; gap: 1.5rem;' : 'display: none;'" class="viaggio-print-panel viaggio-print-layout mx-auto max-w-6xl">
                 <div style="flex: 1 1 auto; min-width: 0;">
                     @foreach ($busTrasporti as $indiceBus => $bus)
                         @php
@@ -85,7 +99,7 @@
                                 }
                             }
                         @endphp
-                        <div x-show="tab === 'posti-{{ $indiceBus }}'" x-cloak class="rounded bg-white p-6 shadow">
+                        <div x-show="tab === 'posti-{{ $indiceBus }}'" x-cloak class="viaggio-print-panel rounded bg-white p-6 shadow">
                             <div class="mb-5"><h3 class="text-lg font-semibold">Assegnazione posti bus {{ $indiceBus + 1 }}</h3><p class="mt-1 text-sm text-gray-500">Trascina un cliente sul posto desiderato.</p></div>
                             <div class="overflow-x-auto rounded-xl bg-slate-700 p-5">
                                 <div class="mx-auto max-w-2xl rounded-[3rem] border-4 border-slate-300 bg-slate-100 p-5 shadow-inner">
@@ -132,7 +146,7 @@
         @endif
 
         @if ($busTrasporti->isNotEmpty())
-        <div x-cloak :style="tab === 'tappe' ? 'display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 1.5rem;' : 'display: none;'" class="mx-auto max-w-6xl">
+        <div x-cloak :style="tab === 'tappe' ? 'display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 1.5rem;' : 'display: none;'" class="viaggio-print-panel viaggio-print-layout mx-auto max-w-6xl">
             <section class="rounded bg-white p-6 shadow">
                 <div class="mb-5 flex items-center justify-between gap-4">
                     <div><h3 class="text-lg font-semibold">Tappe di raccolta</h3><p class="mt-1 text-sm text-gray-500">Crea le fermate e assegna i partecipanti con il drag & drop.</p></div>
@@ -174,7 +188,7 @@
         </div>
         @endif
 
-        <div x-show="tab === 'partecipanti'" x-cloak class="mx-auto max-w-6xl overflow-hidden rounded bg-white shadow">
+        <div x-show="tab === 'partecipanti'" x-cloak class="viaggio-print-panel mx-auto max-w-6xl overflow-hidden rounded bg-white shadow">
             @if ($viaggio->pratiche->flatMap->clienti->isEmpty())
                 <p class="p-8 text-center text-gray-500">Nessun partecipante associato a questo viaggio.</p>
             @else
@@ -199,6 +213,12 @@
         </div>
     </div>
 </x-app-layout>
+
+<script>
+    function stampaRiepilogoViaggio() {
+        window.print();
+    }
+</script>
 
 @if ($busTrasporti->isNotEmpty())
     <script>

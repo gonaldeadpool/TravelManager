@@ -7,6 +7,7 @@ use App\Http\Controllers\AmministrazioneController;
 use App\Http\Controllers\PraticaController;
 use App\Http\Controllers\CalendarioController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\TwoFactorAuthenticationController;
 use App\Http\Controllers\UserManagementController;
 use Illuminate\Support\Facades\Route;
 
@@ -154,6 +155,18 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
+    Route::post('/profile/two-factor-authentication', [TwoFactorAuthenticationController::class, 'enable'])
+        ->name('two-factor.enable');
+
+    Route::post('/profile/two-factor-authentication/confirm', [TwoFactorAuthenticationController::class, 'confirm'])
+        ->name('two-factor.confirm');
+
+    Route::delete('/profile/two-factor-authentication', [TwoFactorAuthenticationController::class, 'disable'])
+        ->name('two-factor.disable');
+
+    Route::post('/profile/two-factor-authentication/recovery-codes', [TwoFactorAuthenticationController::class, 'regenerateRecoveryCodes'])
+        ->name('two-factor.recovery-codes');
 });
 
 require __DIR__.'/auth.php';
