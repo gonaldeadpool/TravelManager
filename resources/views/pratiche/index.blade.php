@@ -5,33 +5,33 @@
 
     <div class="p-6">
         @if (session('success'))
-            <div class="mx-auto mb-4 max-w-7xl rounded border border-green-400 bg-green-100 px-4 py-3 text-green-700">{{ session('success') }}</div>
+            <div class="mb-4 rounded border border-green-400 bg-green-100 px-4 py-3 text-green-700">{{ session('success') }}</div>
         @endif
 
         @if ($viaggioFiltrato)
-            <div class="mx-auto mb-4 flex max-w-7xl items-center justify-between gap-4 rounded border border-blue-200 bg-blue-50 px-4 py-3 text-blue-800">
+            <div class="mb-4 flex items-center justify-between gap-4 rounded border border-blue-200 bg-blue-50 px-4 py-3 text-blue-800">
                 <span>Pratiche del viaggio: <strong>{{ $viaggioFiltrato->nome }}</strong></span>
                 <a href="{{ route('pratiche.index') }}" class="text-sm underline">Mostra tutte</a>
             </div>
         @endif
 
-        <div class="mx-auto mb-6 flex max-w-7xl flex-col gap-4 md:flex-row md:items-center md:justify-between">
+        <div class="mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div>
                 <h3 class="text-lg font-semibold">Elenco pratiche</h3>
-                <p class="mt-1 text-sm text-gray-500">Gestisci pratiche, pagamenti e partecipanti ai viaggi.</p>
+                <!--<p class="mt-1 text-sm text-gray-500">Gestisci pratiche, pagamenti e partecipanti ai viaggi.</p>-->
             </div>
             <a href="{{ route('pratiche.create') }}" class="whitespace-nowrap rounded bg-green-600 px-4 py-2 text-white">Nuova pratica</a>
         </div>
 
-        <form method="GET" class="mx-auto mb-4 flex max-w-7xl flex-col gap-3 md:flex-row md:items-center" onsubmit="return false;">
+        <form method="GET" class="mb-4 flex flex-col gap-3 md:flex-row md:items-center" onsubmit="return false;">
             <label for="ricerca-pratiche" class="sr-only">Cerca pratica</label>
             <input id="ricerca-pratiche" type="search" name="ricerca" value="{{ $ricerca ?? '' }}" placeholder="Cerca per viaggio, destinazione, tipologia o cliente" autocomplete="off" class="w-full rounded border px-3 py-2 md:w-96">
             <label class="flex items-center gap-2 text-sm text-gray-700"><input id="mostra-passati" type="checkbox" name="mostra_passati" value="1" @checked($mostraPassati ?? false) @disabled($viaggioFiltrato) class="rounded border-gray-300 text-blue-600"> Mostra pratiche di viaggi passati</label>
         </form>
 
-        <p class="mx-auto mb-4 max-w-7xl text-xs text-gray-500">Clic su una intestazione per ordinare. Usa Shift + clic su altre colonne per combinare ordinamenti multipli.</p>
+        <!--<p class="mx-auto mb-4 max-w-7xl text-xs text-gray-500">Clic su una intestazione per ordinare. Usa Shift + clic su altre colonne per combinare ordinamenti multipli.</p>-->
 
-        <div id="pratiche-table-container" class="mx-auto max-w-7xl overflow-hidden rounded bg-white shadow">
+        <div id="pratiche-table-container" class="overflow-hidden rounded bg-white shadow">
             @include('pratiche._table')
         </div>
     </div>

@@ -20,11 +20,11 @@
             </div>
         @endif
 
-        <div class="mx-auto max-w-4xl" x-data="{ tab: 'tecnica' }">
+        <div class="mx-auto max-w-4xl" x-data="{ tab: 'configurazione' }">
             <div class="mb-6 border-b border-gray-200">
                 <nav class="flex gap-6" aria-label="Sezioni amministrazione">
-                    <button type="button" @click="tab = 'configurazione'" :class="tab === 'configurazione' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'" class="border-b-2 px-1 pb-3 text-sm font-semibold">Configurazione</button>
-                    <button type="button" @click="tab = 'tecnica'" :class="tab === 'tecnica' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'" class="border-b-2 px-1 pb-3 text-sm font-semibold">Scheda tecnica</button>
+                    <button type="button" @click="tab = 'configurazione'" :class="tab === 'configurazione' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'" class="border-b-2 px-1 pb-3 text-sm font-semibold">Setup</button>
+                    <button type="button" @click="tab = 'tecnica'" :class="tab === 'tecnica' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'" class="border-b-2 px-1 pb-3 text-sm font-semibold">Path file esterni</button>
                 </nav>
             </div>
 
@@ -39,25 +39,25 @@
                         <div>
                             <label for="locandine_path" class="mb-1 block">Cartella locandine</label>
                             <input id="locandine_path" type="text" name="locandine_path" value="{{ old('locandine_path', $locandinePath) }}" required class="w-full rounded border p-2">
-                            <p class="mt-1 text-sm text-gray-500">Percorso locale assoluto o relativo alla radice del progetto.</p>
+                            <!--<p class="mt-1 text-sm text-gray-500">Percorso locale assoluto o relativo alla radice del progetto.</p>-->
                         </div>
 
                         <div>
-                            <label for="documenti_path" class="mb-1 block">Cartella documenti</label>
+                            <label for="documenti_path" class="mb-1 block">Cartella documenti cliente</label>
                             <input id="documenti_path" type="text" name="documenti_path" value="{{ old('documenti_path', $documentiPath) }}" required class="w-full rounded border p-2">
-                            <p class="mt-1 text-sm text-gray-500">I documenti saranno accessibili solo agli utenti autenticati.</p>
+                            <!--<p class="mt-1 text-sm text-gray-500">I documenti saranno accessibili solo agli utenti autenticati.</p>-->
                         </div>
 
                         <div>
                             <label for="documenti_pratiche_path" class="mb-1 block">Cartella documenti pratiche</label>
                             <input id="documenti_pratiche_path" type="text" name="documenti_pratiche_path" value="{{ old('documenti_pratiche_path', $documentiPratichePath) }}" required class="w-full rounded border p-2">
-                            <p class="mt-1 text-sm text-gray-500">Gli allegati delle pratiche saranno accessibili solo agli utenti autenticati.</p>
+                            <!--<p class="mt-1 text-sm text-gray-500">Gli allegati delle pratiche saranno accessibili solo agli utenti autenticati.</p>-->
                         </div>
                     </div>
                 </div>
 
                 <div x-show="tab === 'configurazione'" x-cloak class="rounded bg-white p-6 shadow">
-                    <h4 class="mb-4 font-semibold">Scadenza documenti</h4>
+                    <h4 class="mb-4 font-semibold">Scadenza documenti cliente</h4>
                     <p class="mb-4 text-sm text-gray-500">Indica con quanti giorni di anticipo evidenziare i documenti in scadenza nell'elenco clienti.</p>
 
                     <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -79,7 +79,7 @@
 
                     <div class="mt-8 border-t border-gray-200 pt-6">
                         <h4 class="mb-1 font-semibold">Pagamenti</h4>
-                        <p class="mb-4 text-sm text-gray-500">Indica dopo quanti giorni considerare scaduti l'acconto e il saldo delle pratiche.</p>
+                        <p class="mb-4 text-sm text-gray-500">Indica quanti giorni prima di indacare acconto o saldo in scadenza.</p>
 
                         <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
                             @foreach ([
