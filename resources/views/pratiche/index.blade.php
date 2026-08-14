@@ -29,6 +29,8 @@
             <label class="flex items-center gap-2 text-sm text-gray-700"><input id="mostra-passati" type="checkbox" name="mostra_passati" value="1" @checked($mostraPassati ?? false) @disabled($viaggioFiltrato) class="rounded border-gray-300 text-blue-600"> Mostra pratiche di viaggi passati</label>
         </form>
 
+        <p class="mx-auto mb-4 max-w-7xl text-xs text-gray-500">Clic su una intestazione per ordinare. Usa Shift + clic su altre colonne per combinare ordinamenti multipli.</p>
+
         <div id="pratiche-table-container" class="mx-auto max-w-7xl overflow-hidden rounded bg-white shadow">
             @include('pratiche._table')
         </div>
@@ -43,6 +45,32 @@ document.addEventListener('DOMContentLoaded', function () {
     const tabella = document.getElementById('pratiche-table-container');
     const viaggioId = @js($viaggioFiltrato?->id);
     const pagamento = @js($pagamento ?? null);
+    let ordinamenti = @js($ordinamenti ?? []);
+
+    function serializzaOrdinamenti() {
+        return ordinamenti.map((entry) => `${entry.field}:${entry.direction}`).join(',');
+    }
+
+    function prossimaDirezione(direzioneCorrente) {
+        if (direzioneCorrente === 'asc') return 'desc';
+        if (direzioneCorrente === 'desc') return null;
+        return 'asc';
+    }
+
+    function aggiornaOrdinamenti(field, multiColonna = false) {
+        const esistente = ordinamenti.find((entry) => entry.field === field);
+        const nuovaDirezione = prossimaDirezione(esistente?.direction ?? null);
+
+        if (!multiColonna) {
+            ordinamenti = nuovaDirezione ? [{ field, direction: nuovaDirezione }] : [];
+            return;
+        }
+
+        ordinamenti = ordinamenti.filter((entry) => entry.field !== field);
+        if (nuovaDirezione) {
+            ordinamenti.push({ field, direction: nuovaDirezione });
+        }
+    }
 
     async function aggiornaPagina(url) {
         const pagina = new URL(url, window.location.origin).searchParams.get('page');
@@ -50,6 +78,7 @@ document.addEventListener('DOMContentLoaded', function () {
         if (mostraPassati.checked) parametri.set('mostra_passati', '1');
         if (viaggioId) parametri.set('viaggio_id', viaggioId);
         if (pagamento) parametri.set('pagamento', pagamento);
+        if (ordinamenti.length) parametri.set('sort', serializzaOrdinamenti());
         if (pagina) parametri.set('page', pagina);
         const response = await fetch(`{{ route('pratiche.search') }}?${parametri}`);
         if (response.ok) tabella.innerHTML = await response.text();
@@ -62,6 +91,7 @@ document.addEventListener('DOMContentLoaded', function () {
             if (mostraPassati.checked) parametri.set('mostra_passati', '1');
             if (viaggioId) parametri.set('viaggio_id', viaggioId);
             if (pagamento) parametri.set('pagamento', pagamento);
+            if (ordinamenti.length) parametri.set('sort', serializzaOrdinamenti());
             const response = await fetch(`{{ route('pratiche.search') }}?${parametri}`);
             if (response.ok) tabella.innerHTML = await response.text();
         }, 400);
@@ -70,6 +100,14 @@ document.addEventListener('DOMContentLoaded', function () {
     ricerca.addEventListener('input', aggiornaRisultati);
     mostraPassati.addEventListener('change', aggiornaRisultati);
     tabella.addEventListener('click', function (event) {
+        const sortButton = event.target.closest('[data-sort-field]');
+        if (sortButton) {
+            event.preventDefault();
+            aggiornaOrdinamenti(sortButton.dataset.sortField, event.shiftKey);
+            aggiornaRisultati();
+            return;
+        }
+
         const link = event.target.closest('a[href*="page="]');
         if (!link) return;
         event.preventDefault();

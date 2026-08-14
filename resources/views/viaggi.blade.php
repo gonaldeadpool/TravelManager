@@ -37,6 +37,8 @@
             </label>
         </form>
 
+        <p class="mb-4 text-xs text-gray-500">Clic su una intestazione per ordinare. Usa Shift + clic su altre colonne per combinare ordinamenti multipli.</p>
+
         <div id="viaggi-table-container">
             @include('viaggi._table')
         </div>
@@ -50,12 +52,39 @@ document.addEventListener('DOMContentLoaded', function () {
     const mostraPassati = document.getElementById('mostra-passati');
     const tabella = document.getElementById('viaggi-table-container');
     const tipologia = @js($tipologia ?? null);
+    let ordinamenti = @js($ordinamenti ?? []);
+
+    function serializzaOrdinamenti() {
+        return ordinamenti.map((entry) => `${entry.field}:${entry.direction}`).join(',');
+    }
+
+    function prossimaDirezione(direzioneCorrente) {
+        if (direzioneCorrente === 'asc') return 'desc';
+        if (direzioneCorrente === 'desc') return null;
+        return 'asc';
+    }
+
+    function aggiornaOrdinamenti(field, multiColonna = false) {
+        const esistente = ordinamenti.find((entry) => entry.field === field);
+        const nuovaDirezione = prossimaDirezione(esistente?.direction ?? null);
+
+        if (!multiColonna) {
+            ordinamenti = nuovaDirezione ? [{ field, direction: nuovaDirezione }] : [];
+            return;
+        }
+
+        ordinamenti = ordinamenti.filter((entry) => entry.field !== field);
+        if (nuovaDirezione) {
+            ordinamenti.push({ field, direction: nuovaDirezione });
+        }
+    }
 
     async function aggiornaPagina(url) {
         const pagina = new URL(url, window.location.origin).searchParams.get('page');
         const parametri = new URLSearchParams({ q: ricerca.value });
         if (mostraPassati.checked) parametri.set('mostra_passati', '1');
         if (tipologia) parametri.set('tipologia', tipologia);
+        if (ordinamenti.length) parametri.set('sort', serializzaOrdinamenti());
         if (pagina) parametri.set('page', pagina);
         const response = await fetch(`/viaggi/search?${parametri}`);
         if (response.ok) tabella.innerHTML = await response.text();
@@ -68,6 +97,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const parametri = new URLSearchParams({ q: ricerca.value });
             if (mostraPassati.checked) parametri.set('mostra_passati', '1');
             if (tipologia) parametri.set('tipologia', tipologia);
+            if (ordinamenti.length) parametri.set('sort', serializzaOrdinamenti());
             const response = await fetch(`/viaggi/search?${parametri}`);
 
             if (response.ok) {
@@ -79,6 +109,14 @@ document.addEventListener('DOMContentLoaded', function () {
     ricerca.addEventListener('input', aggiornaRisultati);
     mostraPassati.addEventListener('change', aggiornaRisultati);
     document.addEventListener('click', function (event) {
+        const sortButton = event.target.closest?.('#viaggi-table-container [data-sort-field]');
+        if (sortButton) {
+            event.preventDefault();
+            aggiornaOrdinamenti(sortButton.dataset.sortField, event.shiftKey);
+            aggiornaRisultati();
+            return;
+        }
+
         const link = event.target.closest?.('#viaggi-table-container a[href*="page="]');
         if (!link) return;
         event.preventDefault();

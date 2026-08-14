@@ -22,7 +22,9 @@ class PraticaController extends Controller
         $ricerca = $request->input('ricerca');
         $mostraPassati = $request->boolean('mostra_passati');
         $pagamento = $request->input('pagamento');
-        $pratiche = $this->queryElenco($ricerca, $mostraPassati, $viaggioId, $pagamento);
+        $sort = $request->input('sort');
+        $ordinamenti = $this->parseSort($sort);
+        $pratiche = $this->queryElenco($ricerca, $mostraPassati, $viaggioId, $pagamento, $ordinamenti);
 
         return view('pratiche.index', [
             'pratiche' => $pratiche->paginate(5)->withQueryString(),
@@ -30,6 +32,7 @@ class PraticaController extends Controller
             'ricerca' => $ricerca,
             'mostraPassati' => $mostraPassati,
             'pagamento' => $pagamento,
+            'ordinamenti' => $ordinamenti,
         ]);
     }
 
@@ -39,11 +42,14 @@ class PraticaController extends Controller
         $ricerca = $request->input('q');
         $mostraPassati = $request->boolean('mostra_passati');
         $pagamento = $request->input('pagamento');
+        $sort = $request->input('sort');
+        $ordinamenti = $this->parseSort($sort);
         $pratiche = $this->queryElenco(
             $ricerca,
             $mostraPassati,
             $viaggioId,
-            $pagamento
+            $pagamento,
+            $ordinamenti
         );
 
         return view('pratiche._table', [
@@ -54,7 +60,9 @@ class PraticaController extends Controller
                     'mostra_passati' => $mostraPassati ? 1 : null,
                     'viaggio_id' => $viaggioId ?: null,
                     'pagamento' => $pagamento,
+                    'sort' => empty($ordinamenti) ? null : $this->sortToString($ordinamenti),
                 ])),
+            'ordinamenti' => $ordinamenti,
         ]);
     }
 
@@ -268,7 +276,7 @@ class PraticaController extends Controller
         ];
     }
 
-    private function queryElenco(?string $ricerca, bool $mostraPassati, ?int $viaggioId, ?string $pagamento = null)
+    private function queryElenco(?string $ricerca, bool $mostraPassati, ?int $viaggioId, ?string $pagamento = null, array $ordinamenti = [])
     {
         $query = Pratica::with(['viaggio', 'clienti'])
             ->when($viaggioId, fn ($query) => $query->where('viaggio_id', $viaggioId))
@@ -297,7 +305,84 @@ class PraticaController extends Controller
             $query->whereKey($ids);
         }
 
-        return $query->latest();
+        $this->applySort($query, $ordinamenti);
+
+        return $query;
+    }
+
+    private function parseSort(?string $sort): array
+    {
+        if (! is_string($sort) || trim($sort) === '') {
+            return [];
+        }
+
+        $allowedFields = ['viaggio', 'clienti', 'totale', 'residuo'];
+        $entries = [];
+
+        foreach (explode(',', $sort) as $token) {
+            [$field, $direction] = array_pad(explode(':', trim($token), 2), 2, null);
+            $field = (string) $field;
+            $direction = strtolower((string) $direction);
+
+            if (! in_array($field, $allowedFields, true) || ! in_array($direction, ['asc', 'desc'], true)) {
+                continue;
+            }
+
+            $entries = array_values(array_filter($entries, fn (array $entry) => $entry['field'] !== $field));
+            $entries[] = ['field' => $field, 'direction' => $direction];
+        }
+
+        return $entries;
+    }
+
+    private function sortToString(array $ordinamenti): string
+    {
+        return collect($ordinamenti)
+            ->map(fn (array $entry) => $entry['field'] . ':' . $entry['direction'])
+            ->implode(',');
+    }
+
+    private function applySort($query, array $ordinamenti): void
+    {
+        if (empty($ordinamenti)) {
+            $query->latest();
+
+            return;
+        }
+
+        if (collect($ordinamenti)->contains(fn (array $entry) => $entry['field'] === 'viaggio')) {
+            $query->leftJoin('viaggi as viaggio_sort', 'viaggio_sort.id', '=', 'pratiche.viaggio_id')
+                ->select('pratiche.*');
+        }
+
+        foreach ($ordinamenti as $entry) {
+            $direction = $entry['direction'];
+
+            switch ($entry['field']) {
+                case 'viaggio':
+                    $query->orderBy('viaggio_sort.nome', $direction);
+                    break;
+
+                case 'clienti':
+                    $query->orderByRaw("(
+                        select min(clienti.cognome || ' ' || clienti.nome)
+                        from clienti
+                        inner join cliente_pratica on cliente_pratica.cliente_id = clienti.id
+                        where cliente_pratica.pratica_id = pratiche.id
+                    ) {$direction}");
+                    break;
+
+                case 'totale':
+                    $query->orderBy('pratiche.totale', $direction);
+                    break;
+
+                case 'residuo':
+                    $query->orderByRaw("(pratiche.totale - pratiche.acconto - pratiche.saldo) {$direction}");
+                    break;
+            }
+        }
+
+        $query->orderByDesc('pratiche.id');
     }
 
     private function statoPagamento(Pratica $pratica, $oggi, array $soglie): string

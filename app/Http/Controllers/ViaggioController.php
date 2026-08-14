@@ -22,18 +22,20 @@ class ViaggioController extends Controller
         $ricerca = $request->input('ricerca');
         $mostraPassati = $request->boolean('mostra_passati');
         $tipologia = $request->input('tipologia');
+        $sort = $request->input('sort');
+        $ordinamenti = $this->parseSort($sort);
 
         $viaggi = $this->queryRicerca($ricerca, $mostraPassati, $tipologia)
-            ->with('pratiche.clienti')
-            ->orderBy('data_partenza')
-            ->paginate(5)
-            ->withQueryString();
+            ->with('pratiche.clienti');
+        $this->applySort($viaggi, $ordinamenti);
+        $viaggi = $viaggi->paginate(5)->withQueryString();
 
         return view('viaggi', [
             'viaggi' => $viaggi,
             'ricerca' => $ricerca,
             'mostraPassati' => $mostraPassati,
             'tipologia' => $tipologia,
+            'ordinamenti' => $ordinamenti,
         ]);
     }
 
@@ -42,18 +44,24 @@ class ViaggioController extends Controller
         $ricerca = $request->input('q');
         $mostraPassati = $request->boolean('mostra_passati');
         $tipologia = $request->input('tipologia');
+        $sort = $request->input('sort');
+        $ordinamenti = $this->parseSort($sort);
         $viaggi = $this->queryRicerca($request->input('q'), $request->boolean('mostra_passati'), $request->input('tipologia'))
-            ->with('pratiche.clienti')
-            ->orderBy('data_partenza')
-            ->paginate(5)
+            ->with('pratiche.clienti');
+        $this->applySort($viaggi, $ordinamenti);
+        $viaggi = $viaggi->paginate(5)
             ->withPath(route('viaggi.index'))
             ->appends(array_filter([
                 'ricerca' => $ricerca,
                 'mostra_passati' => $mostraPassati ? 1 : null,
                 'tipologia' => $tipologia,
+                'sort' => empty($ordinamenti) ? null : $this->sortToString($ordinamenti),
             ]));
 
-        return view('viaggi._table', compact('viaggi'));
+        return view('viaggi._table', [
+            'viaggi' => $viaggi,
+            'ordinamenti' => $ordinamenti,
+        ]);
     }
 
     public function create(Request $request): View
@@ -315,6 +323,94 @@ class ViaggioController extends Controller
             ])
             ->values()
             ->all();
+    }
+
+    private function parseSort(?string $sort): array
+    {
+        if (! is_string($sort) || trim($sort) === '') {
+            return [];
+        }
+
+        $allowedFields = ['viaggio', 'tipologia', 'destinazione', 'periodo', 'durata', 'prezzo', 'minimo', 'partecipanti'];
+        $entries = [];
+
+        foreach (explode(',', $sort) as $token) {
+            [$field, $direction] = array_pad(explode(':', trim($token), 2), 2, null);
+            $field = (string) $field;
+            $direction = strtolower((string) $direction);
+
+            if (! in_array($field, $allowedFields, true) || ! in_array($direction, ['asc', 'desc'], true)) {
+                continue;
+            }
+
+            $entries = array_values(array_filter($entries, fn (array $entry) => $entry['field'] !== $field));
+            $entries[] = ['field' => $field, 'direction' => $direction];
+        }
+
+        return $entries;
+    }
+
+    private function sortToString(array $ordinamenti): string
+    {
+        return collect($ordinamenti)
+            ->map(fn (array $entry) => $entry['field'] . ':' . $entry['direction'])
+            ->implode(',');
+    }
+
+    private function applySort($query, array $ordinamenti): void
+    {
+        if (empty($ordinamenti)) {
+            $query->orderBy('viaggi.data_partenza');
+            $query->orderBy('viaggi.nome');
+
+            return;
+        }
+
+        foreach ($ordinamenti as $entry) {
+            $direction = $entry['direction'];
+
+            switch ($entry['field']) {
+                case 'viaggio':
+                    $query->orderBy('viaggi.nome', $direction);
+                    break;
+
+                case 'tipologia':
+                    $query->orderBy('viaggi.tipologia', $direction);
+                    break;
+
+                case 'destinazione':
+                    $query->orderBy('viaggi.destinazione', $direction);
+                    break;
+
+                case 'periodo':
+                    $query->orderBy('viaggi.data_partenza', $direction)
+                        ->orderBy('viaggi.data_rientro', $direction);
+                    break;
+
+                case 'durata':
+                    $query->orderByRaw('(viaggi.data_rientro - viaggi.data_partenza) ' . $direction);
+                    break;
+
+                case 'prezzo':
+                    $query->orderBy('viaggi.prezzo', $direction);
+                    break;
+
+                case 'minimo':
+                    $query->orderBy('viaggi.minimo_partecipanti', $direction);
+                    break;
+
+                case 'partecipanti':
+                    $query->orderByRaw("(
+                        select count(distinct cliente_pratica.cliente_id)
+                        from pratiche
+                        inner join cliente_pratica on cliente_pratica.pratica_id = pratiche.id
+                        where pratiche.viaggio_id = viaggi.id
+                    ) {$direction}");
+                    break;
+            }
+        }
+
+        $query->orderByDesc('viaggi.id');
     }
 
     private function buildRiepilogoViewData(Viaggio $viaggio): array

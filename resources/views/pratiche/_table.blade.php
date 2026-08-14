@@ -1,11 +1,75 @@
+@php
+    $ordinamenti = $ordinamenti ?? [];
+    $sortMap = collect($ordinamenti)
+        ->values()
+        ->mapWithKeys(fn ($entry, $index) => [
+            $entry['field'] => [
+                'direction' => $entry['direction'],
+                'priority' => $index + 1,
+            ],
+        ]);
+
+    $sortInfo = function (string $field) use ($sortMap): array {
+        $entry = $sortMap->get($field);
+
+        return [
+            'direction' => $entry['direction'] ?? null,
+            'priority' => $entry['priority'] ?? null,
+        ];
+    };
+@endphp
+
 <div class="overflow-x-auto">
         <table class="min-w-full divide-y divide-gray-200 text-sm">
             <thead class="bg-gray-50 text-left text-gray-600">
                 <tr>
-                    <th class="px-4 py-3">Viaggio</th>
-                    <th class="px-4 py-3">Clienti</th>
-                    <th class="px-4 py-3 text-right">Totale</th>
-                    <th class="px-4 py-3 text-right">Residuo</th>
+                    @php($viaggioSort = $sortInfo('viaggio'))
+                    <th class="px-4 py-3">
+                        <button type="button" data-sort-field="viaggio" data-sort-current="{{ $viaggioSort['direction'] ?? '' }}" class="inline-flex items-center gap-1 rounded text-left hover:text-gray-900" title="Ordina per viaggio">
+                            <span>Viaggio</span>
+                            @if ($viaggioSort['direction'] === 'asc')
+                                <span aria-hidden="true">↑{{ $viaggioSort['priority'] }}</span>
+                            @elseif ($viaggioSort['direction'] === 'desc')
+                                <span aria-hidden="true">↓{{ $viaggioSort['priority'] }}</span>
+                            @endif
+                        </button>
+                    </th>
+
+                    @php($clientiSort = $sortInfo('clienti'))
+                    <th class="px-4 py-3">
+                        <button type="button" data-sort-field="clienti" data-sort-current="{{ $clientiSort['direction'] ?? '' }}" class="inline-flex items-center gap-1 rounded text-left hover:text-gray-900" title="Ordina per clienti">
+                            <span>Clienti</span>
+                            @if ($clientiSort['direction'] === 'asc')
+                                <span aria-hidden="true">↑{{ $clientiSort['priority'] }}</span>
+                            @elseif ($clientiSort['direction'] === 'desc')
+                                <span aria-hidden="true">↓{{ $clientiSort['priority'] }}</span>
+                            @endif
+                        </button>
+                    </th>
+
+                    @php($totaleSort = $sortInfo('totale'))
+                    <th class="px-4 py-3 text-right">
+                        <button type="button" data-sort-field="totale" data-sort-current="{{ $totaleSort['direction'] ?? '' }}" class="inline-flex items-center gap-1 rounded text-right hover:text-gray-900" title="Ordina per totale">
+                            <span>Totale</span>
+                            @if ($totaleSort['direction'] === 'asc')
+                                <span aria-hidden="true">↑{{ $totaleSort['priority'] }}</span>
+                            @elseif ($totaleSort['direction'] === 'desc')
+                                <span aria-hidden="true">↓{{ $totaleSort['priority'] }}</span>
+                            @endif
+                        </button>
+                    </th>
+
+                    @php($residuoSort = $sortInfo('residuo'))
+                    <th class="px-4 py-3 text-right">
+                        <button type="button" data-sort-field="residuo" data-sort-current="{{ $residuoSort['direction'] ?? '' }}" class="inline-flex items-center gap-1 rounded text-right hover:text-gray-900" title="Ordina per residuo">
+                            <span>Residuo</span>
+                            @if ($residuoSort['direction'] === 'asc')
+                                <span aria-hidden="true">↑{{ $residuoSort['priority'] }}</span>
+                            @elseif ($residuoSort['direction'] === 'desc')
+                                <span aria-hidden="true">↓{{ $residuoSort['priority'] }}</span>
+                            @endif
+                        </button>
+                    </th>
                     <th class="px-4 py-3"></th>
                 </tr>
             </thead>

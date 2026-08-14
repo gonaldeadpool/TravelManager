@@ -17,6 +17,8 @@ class ClienteController extends Controller
     {
         $ricerca = $request->input('ricerca');
         $documentiStato = $request->input('documenti_stato');
+        $sort = $request->input('sort');
+        $ordinamenti = $this->parseSort($sort);
         $clienti = Cliente::with('documenti');
 
         if ($ricerca) {
@@ -51,30 +53,64 @@ class ClienteController extends Controller
             }
         }
 
+        $this->applySort($clienti, $ordinamenti);
+
         return view('clienti', [
             'clienti' => $clienti->paginate(5)->withQueryString(),
             'ricerca' => $ricerca,
             'documentiStato' => $documentiStato,
             'scadenzeDocumenti' => $this->scadenzeDocumenti(),
+            'ordinamenti' => $ordinamenti,
         ]);
     }
 
     public function search(Request $request): View
     {
         $ricerca = $request->input('q');
+        $documentiStato = $request->input('documenti_stato');
+        $sort = $request->input('sort');
+        $ordinamenti = $this->parseSort($sort);
         $clienti = Cliente::with('documenti')->where(function ($query) use ($ricerca) {
             $query->where('nome', 'like', "%{$ricerca}%")
                 ->orWhere('cognome', 'like', "%{$ricerca}%")
                 ->orWhere('email', 'like', "%{$ricerca}%");
         });
 
-            if ($request->input('documenti_stato') === 'scaduti') {
-                $clienti->where(fn ($query) => $query->doesntHave('documenti')->orWhereHas('documenti', fn ($documenti) => $documenti->whereDate('scadenza', '<', today())));
+        if (in_array($documentiStato, ['in_regola', 'in_scadenza', 'scaduti'], true)) {
+            $oggi = today();
+            $soglie = $this->scadenzeDocumenti();
+
+            if ($documentiStato === 'scaduti') {
+                $clienti->where(fn ($query) => $query->doesntHave('documenti')->orWhereHas('documenti', fn ($documenti) => $documenti->whereDate('scadenza', '<', $oggi)));
+            } elseif ($documentiStato === 'in_scadenza') {
+                $clienti->whereHas('documenti', function ($query) use ($oggi, $soglie) {
+                    $query->whereDate('scadenza', '>=', $oggi)->where(function ($query) use ($soglie, $oggi) {
+                        foreach ($soglie as $tipo => $giorni) {
+                            $query->orWhere(fn ($documenti) => $documenti->where('tipo', $tipo)->whereDate('scadenza', '<=', $oggi->copy()->addDays($giorni)));
+                        }
+                    });
+                });
+            } else {
+                $clienti->whereHas('documenti')->whereDoesntHave('documenti', function ($query) use ($oggi, $soglie) {
+                    $query->whereDate('scadenza', '<', $oggi)->orWhere(function ($query) use ($soglie, $oggi) {
+                        foreach ($soglie as $tipo => $giorni) {
+                            $query->orWhere(fn ($documenti) => $documenti->where('tipo', $tipo)->whereDate('scadenza', '<=', $oggi->copy()->addDays($giorni)));
+                        }
+                    });
+                });
             }
+        }
+
+        $this->applySort($clienti, $ordinamenti);
 
         return view('clienti._table', [
-            'clienti' => $clienti->paginate(5)->withQueryString(),
+            'clienti' => $clienti->paginate(5)->appends(array_filter([
+                'q' => $ricerca,
+                'documenti_stato' => $documentiStato,
+                'sort' => empty($ordinamenti) ? null : $this->sortToString($ordinamenti),
+            ])),
             'scadenzeDocumenti' => $this->scadenzeDocumenti(),
+            'ordinamenti' => $ordinamenti,
         ]);
     }
 
@@ -222,5 +258,77 @@ class ClienteController extends Controller
             'mime_type' => $file->getMimeType(),
             'dimensione' => $file->getSize(),
         ]);
+    }
+
+    private function parseSort(?string $sort): array
+    {
+        if (! is_string($sort) || trim($sort) === '') {
+            return [];
+        }
+
+        $allowedFields = ['nome', 'cognome', 'email', 'telefono', 'documenti'];
+        $entries = [];
+
+        foreach (explode(',', $sort) as $token) {
+            [$field, $direction] = array_pad(explode(':', trim($token), 2), 2, null);
+            $field = (string) $field;
+            $direction = strtolower((string) $direction);
+
+            if (! in_array($field, $allowedFields, true) || ! in_array($direction, ['asc', 'desc'], true)) {
+                continue;
+            }
+
+            $entries = array_values(array_filter($entries, fn (array $entry) => $entry['field'] !== $field));
+            $entries[] = ['field' => $field, 'direction' => $direction];
+        }
+
+        return $entries;
+    }
+
+    private function sortToString(array $ordinamenti): string
+    {
+        return collect($ordinamenti)
+            ->map(fn (array $entry) => $entry['field'] . ':' . $entry['direction'])
+            ->implode(',');
+    }
+
+    private function applySort($query, array $ordinamenti): void
+    {
+        if (empty($ordinamenti)) {
+            $query->orderBy('clienti.cognome')->orderBy('clienti.nome');
+
+            return;
+        }
+
+        foreach ($ordinamenti as $entry) {
+            $direction = $entry['direction'];
+
+            switch ($entry['field']) {
+                case 'nome':
+                    $query->orderBy('clienti.nome', $direction);
+                    break;
+
+                case 'cognome':
+                    $query->orderBy('clienti.cognome', $direction);
+                    break;
+
+                case 'email':
+                    $query->orderBy('clienti.email', $direction);
+                    break;
+
+                case 'telefono':
+                    $query->orderBy('clienti.telefono', $direction);
+                    break;
+
+                case 'documenti':
+                    $query->orderByRaw("(
+                        select count(*) from cliente_documenti
+                        where cliente_documenti.cliente_id = clienti.id
+                    ) {$direction}");
+                    break;
+            }
+        }
+
+        $query->orderByDesc('clienti.id');
     }
 }

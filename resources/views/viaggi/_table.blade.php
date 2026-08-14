@@ -1,16 +1,124 @@
+@php
+    $ordinamenti = $ordinamenti ?? [];
+    $sortMap = collect($ordinamenti)
+        ->values()
+        ->mapWithKeys(fn ($entry, $index) => [
+            $entry['field'] => [
+                'direction' => $entry['direction'],
+                'priority' => $index + 1,
+            ],
+        ]);
+
+    $sortInfo = function (string $field) use ($sortMap): array {
+        $entry = $sortMap->get($field);
+
+        return [
+            'direction' => $entry['direction'] ?? null,
+            'priority' => $entry['priority'] ?? null,
+        ];
+    };
+@endphp
+
 <div class="overflow-x-auto bg-white shadow rounded">
         <table class="w-full text-left">
             <thead class="border-b bg-gray-50 text-sm text-gray-600">
                 <tr>
                     <th class="px-4 py-3">Locandina</th>
-                    <th class="px-4 py-3">Viaggio</th>
-                    <th class="px-4 py-3">Tipologia</th>
-                    <th class="px-4 py-3">Destinazione</th>
-                    <th class="px-4 py-3">Periodo</th>
-                    <th class="px-4 py-3">Durata</th>
-                    <th class="px-4 py-3">Prezzo</th>
-                    <th class="px-4 py-3">Minimo</th>
-                    <th class="px-4 py-3">Partecipanti</th>
+                    @php($viaggioSort = $sortInfo('viaggio'))
+                    <th class="px-4 py-3">
+                        <button type="button" data-sort-field="viaggio" class="inline-flex items-center gap-1 hover:text-gray-900">
+                            <span>Viaggio</span>
+                            @if ($viaggioSort['direction'] === 'asc')
+                                <span aria-hidden="true">↑{{ $viaggioSort['priority'] }}</span>
+                            @elseif ($viaggioSort['direction'] === 'desc')
+                                <span aria-hidden="true">↓{{ $viaggioSort['priority'] }}</span>
+                            @endif
+                        </button>
+                    </th>
+
+                    @php($tipologiaSort = $sortInfo('tipologia'))
+                    <th class="px-4 py-3">
+                        <button type="button" data-sort-field="tipologia" class="inline-flex items-center gap-1 hover:text-gray-900">
+                            <span>Tipologia</span>
+                            @if ($tipologiaSort['direction'] === 'asc')
+                                <span aria-hidden="true">↑{{ $tipologiaSort['priority'] }}</span>
+                            @elseif ($tipologiaSort['direction'] === 'desc')
+                                <span aria-hidden="true">↓{{ $tipologiaSort['priority'] }}</span>
+                            @endif
+                        </button>
+                    </th>
+
+                    @php($destinazioneSort = $sortInfo('destinazione'))
+                    <th class="px-4 py-3">
+                        <button type="button" data-sort-field="destinazione" class="inline-flex items-center gap-1 hover:text-gray-900">
+                            <span>Destinazione</span>
+                            @if ($destinazioneSort['direction'] === 'asc')
+                                <span aria-hidden="true">↑{{ $destinazioneSort['priority'] }}</span>
+                            @elseif ($destinazioneSort['direction'] === 'desc')
+                                <span aria-hidden="true">↓{{ $destinazioneSort['priority'] }}</span>
+                            @endif
+                        </button>
+                    </th>
+
+                    @php($periodoSort = $sortInfo('periodo'))
+                    <th class="px-4 py-3">
+                        <button type="button" data-sort-field="periodo" class="inline-flex items-center gap-1 hover:text-gray-900">
+                            <span>Periodo</span>
+                            @if ($periodoSort['direction'] === 'asc')
+                                <span aria-hidden="true">↑{{ $periodoSort['priority'] }}</span>
+                            @elseif ($periodoSort['direction'] === 'desc')
+                                <span aria-hidden="true">↓{{ $periodoSort['priority'] }}</span>
+                            @endif
+                        </button>
+                    </th>
+
+                    @php($durataSort = $sortInfo('durata'))
+                    <th class="px-4 py-3">
+                        <button type="button" data-sort-field="durata" class="inline-flex items-center gap-1 hover:text-gray-900">
+                            <span>Durata</span>
+                            @if ($durataSort['direction'] === 'asc')
+                                <span aria-hidden="true">↑{{ $durataSort['priority'] }}</span>
+                            @elseif ($durataSort['direction'] === 'desc')
+                                <span aria-hidden="true">↓{{ $durataSort['priority'] }}</span>
+                            @endif
+                        </button>
+                    </th>
+
+                    @php($prezzoSort = $sortInfo('prezzo'))
+                    <th class="px-4 py-3">
+                        <button type="button" data-sort-field="prezzo" class="inline-flex items-center gap-1 hover:text-gray-900">
+                            <span>Prezzo</span>
+                            @if ($prezzoSort['direction'] === 'asc')
+                                <span aria-hidden="true">↑{{ $prezzoSort['priority'] }}</span>
+                            @elseif ($prezzoSort['direction'] === 'desc')
+                                <span aria-hidden="true">↓{{ $prezzoSort['priority'] }}</span>
+                            @endif
+                        </button>
+                    </th>
+
+                    @php($minimoSort = $sortInfo('minimo'))
+                    <th class="px-4 py-3">
+                        <button type="button" data-sort-field="minimo" class="inline-flex items-center gap-1 hover:text-gray-900">
+                            <span>Minimo</span>
+                            @if ($minimoSort['direction'] === 'asc')
+                                <span aria-hidden="true">↑{{ $minimoSort['priority'] }}</span>
+                            @elseif ($minimoSort['direction'] === 'desc')
+                                <span aria-hidden="true">↓{{ $minimoSort['priority'] }}</span>
+                            @endif
+                        </button>
+                    </th>
+
+                    @php($partecipantiSort = $sortInfo('partecipanti'))
+                    <th class="px-4 py-3">
+                        <button type="button" data-sort-field="partecipanti" class="inline-flex items-center gap-1 hover:text-gray-900">
+                            <span>Partecipanti</span>
+                            @if ($partecipantiSort['direction'] === 'asc')
+                                <span aria-hidden="true">↑{{ $partecipantiSort['priority'] }}</span>
+                            @elseif ($partecipantiSort['direction'] === 'desc')
+                                <span aria-hidden="true">↓{{ $partecipantiSort['priority'] }}</span>
+                            @endif
+                        </button>
+                    </th>
                     <th class="px-4 py-3 text-right">Azioni</th>
                 </tr>
             </thead>

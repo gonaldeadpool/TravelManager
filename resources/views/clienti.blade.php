@@ -24,6 +24,8 @@
                 class="border rounded px-3 py-2 w-full md:w-96">
         </form>
 
+            <p class="mb-4 text-xs text-gray-500">Clic su una intestazione per ordinare. Usa Shift + clic su altre colonne per combinare ordinamenti multipli.</p>
+
         <div id="clienti-table-container">
             @include('clienti._table')
         </div>
@@ -36,11 +38,38 @@ document.addEventListener('DOMContentLoaded', function () {
     const ricerca = document.getElementById('ricerca-clienti');
     const tabella = document.getElementById('clienti-table-container');
     const documentiStato = @js($documentiStato ?? null);
+    let ordinamenti = @js($ordinamenti ?? []);
+
+    function serializzaOrdinamenti() {
+        return ordinamenti.map((entry) => `${entry.field}:${entry.direction}`).join(',');
+    }
+
+    function prossimaDirezione(direzioneCorrente) {
+        if (direzioneCorrente === 'asc') return 'desc';
+        if (direzioneCorrente === 'desc') return null;
+        return 'asc';
+    }
+
+    function aggiornaOrdinamenti(field, multiColonna = false) {
+        const esistente = ordinamenti.find((entry) => entry.field === field);
+        const nuovaDirezione = prossimaDirezione(esistente?.direction ?? null);
+
+        if (!multiColonna) {
+            ordinamenti = nuovaDirezione ? [{ field, direction: nuovaDirezione }] : [];
+            return;
+        }
+
+        ordinamenti = ordinamenti.filter((entry) => entry.field !== field);
+        if (nuovaDirezione) {
+            ordinamenti.push({ field, direction: nuovaDirezione });
+        }
+    }
 
     async function aggiornaPagina(url) {
         const pagina = new URL(url, window.location.origin).searchParams.get('page');
         const parametri = new URLSearchParams({ q: ricerca.value });
         if (documentiStato) parametri.set('documenti_stato', documentiStato);
+        if (ordinamenti.length) parametri.set('sort', serializzaOrdinamenti());
         if (pagina) parametri.set('page', pagina);
         const response = await fetch(`{{ route('clienti.search') }}?${parametri}`);
         if (response.ok) tabella.innerHTML = await response.text();
@@ -50,9 +79,10 @@ document.addEventListener('DOMContentLoaded', function () {
         clearTimeout(timer);
 
         timer = setTimeout(async () => {
-            const response = await fetch(
-                `/clienti/search?q=${encodeURIComponent(ricerca.value)}${documentiStato ? `&documenti_stato=${encodeURIComponent(documentiStato)}` : ''}`
-            );
+            const parametri = new URLSearchParams({ q: ricerca.value });
+            if (documentiStato) parametri.set('documenti_stato', documentiStato);
+            if (ordinamenti.length) parametri.set('sort', serializzaOrdinamenti());
+            const response = await fetch(`{{ route('clienti.search') }}?${parametri}`);
 
             if (response.ok) {
                 tabella.innerHTML = await response.text();
@@ -61,6 +91,22 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     tabella.addEventListener('click', function (event) {
+        const sortButton = event.target.closest('[data-sort-field]');
+        if (sortButton) {
+            event.preventDefault();
+            aggiornaOrdinamenti(sortButton.dataset.sortField, event.shiftKey);
+
+            clearTimeout(timer);
+            timer = setTimeout(async () => {
+                const parametri = new URLSearchParams({ q: ricerca.value });
+                if (documentiStato) parametri.set('documenti_stato', documentiStato);
+                if (ordinamenti.length) parametri.set('sort', serializzaOrdinamenti());
+                const response = await fetch(`{{ route('clienti.search') }}?${parametri}`);
+                if (response.ok) tabella.innerHTML = await response.text();
+            }, 0);
+            return;
+        }
+
         const link = event.target.closest('a[href*="page="]');
         if (!link) return;
         event.preventDefault();

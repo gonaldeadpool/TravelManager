@@ -1,12 +1,87 @@
+@php
+    $ordinamenti = $ordinamenti ?? [];
+    $sortMap = collect($ordinamenti)
+        ->values()
+        ->mapWithKeys(fn ($entry, $index) => [
+            $entry['field'] => [
+                'direction' => $entry['direction'],
+                'priority' => $index + 1,
+            ],
+        ]);
+
+    $sortInfo = function (string $field) use ($sortMap): array {
+        $entry = $sortMap->get($field);
+
+        return [
+            'direction' => $entry['direction'] ?? null,
+            'priority' => $entry['priority'] ?? null,
+        ];
+    };
+@endphp
+
 <div class="overflow-x-auto bg-white shadow rounded">
         <table class="w-full text-left">
             <thead class="border-b bg-gray-50 text-sm text-gray-600">
                 <tr>
-                    <th class="px-4 py-3">Nome</th>
-                    <th class="px-4 py-3">Cognome</th>
-                    <th class="px-4 py-3">Email</th>
-                    <th class="px-4 py-3">Telefono</th>
-                    <th class="px-4 py-3">Documenti</th>
+                    @php($nomeSort = $sortInfo('nome'))
+                    <th class="px-4 py-3">
+                        <button type="button" data-sort-field="nome" class="inline-flex items-center gap-1 hover:text-gray-900">
+                            <span>Nome</span>
+                            @if ($nomeSort['direction'] === 'asc')
+                                <span aria-hidden="true">↑{{ $nomeSort['priority'] }}</span>
+                            @elseif ($nomeSort['direction'] === 'desc')
+                                <span aria-hidden="true">↓{{ $nomeSort['priority'] }}</span>
+                            @endif
+                        </button>
+                    </th>
+
+                    @php($cognomeSort = $sortInfo('cognome'))
+                    <th class="px-4 py-3">
+                        <button type="button" data-sort-field="cognome" class="inline-flex items-center gap-1 hover:text-gray-900">
+                            <span>Cognome</span>
+                            @if ($cognomeSort['direction'] === 'asc')
+                                <span aria-hidden="true">↑{{ $cognomeSort['priority'] }}</span>
+                            @elseif ($cognomeSort['direction'] === 'desc')
+                                <span aria-hidden="true">↓{{ $cognomeSort['priority'] }}</span>
+                            @endif
+                        </button>
+                    </th>
+
+                    @php($emailSort = $sortInfo('email'))
+                    <th class="px-4 py-3">
+                        <button type="button" data-sort-field="email" class="inline-flex items-center gap-1 hover:text-gray-900">
+                            <span>Email</span>
+                            @if ($emailSort['direction'] === 'asc')
+                                <span aria-hidden="true">↑{{ $emailSort['priority'] }}</span>
+                            @elseif ($emailSort['direction'] === 'desc')
+                                <span aria-hidden="true">↓{{ $emailSort['priority'] }}</span>
+                            @endif
+                        </button>
+                    </th>
+
+                    @php($telefonoSort = $sortInfo('telefono'))
+                    <th class="px-4 py-3">
+                        <button type="button" data-sort-field="telefono" class="inline-flex items-center gap-1 hover:text-gray-900">
+                            <span>Telefono</span>
+                            @if ($telefonoSort['direction'] === 'asc')
+                                <span aria-hidden="true">↑{{ $telefonoSort['priority'] }}</span>
+                            @elseif ($telefonoSort['direction'] === 'desc')
+                                <span aria-hidden="true">↓{{ $telefonoSort['priority'] }}</span>
+                            @endif
+                        </button>
+                    </th>
+
+                    @php($documentiSort = $sortInfo('documenti'))
+                    <th class="px-4 py-3">
+                        <button type="button" data-sort-field="documenti" class="inline-flex items-center gap-1 hover:text-gray-900">
+                            <span>Documenti</span>
+                            @if ($documentiSort['direction'] === 'asc')
+                                <span aria-hidden="true">↑{{ $documentiSort['priority'] }}</span>
+                            @elseif ($documentiSort['direction'] === 'desc')
+                                <span aria-hidden="true">↓{{ $documentiSort['priority'] }}</span>
+                            @endif
+                        </button>
+                    </th>
                     <th class="px-4 py-3 text-right">Azioni</th>
                 </tr>
             </thead>
