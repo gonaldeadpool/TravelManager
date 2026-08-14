@@ -56,6 +56,15 @@
         .page-break {
             page-break-before: always;
         }
+        .pdf-header {
+            margin-bottom: 10px;
+        }
+        .pdf-logo {
+            width: 220px;
+            height: auto;
+            display: block;
+            margin-bottom: 8px;
+        }
         .bus-shell {
             border: 1px solid #cbd5e1;
             border-radius: 10px;
@@ -131,10 +140,17 @@
 <body>
     @php
         $partecipanti = $viaggio->pratiche->flatMap->clienti->unique('id')->values();
+        $logoPath = public_path('logo-europolo.png');
+        $hasLogo = extension_loaded('gd') && is_file($logoPath);
     @endphp
 
-    <h1>{{ $viaggio->nome }}</h1>
-    <p class="meta">Riepilogo completo viaggio - esportazione PDF</p>
+    <div class="pdf-header">
+        @if ($hasLogo)
+            <img src="{{ $logoPath }}" alt="Logo" class="pdf-logo">
+        @endif
+        <h1>{{ $viaggio->nome }}</h1>
+        <p class="meta">Riepilogo completo viaggio - esportazione PDF</p>
+    </div>
 
     <h2>Riepilogo</h2>
     <table class="grid">
