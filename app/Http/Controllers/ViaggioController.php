@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Barryvdh\DomPDF\Facade\Pdf;
 use App\Models\Viaggio;
 use App\Models\TappaRaccolta;
 use App\Models\Cliente;
@@ -11,6 +12,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Illuminate\View\View;
 
 class ViaggioController extends Controller
@@ -93,19 +95,29 @@ class ViaggioController extends Controller
 
     public function show(Viaggio $viaggio): View
     {
-        $viaggio->load(['pratiche.clienti', 'tappeRaccolta.clienti']);
-        $busTrasporti = collect($viaggio->trasporti ?? [])
-            ->filter(fn ($trasporto) => ($trasporto['tipo'] ?? null) === 'bus')
-            ->values();
+        return view('viaggi-show', $this->buildRiepilogoViewData($viaggio));
+    }
 
-        return view('viaggi-show', [
-            'viaggio' => $viaggio,
-            'numeroPartecipanti' => $viaggio->pratiche->flatMap->clienti->unique('id')->count(),
-            'importoAcconto' => $viaggio->pratiche->sum('acconto'),
-            'importoSaldo' => $viaggio->pratiche->sum('saldo'),
-            'busTrasporti' => $busTrasporti,
-            'tappeRaccolta' => $viaggio->tappeRaccolta,
-        ]);
+    public function riepilogoPdf(Viaggio $viaggio)
+    {
+        return $this->renderRiepilogoPdf($viaggio, false);
+    }
+
+    public function riepilogoPdfDownload(Viaggio $viaggio)
+    {
+        return $this->renderRiepilogoPdf($viaggio, true);
+    }
+
+    private function renderRiepilogoPdf(Viaggio $viaggio, bool $download)
+    {
+        $data = $this->buildRiepilogoViewData($viaggio);
+        $nomeFile = 'riepilogo-viaggio-' . Str::slug($viaggio->nome ?: 'viaggio') . '.pdf';
+        $pdf = Pdf::loadView('viaggi-riepilogo-pdf', $data)
+            ->setPaper('a4');
+
+        return $download
+            ? $pdf->download($nomeFile)
+            : $pdf->stream($nomeFile);
     }
 
     public function creaTappaRaccolta(Request $request, Viaggio $viaggio): JsonResponse
@@ -303,6 +315,24 @@ class ViaggioController extends Controller
             ])
             ->values()
             ->all();
+    }
+
+    private function buildRiepilogoViewData(Viaggio $viaggio): array
+    {
+        $viaggio->load(['pratiche.clienti', 'tappeRaccolta.clienti']);
+
+        $busTrasporti = collect($viaggio->trasporti ?? [])
+            ->filter(fn ($trasporto) => ($trasporto['tipo'] ?? null) === 'bus')
+            ->values();
+
+        return [
+            'viaggio' => $viaggio,
+            'numeroPartecipanti' => $viaggio->pratiche->flatMap->clienti->unique('id')->count(),
+            'importoAcconto' => $viaggio->pratiche->sum('acconto'),
+            'importoSaldo' => $viaggio->pratiche->sum('saldo'),
+            'busTrasporti' => $busTrasporti,
+            'tappeRaccolta' => $viaggio->tappeRaccolta,
+        ];
     }
 
     private function eliminaLocandina(string $percorso): void

@@ -72,7 +72,7 @@ class PraticaController extends Controller
         $pratica = new Pratica();
         $pratica->setRelation('clienti', $clienti);
 
-        return view('pratiche.create', $this->formData($pratica) + ['bozza' => $bozza]);
+        return view('pratiche.create', $this->formData($pratica, true) + ['bozza' => $bozza]);
     }
 
     public function store(Request $request): RedirectResponse
@@ -256,11 +256,15 @@ class PraticaController extends Controller
         return redirect()->route('pratiche.edit', $pratica)->with('success', 'Documento eliminato correttamente.');
     }
 
-    private function formData(Pratica $pratica): array
+    private function formData(Pratica $pratica, bool $soloViaggiAttivi = false): array
     {
         return [
             'pratica' => $pratica,
-            'viaggi' => Viaggio::orderBy('nome')->get(),
+            'viaggi' => Viaggio::query()
+                ->when($soloViaggiAttivi, fn ($query) => $query->whereDate('data_partenza', '>=', today()))
+                ->orderBy('data_partenza')
+                ->orderBy('nome')
+                ->get(),
         ];
     }
 

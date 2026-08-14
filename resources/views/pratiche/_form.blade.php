@@ -19,7 +19,19 @@
         <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div>
                 <label for="viaggio_id" class="mb-1 block font-medium">Viaggio</label>
-                <select id="viaggio_id" name="viaggio_id" x-model="viaggioId" @change="ricalcolaTotale()" required class="w-full rounded border p-2">
+                @if ($pratica->exists)
+                    <input type="hidden" name="viaggio_id" value="{{ old('viaggio_id', $pratica->viaggio_id) }}">
+                @endif
+
+                <select
+                    id="viaggio_id"
+                    name="viaggio_id"
+                    x-model="viaggioId"
+                    @change="ricalcolaTotale()"
+                    required
+                    @disabled($pratica->exists)
+                    class="w-full rounded border p-2 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-600"
+                >
                     <option value="">Seleziona un viaggio</option>
                     @foreach ($viaggi as $viaggio)
                         <option value="{{ $viaggio->id }}" data-prezzo="{{ $viaggio->prezzo }}" @selected(old('viaggio_id', $pratica->viaggio_id ?? ($bozza['viaggio_id'] ?? null)) == $viaggio->id)>

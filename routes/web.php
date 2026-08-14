@@ -67,6 +67,14 @@ Route::get('/viaggi/{viaggio}/locandina', [ViaggioController::class, 'downloadLo
     ->middleware(['auth'])
     ->name('viaggi.locandina');
 
+Route::get('/viaggi/{viaggio}/riepilogo-pdf', [ViaggioController::class, 'riepilogoPdf'])
+    ->middleware(['auth'])
+    ->name('viaggi.riepilogo.pdf');
+
+Route::get('/viaggi/{viaggio}/riepilogo-pdf/download', [ViaggioController::class, 'riepilogoPdfDownload'])
+    ->middleware(['auth'])
+    ->name('viaggi.riepilogo.pdf.download');
+
 Route::get('/calendario', [CalendarioController::class, 'index'])
     ->middleware(['auth'])
     ->name('calendario');

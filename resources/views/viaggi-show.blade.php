@@ -12,9 +12,12 @@
         <div class="flex items-center justify-between gap-4">
             <h2 class="text-xl font-semibold leading-tight text-gray-800">{{ $viaggio->nome }}</h2>
             <div class="flex items-center gap-2">
-                <button type="button" onclick="stampaRiepilogoViaggio()" title="Stampa riepilogo viaggio" aria-label="Stampa riepilogo viaggio" class="inline-flex h-9 w-9 items-center justify-center rounded border text-gray-700 hover:bg-gray-100">
+                <a href="{{ route('viaggi.riepilogo.pdf', $viaggio) }}" target="_blank" rel="noopener" title="Anteprima di stampa PDF" aria-label="Anteprima di stampa PDF" class="inline-flex h-9 w-9 items-center justify-center rounded border text-gray-700 hover:bg-gray-100">
                     <svg aria-hidden="true" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
-                </button>
+                </a>
+                <a href="{{ route('viaggi.riepilogo.pdf.download', $viaggio) }}" title="Scarica PDF" aria-label="Scarica PDF" class="inline-flex h-9 w-9 items-center justify-center rounded border text-gray-700 hover:bg-gray-100">
+                    <svg aria-hidden="true" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>
+                </a>
                 <a href="{{ route('viaggi.index') }}" class="rounded border px-4 py-2 text-sm text-gray-700">Torna ai viaggi</a>
             </div>
         </div>
@@ -213,12 +216,6 @@
         </div>
     </div>
 </x-app-layout>
-
-<script>
-    function stampaRiepilogoViaggio() {
-        window.print();
-    }
-</script>
 
 @if ($busTrasporti->isNotEmpty())
     <script>
