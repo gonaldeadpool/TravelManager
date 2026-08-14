@@ -23,26 +23,14 @@
         <table class="w-full text-left">
             <thead class="border-b bg-gray-50 text-sm text-gray-600">
                 <tr>
-                    @php($nomeSort = $sortInfo('nome'))
+                    @php($clienteSort = $sortInfo('cliente'))
                     <th class="px-4 py-3">
-                        <button type="button" data-sort-field="nome" class="inline-flex items-center gap-1 hover:text-gray-900">
-                            <span>Nome</span>
-                            @if ($nomeSort['direction'] === 'asc')
-                                <span aria-hidden="true">↑{{ $nomeSort['priority'] }}</span>
-                            @elseif ($nomeSort['direction'] === 'desc')
-                                <span aria-hidden="true">↓{{ $nomeSort['priority'] }}</span>
-                            @endif
-                        </button>
-                    </th>
-
-                    @php($cognomeSort = $sortInfo('cognome'))
-                    <th class="px-4 py-3">
-                        <button type="button" data-sort-field="cognome" class="inline-flex items-center gap-1 hover:text-gray-900">
-                            <span>Cognome</span>
-                            @if ($cognomeSort['direction'] === 'asc')
-                                <span aria-hidden="true">↑{{ $cognomeSort['priority'] }}</span>
-                            @elseif ($cognomeSort['direction'] === 'desc')
-                                <span aria-hidden="true">↓{{ $cognomeSort['priority'] }}</span>
+                        <button type="button" data-sort-field="cliente" class="inline-flex items-center gap-1 hover:text-gray-900">
+                            <span>Cliente</span>
+                            @if ($clienteSort['direction'] === 'asc')
+                                <span aria-hidden="true">↑{{ $clienteSort['priority'] }}</span>
+                            @elseif ($clienteSort['direction'] === 'desc')
+                                <span aria-hidden="true">↓{{ $clienteSort['priority'] }}</span>
                             @endif
                         </button>
                     </th>
@@ -88,8 +76,7 @@
             <tbody class="divide-y">
                 @foreach ($clienti as $cliente)
                     <tr>
-                        <td class="px-4 py-3 font-medium">{{ $cliente->nome }}</td>
-                        <td class="px-4 py-3">{{ $cliente->cognome }}</td>
+                        <td class="px-4 py-3 font-medium"><a href="{{ route('clienti.riepilogo', $cliente) }}" class="text-blue-600 hover:underline">{{ $cliente->cognome }} {{ $cliente->nome }}</a></td>
                         <td class="px-4 py-3">{{ $cliente->email ?: '-' }}</td>
                         <td class="px-4 py-3">{{ $cliente->telefono ?: '-' }}</td>
                         <td class="px-4 py-3">
@@ -144,7 +131,7 @@
                 @endforeach
                 @for ($indice = $clienti->count(); $indice < 5; $indice++)
                     <tr class="h-16">
-                        <td colspan="6" class="px-4 py-3 text-center text-sm text-gray-400">{{ $indice === 0 ? 'Nessun cliente trovato.' : '' }}</td>
+                        <td colspan="5" class="px-4 py-3 text-center text-sm text-gray-400">{{ $indice === 0 ? 'Nessun cliente trovato.' : '' }}</td>
                     </tr>
                 @endfor
             </tbody>

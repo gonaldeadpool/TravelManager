@@ -25,6 +25,7 @@ class ClienteController extends Controller
             $clienti->where(function ($query) use ($ricerca) {
                 $query->where('nome', 'like', "%{$ricerca}%")
                     ->orWhere('cognome', 'like', "%{$ricerca}%")
+                    ->orWhereRaw("concat(cognome, ' ', nome) like ?", ["%{$ricerca}%"])
                     ->orWhere('email', 'like', "%{$ricerca}%");
             });
         }
@@ -73,6 +74,7 @@ class ClienteController extends Controller
         $clienti = Cliente::with('documenti')->where(function ($query) use ($ricerca) {
             $query->where('nome', 'like', "%{$ricerca}%")
                 ->orWhere('cognome', 'like', "%{$ricerca}%")
+                ->orWhereRaw("concat(cognome, ' ', nome) like ?", ["%{$ricerca}%"])
                 ->orWhere('email', 'like', "%{$ricerca}%");
         });
 
@@ -117,6 +119,16 @@ class ClienteController extends Controller
     public function create(): View
     {
         return view('clienti-create', ['documenti' => collect()]);
+    }
+
+    public function riepilogo(Cliente $cliente): View
+    {
+        $cliente->load([
+            'documenti',
+            'pratiche' => fn ($query) => $query->with('viaggio')->orderByDesc('created_at'),
+        ]);
+
+        return view('clienti-riepilogo', compact('cliente'));
     }
 
     public function edit($id): View
@@ -266,7 +278,7 @@ class ClienteController extends Controller
             return [];
         }
 
-        $allowedFields = ['nome', 'cognome', 'email', 'telefono', 'documenti'];
+        $allowedFields = ['cliente', 'email', 'telefono', 'documenti'];
         $entries = [];
 
         foreach (explode(',', $sort) as $token) {
@@ -304,12 +316,9 @@ class ClienteController extends Controller
             $direction = $entry['direction'];
 
             switch ($entry['field']) {
-                case 'nome':
-                    $query->orderBy('clienti.nome', $direction);
-                    break;
-
-                case 'cognome':
+                case 'cliente':
                     $query->orderBy('clienti.cognome', $direction);
+                    $query->orderBy('clienti.nome', $direction);
                     break;
 
                 case 'email':
