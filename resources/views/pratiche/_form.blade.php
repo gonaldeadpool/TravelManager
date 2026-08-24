@@ -47,11 +47,11 @@
                 <div class="flex gap-2">
                     <div class="w-full">
                         <label for="totale" class="mb-1 block font-medium">Totale</label>
-                        <input id="totale" type="number" min="0" step="0.01" name="totale" x-model="totale" @input="totaleForzato = true" required class="w-full rounded border p-2">
+                        <input id="totale" type="number" min="0" step="0.01" name="totale" x-model="totale" @input="totaleForzato = true" @blur="totale = formattaImporto(totale)" required class="w-full rounded border p-2">
                     </div>
                     <div class="w-full">
                         <label for="sconto" class="mb-1 block font-medium">Sconto</label>
-                        <input id="sconto" type="number" min="0" step="0.01" name="sconto" x-model="sconto" :disabled="!totale" class="w-full rounded border p-2 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-600">
+                        <input id="sconto" type="number" min="0" step="0.01" name="sconto" x-model="sconto" @blur="sconto = formattaImporto(sconto)" :disabled="!totale" class="w-full rounded border p-2 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-600">
                     </div>
                     <button type="button" @click="totaleForzato = false; ricalcolaTotale()" class="mt-6 h-fit rounded border px-3 py-2 text-sm text-gray-700">Ricalcola</button>
                 </div>
@@ -115,9 +115,9 @@
     <div class="rounded bg-white p-6 shadow">
         <h3 class="mb-4 text-lg font-semibold">Pagamenti</h3>
         <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-            <div><label for="acconto" class="mb-1 block">Acconto</label><input id="acconto" type="number" min="0" step="0.01" name="acconto" x-model="acconto" class="w-full rounded border p-2"></div>
+            <div><label for="acconto" class="mb-1 block">Acconto</label><input id="acconto" type="number" min="0" step="0.01" name="acconto" x-model="acconto" @blur="acconto = formattaImporto(acconto)" class="w-full rounded border p-2"></div>
             <div><label for="data_acconto" class="mb-1 block">Data acconto</label><input id="data_acconto" type="date" name="data_acconto" x-model="dataAcconto" class="w-full rounded border p-2"></div>
-            <div><label for="saldo" class="mb-1 block">Saldo</label><input id="saldo" type="number" min="0" step="0.01" name="saldo" x-model="saldo" class="w-full rounded border p-2"></div>
+            <div><label for="saldo" class="mb-1 block">Saldo</label><input id="saldo" type="number" min="0" step="0.01" name="saldo" x-model="saldo" @blur="saldo = formattaImporto(saldo)" class="w-full rounded border p-2"></div>
             <div><label for="data_saldo" class="mb-1 block">Data saldo</label><input id="data_saldo" type="date" name="data_saldo" x-model="dataSaldo" class="w-full rounded border p-2"></div>
             <div><label class="mb-1 block">Residuo</label><div class="rounded border bg-gray-50 p-2" x-text="formatoEuro(residuo)"></div></div>
         </div>
@@ -169,6 +169,7 @@
                 this.ricalcolaTotale(true);
             },
             formatoEuro(valore) { return new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR' }).format(valore); },
+            formattaImporto(valore) { return valore === '' || valore === null || isNaN(Number(valore)) ? valore : Number(valore).toFixed(2); },
         }
     }
 </script>

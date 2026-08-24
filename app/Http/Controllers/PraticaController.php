@@ -316,7 +316,7 @@ class PraticaController extends Controller
             return [];
         }
 
-        $allowedFields = ['viaggio', 'clienti', 'totale', 'residuo'];
+        $allowedFields = ['viaggio', 'clienti', 'totale', 'sconto', 'residuo'];
         $entries = [];
 
         foreach (explode(',', $sort) as $token) {
@@ -374,6 +374,10 @@ class PraticaController extends Controller
 
                 case 'totale':
                     $query->orderBy('pratiche.totale', $direction);
+                    break;
+
+                case 'sconto':
+                    $query->orderBy('pratiche.sconto', $direction);
                     break;
 
                 case 'residuo':
