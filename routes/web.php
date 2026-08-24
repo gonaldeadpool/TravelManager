@@ -21,6 +21,10 @@ Route::get('/dashboard', [DashboardController::class, 'index'])
     ->middleware(['auth', 'verified'])
     ->name('dashboard');
 
+Route::post('/dashboard/widgets', [DashboardController::class, 'updateWidgets'])
+    ->middleware(['auth', 'verified'])
+    ->name('dashboard.widgets.update');
+
 Route::get('/clienti', [ClienteController::class, 'index'])
     ->middleware(['auth'])
     ->name('clienti');

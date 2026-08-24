@@ -6,13 +6,23 @@ use App\Models\AppSetting;
 use App\Models\Cliente;
 use App\Models\Pratica;
 use App\Models\Viaggio;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class DashboardController extends Controller
 {
+    public const WIDGETS = [
+        'clienti' => 'Clienti',
+        'viaggi' => 'Viaggi',
+        'pratiche' => 'Pratiche',
+        'top_viaggi' => 'Viaggi più venduti',
+    ];
+
     public function index(): View
     {
         $oggi = today();
+        $widgetsAttivi = auth()->user()->dashboard_widgets ?? array_keys(self::WIDGETS);
         $soglie = collect(['carta_identita', 'passaporto', 'patente', 'altro'])
             ->mapWithKeys(fn ($tipo) => [$tipo => (int) (AppSetting::where('key', "documenti.scadenza.{$tipo}")->value('value') ?? 30)]);
 
@@ -38,14 +48,35 @@ class DashboardController extends Controller
         ];
         $statiPratiche = $pratiche->countBy(fn (Pratica $pratica) => $this->statoPagamento($pratica, $oggi, $sogliePagamenti));
 
+        $topViaggi = Viaggio::withCount('pratiche')
+            ->has('pratiche')
+            ->orderByDesc('pratiche_count')
+            ->take(5)
+            ->get();
+
         return view('dashboard', [
+            'widgetsDisponibili' => self::WIDGETS,
+            'widgetsAttivi' => $widgetsAttivi,
             'totaleClienti' => Cliente::count(),
             'statiClienti' => $statiClienti,
             'totaleViaggi' => $viaggi->count(),
             'tipologieViaggi' => $viaggi->countBy('tipologia'),
             'totalePratiche' => $pratiche->count(),
             'statiPratiche' => $statiPratiche,
+            'topViaggi' => $topViaggi,
         ]);
+    }
+
+    public function updateWidgets(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'widgets' => ['nullable', 'array'],
+            'widgets.*' => ['string', 'in:' . implode(',', array_keys(self::WIDGETS))],
+        ]);
+
+        $request->user()->update(['dashboard_widgets' => $validated['widgets'] ?? []]);
+
+        return redirect()->route('dashboard');
     }
 
     private function statoPagamento(Pratica $pratica, $oggi, array $soglie): string
@@ -71,3 +102,4 @@ class DashboardController extends Controller
         return $giorni > $soglie['saldo'] ? 'acconto_versato' : 'saldo_non_versato_scadenza';
     }
 }
+
