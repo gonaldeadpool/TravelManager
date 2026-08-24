@@ -171,7 +171,7 @@ class PraticaController extends Controller
     public function storeBozzaCreazione(Request $request): RedirectResponse
     {
         session(['pratica_creazione' => $request->only([
-            'viaggio_id', 'totale', 'acconto', 'data_acconto', 'saldo', 'data_saldo', 'note', 'clienti', 'gratuiti',
+            'viaggio_id', 'totale', 'sconto', 'acconto', 'data_acconto', 'saldo', 'data_saldo', 'note', 'clienti', 'gratuiti',
         ])]);
 
         return redirect()->route('pratiche.creazione.clienti.select');
@@ -377,7 +377,7 @@ class PraticaController extends Controller
                     break;
 
                 case 'residuo':
-                    $query->orderByRaw("(pratiche.totale - pratiche.acconto - pratiche.saldo) {$direction}");
+                    $query->orderByRaw("(pratiche.totale - pratiche.sconto - pratiche.acconto - pratiche.saldo) {$direction}");
                     break;
             }
         }
@@ -388,10 +388,11 @@ class PraticaController extends Controller
     private function statoPagamento(Pratica $pratica, $oggi, array $soglie): string
     {
         $totale = (float) $pratica->totale;
+        $sconto = (float) $pratica->sconto;
         $acconto = (float) $pratica->acconto;
         $saldo = (float) $pratica->saldo;
 
-        if ($saldo > 0 && $totale - $acconto - $saldo <= 0) {
+        if ($saldo > 0 && $totale - $sconto - $acconto - $saldo <= 0) {
             return 'saldo_versato';
         }
 
@@ -415,6 +416,7 @@ class PraticaController extends Controller
         $rules = [
             'viaggio_id' => ['required', 'exists:viaggi,id'],
             'totale' => ['required', 'numeric', 'min:0'],
+            'sconto' => ['nullable', 'numeric', 'min:0'],
             'acconto' => ['nullable', 'numeric', 'min:0'],
             'data_acconto' => ['nullable', 'date'],
             'saldo' => ['nullable', 'numeric', 'min:0'],
@@ -458,6 +460,7 @@ class PraticaController extends Controller
         return [
             'viaggio_id' => $validated['viaggio_id'],
             'totale' => $validated['totale'],
+            'sconto' => $validated['sconto'] ?? 0,
             'acconto' => $validated['acconto'] ?? 0,
             'data_acconto' => $validated['data_acconto'] ?? null,
             'saldo' => $validated['saldo'] ?? 0,

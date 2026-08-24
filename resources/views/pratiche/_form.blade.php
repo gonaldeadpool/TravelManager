@@ -44,8 +44,17 @@
                 </select>
             </div>
             <div>
-                <label for="totale" class="mb-1 block font-medium">Totale</label>
-                <div class="flex gap-2"><input id="totale" type="number" min="0" step="0.01" name="totale" x-model="totale" @input="totaleForzato = true" required class="w-full rounded border p-2"><button type="button" @click="totaleForzato = false; ricalcolaTotale()" class="rounded border px-3 text-sm text-gray-700">Ricalcola</button></div>
+                <div class="flex gap-2">
+                    <div class="w-full">
+                        <label for="totale" class="mb-1 block font-medium">Totale</label>
+                        <input id="totale" type="number" min="0" step="0.01" name="totale" x-model="totale" @input="totaleForzato = true" required class="w-full rounded border p-2">
+                    </div>
+                    <div class="w-full">
+                        <label for="sconto" class="mb-1 block font-medium">Sconto</label>
+                        <input id="sconto" type="number" min="0" step="0.01" name="sconto" x-model="sconto" :disabled="!totale" class="w-full rounded border p-2 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-600">
+                    </div>
+                    <button type="button" @click="totaleForzato = false; ricalcolaTotale()" class="mt-6 h-fit rounded border px-3 py-2 text-sm text-gray-700">Ricalcola</button>
+                </div>
             </div>
         </div>
     </div>
@@ -124,6 +133,7 @@
         return {
             viaggioId: @js(old('viaggio_id', $pratica->viaggio_id ?? ($bozza['viaggio_id'] ?? ''))),
             totale: @js(old('totale', $pratica->exists ? $pratica->totale : ($bozza['totale'] ?? ''))),
+            sconto: @js(old('sconto', $pratica->exists ? $pratica->sconto : ($bozza['sconto'] ?? 0))),
             acconto: @js(old('acconto', $pratica->exists ? $pratica->acconto : ($bozza['acconto'] ?? 0))),
             saldo: @js(old('saldo', $pratica->exists ? $pratica->saldo : ($bozza['saldo'] ?? 0))),
             dataAcconto: @js($dataAcconto),
@@ -138,7 +148,7 @@
                     this.ricalcolaTotale(true);
                 @endif
             },
-            get residuo() { return (Number(this.totale) || 0) - (Number(this.acconto) || 0) - (Number(this.saldo) || 0); },
+            get residuo() { return (Number(this.totale) || 0) - (Number(this.sconto) || 0) - (Number(this.acconto) || 0) - (Number(this.saldo) || 0); },
             ricalcolaTotale(forza = false) {
                 if (this.totaleForzato && !forza) return;
                 const select = document.getElementById('viaggio_id');

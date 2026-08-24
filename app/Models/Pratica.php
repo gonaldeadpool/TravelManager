@@ -11,6 +11,7 @@ class Pratica extends Model
     protected $fillable = [
         'viaggio_id',
         'totale',
+        'sconto',
         'acconto',
         'data_acconto',
         'saldo',
@@ -22,6 +23,7 @@ class Pratica extends Model
     {
         return [
             'totale' => 'decimal:2',
+            'sconto' => 'decimal:2',
             'acconto' => 'decimal:2',
             'saldo' => 'decimal:2',
             'data_acconto' => 'date',
