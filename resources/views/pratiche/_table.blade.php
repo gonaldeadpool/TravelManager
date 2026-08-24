@@ -59,6 +59,18 @@
                         </button>
                     </th>
 
+                    @php($accontoSort = $sortInfo('acconto'))
+                    <th class="px-4 py-3 text-right">
+                        <button type="button" data-sort-field="acconto" data-sort-current="{{ $accontoSort['direction'] ?? '' }}" class="inline-flex items-center gap-1 rounded text-right hover:text-gray-900" title="Ordina per acconto">
+                            <span>Acconto</span>
+                            @if ($accontoSort['direction'] === 'asc')
+                                <span aria-hidden="true">↑{{ $accontoSort['priority'] }}</span>
+                            @elseif ($accontoSort['direction'] === 'desc')
+                                <span aria-hidden="true">↓{{ $accontoSort['priority'] }}</span>
+                            @endif
+                        </button>
+                    </th>
+
                     @php($scontoSort = $sortInfo('sconto'))
                     <th class="px-4 py-3 text-right">
                         <button type="button" data-sort-field="sconto" data-sort-current="{{ $scontoSort['direction'] ?? '' }}" class="inline-flex items-center gap-1 rounded text-right hover:text-gray-900" title="Ordina per sconto">
@@ -91,6 +103,7 @@
                         <td class="px-4 py-3 font-medium">{{ $pratica->viaggio->nome }}</td>
                         <td class="px-4 py-3">{{ $pratica->clienti->map(fn ($cliente) => $cliente->cognome . ' ' . $cliente->nome)->join(', ') }}</td>
                         <td class="px-4 py-3 text-right">{{ number_format($pratica->totale, 2, ',', '.') }} EUR</td>
+                        <td class="px-4 py-3 text-right">{{ number_format($pratica->acconto, 2, ',', '.') }} EUR</td>
                         <td class="px-4 py-3 text-right">{{ number_format($pratica->sconto, 2, ',', '.') }} EUR</td>
                         <td class="px-4 py-3 text-right">{{ number_format($pratica->totale - $pratica->sconto - $pratica->acconto - $pratica->saldo, 2, ',', '.') }} EUR</td>
                         <td class="px-4 py-3"><div class="flex justify-end gap-2">
@@ -101,7 +114,7 @@
                 @endforeach
                 @for ($indice = $pratiche->count(); $indice < 5; $indice++)
                     <tr class="h-16">
-                        <td colspan="6" class="px-4 py-3 text-center text-sm text-gray-400">{{ $indice === 0 ? 'Nessuna pratica trovata.' : '' }}</td>
+                        <td colspan="7" class="px-4 py-3 text-center text-sm text-gray-400">{{ $indice === 0 ? 'Nessuna pratica trovata.' : '' }}</td>
                     </tr>
                 @endfor
             </tbody>
