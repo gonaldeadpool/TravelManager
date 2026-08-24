@@ -114,7 +114,7 @@
 
     <div class="rounded bg-white p-6 shadow">
         <h3 class="mb-4 text-lg font-semibold">Pagamenti</h3>
-        <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-2">
             <div><label for="acconto" class="mb-1 block">Acconto</label><input id="acconto" type="number" min="0" step="0.01" name="acconto" x-model="acconto" @blur="acconto = formattaImporto(acconto)" class="w-full rounded border p-2"></div>
             <div><label for="data_acconto" class="mb-1 block">Data acconto</label><input id="data_acconto" type="date" name="data_acconto" x-model="dataAcconto" class="w-full rounded border p-2"></div>
             <div><label for="saldo" class="mb-1 block">Saldo</label><input id="saldo" type="number" min="0" step="0.01" name="saldo" x-model="saldo" @blur="saldo = formattaImporto(saldo)" class="w-full rounded border p-2"></div>
