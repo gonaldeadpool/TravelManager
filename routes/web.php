@@ -7,6 +7,7 @@ use App\Http\Controllers\AmministrazioneController;
 use App\Http\Controllers\PraticaController;
 use App\Http\Controllers\CalendarioController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\LogController;
 use App\Http\Controllers\TwoFactorAuthenticationController;
 use App\Http\Controllers\UserManagementController;
 use Illuminate\Support\Facades\Route;
@@ -168,6 +169,14 @@ Route::resource('utenti', UserManagementController::class)
 Route::put('/amministrazione', [AmministrazioneController::class, 'update'])
     ->middleware(['auth'])
     ->name('amministrazione.update');
+
+Route::get('/log', [LogController::class, 'index'])
+    ->middleware(['auth'])
+    ->name('log.index');
+
+Route::get('/log/{tipo}/download', [LogController::class, 'download'])
+    ->middleware(['auth'])
+    ->name('log.download');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

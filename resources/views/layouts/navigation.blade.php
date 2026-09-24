@@ -45,6 +45,10 @@
                             <x-dropdown-link :href="route('utenti.index')">
                                 {{ __('Utenti') }}
                             </x-dropdown-link>
+
+                            <x-dropdown-link :href="route('log.index')">
+                                {{ __('Log') }}
+                            </x-dropdown-link>
                         @endif
 
                         <!-- Authentication -->
@@ -99,6 +103,10 @@
                 @if (Auth::user()->isAdmin())
                     <x-responsive-nav-link :href="route('utenti.index')">
                         {{ __('Utenti') }}
+                    </x-responsive-nav-link>
+
+                    <x-responsive-nav-link :href="route('log.index')">
+                        {{ __('Log') }}
                     </x-responsive-nav-link>
                 @endif
 
