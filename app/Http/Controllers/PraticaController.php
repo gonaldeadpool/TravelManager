@@ -10,6 +10,7 @@ use App\Models\Viaggio;
 use App\Support\LocalStoragePaths;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
 
@@ -282,14 +283,15 @@ class PraticaController extends Controller
             ->when($viaggioId, fn ($query) => $query->where('viaggio_id', $viaggioId))
             ->when(! $viaggioId && ! $mostraPassati, fn ($query) => $query->whereHas('viaggio', fn ($viaggi) => $viaggi->whereDate('data_partenza', '>=', today())))
             ->when($ricerca, function ($query, $ricerca) {
-                $query->where(function ($query) use ($ricerca) {
-                    $query->whereHas('viaggio', function ($viaggi) use ($ricerca) {
-                        $viaggi->where('nome', 'ilike', "%{$ricerca}%")
-                            ->orWhere('destinazione', 'ilike', "%{$ricerca}%")
-                            ->orWhere('tipologia', 'ilike', "%{$ricerca}%");
-                    })->orWhereHas('clienti', function ($clienti) use ($ricerca) {
-                        $clienti->where('nome', 'ilike', "%{$ricerca}%")
-                            ->orWhere('cognome', 'ilike', "%{$ricerca}%");
+                $operatore = $this->likeOperator();
+                $query->where(function ($query) use ($ricerca, $operatore) {
+                    $query->whereHas('viaggio', function ($viaggi) use ($ricerca, $operatore) {
+                        $viaggi->where('nome', $operatore, "%{$ricerca}%")
+                            ->orWhere('destinazione', $operatore, "%{$ricerca}%")
+                            ->orWhere('tipologia', $operatore, "%{$ricerca}%");
+                    })->orWhereHas('clienti', function ($clienti) use ($ricerca, $operatore) {
+                        $clienti->where('nome', $operatore, "%{$ricerca}%")
+                            ->orWhere('cognome', $operatore, "%{$ricerca}%");
                     });
                 });
             })
@@ -308,6 +310,11 @@ class PraticaController extends Controller
         $this->applySort($query, $ordinamenti);
 
         return $query;
+    }
+
+    private function likeOperator(): string
+    {
+        return DB::connection()->getDriverName() === 'pgsql' ? 'ilike' : 'like';
     }
 
     private function parseSort(?string $sort): array

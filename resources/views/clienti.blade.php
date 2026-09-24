@@ -4,6 +4,9 @@
     </x-slot>
 
     <div class="p-6">
+        @if (session('error'))
+            <div class="mb-4 rounded border border-red-400 bg-red-100 px-4 py-3 text-red-700">{{ session('error') }}</div>
+        @endif
         <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
             <div>
                 <h3 class="text-lg font-semibold">Elenco clienti</h3>

@@ -30,6 +30,13 @@ class Cliente extends Model
         'note'
     ];
 
+    protected function casts(): array
+    {
+        return [
+            'data_nascita' => 'date',
+        ];
+    }
+
     public function documenti()
     {
         return $this->hasMany(ClienteDocumento::class);

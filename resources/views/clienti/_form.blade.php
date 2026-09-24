@@ -56,7 +56,7 @@
                 <input
                     type="date"
                     name="data_nascita"
-                    value="{{ old('data_nascita', $cliente->data_nascita ?? '') }}"
+                    value="{{ old('data_nascita', optional($cliente->data_nascita ?? null)->format('Y-m-d')) }}"
                     class="border rounded w-full p-2">
             </div>
 

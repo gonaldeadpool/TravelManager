@@ -155,6 +155,11 @@ class ClienteController extends Controller
     {
         $cliente = Cliente::findOrFail($id);
 
+        if ($cliente->pratiche()->exists()) {
+            return redirect()->route('clienti')
+                ->with('error', 'Impossibile eliminare il cliente: è associato a una o più pratiche.');
+        }
+
         foreach ($cliente->documenti as $documento) {
             LocalStoragePaths::disk(LocalStoragePaths::documenti())->delete($documento->percorso);
         }

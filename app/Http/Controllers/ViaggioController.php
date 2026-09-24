@@ -285,16 +285,23 @@ class ViaggioController extends Controller
 
     private function queryRicerca(?string $ricerca, bool $mostraPassati = false, ?string $tipologia = null)
     {
+        $operatore = $this->likeOperator();
+
         return Viaggio::query()
             ->when(! $mostraPassati, fn ($query) => $query->whereDate('data_partenza', '>=', today()))
             ->when(in_array($tipologia, ['viaggio', 'tour', 'crociera'], true), fn ($query) => $query->where('tipologia', $tipologia))
-            ->when($ricerca, function ($query, $ricerca) {
-            $query->where(function ($query) use ($ricerca) {
-                $query->where('nome', 'ilike', "%{$ricerca}%")
-                    ->orWhere('destinazione', 'ilike', "%{$ricerca}%")
-                    ->orWhere('tipologia', 'ilike', "%{$ricerca}%");
+            ->when($ricerca, function ($query, $ricerca) use ($operatore) {
+            $query->where(function ($query) use ($ricerca, $operatore) {
+                $query->where('nome', $operatore, "%{$ricerca}%")
+                    ->orWhere('destinazione', $operatore, "%{$ricerca}%")
+                    ->orWhere('tipologia', $operatore, "%{$ricerca}%");
             });
         });
+    }
+
+    private function likeOperator(): string
+    {
+        return DB::connection()->getDriverName() === 'pgsql' ? 'ilike' : 'like';
     }
 
     private function normalizzaOpzioni(array $opzioni): array
