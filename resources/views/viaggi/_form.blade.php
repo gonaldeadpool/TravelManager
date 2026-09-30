@@ -98,7 +98,7 @@
 
             <div class="md:col-span-2 rounded border border-blue-200 bg-blue-50 p-4" x-show="tipologia === 'crociera'" x-cloak>
                 <div class="mb-4"><h4 class="font-semibold text-blue-900">Prezzi cabine</h4><p class="mt-1 text-sm text-blue-800">Imposta il prezzo per ogni tipologia di cabina.</p></div>
-                <div class="grid grid-cols-1 gap-3 md:grid-cols-4">
+                <div class="grid grid-cols-1 gap-3 md:grid-cols-4 md:items-end">
                     <template x-for="(cabina, indice) in prezziCabine" :key="cabina.tipo">
                         <div>
                             <label :for="`prezzo-cabina-${cabina.tipo}`" class="mb-1 block text-sm font-medium" x-text="cabina.tipo === 'interna' ? 'Cabina interna' : (cabina.tipo === 'vista_mare' ? 'Cabina vista mare' : 'Cabina con balcone')"></label>
@@ -110,7 +110,7 @@
                         <div class="mb-1 flex items-center gap-2">
                             <label for="quota_fissa" class="block text-sm font-medium">Quota fissa</label>
                             <div x-data="{ mostraInfo: false, hoverInfo: false }" @mouseenter="hoverInfo = true" @mouseleave="hoverInfo = false" @focusin="hoverInfo = true" @focusout="hoverInfo = false" @click.outside="mostraInfo = false" class="relative">
-                                <button type="button" @click="mostraInfo = !mostraInfo" @keydown.escape="mostraInfo = false" :aria-expanded="mostraInfo || hoverInfo" aria-label="Informazioni sulla quota fissa" aria-describedby="quota-fissa-tooltip" class="inline-flex h-5 w-5 items-center justify-center rounded-full border border-blue-500 text-xs font-semibold text-blue-700">i</button>
+                                <button type="button" @click="mostraInfo = !mostraInfo" @keydown.escape="mostraInfo = false" :aria-expanded="mostraInfo || hoverInfo" aria-label="Informazioni sulla quota fissa" aria-describedby="quota-fissa-tooltip" class="relative -top-0.5 inline-flex h-2.5 w-2.5 items-center justify-center rounded-full border border-blue-500 text-[6px] font-semibold leading-none text-blue-700">i</button>
                                 <span id="quota-fissa-tooltip" x-cloak x-show="mostraInfo || hoverInfo" role="tooltip" class="absolute left-1/2 top-full z-20 mt-2 w-64 -translate-x-1/2 rounded bg-gray-900 px-3 py-2 text-xs font-normal text-white shadow-lg">Importo di costi fissi in caso di gratuità. es: volo, tasse e trasferimenti</span>
                             </div>
                         </div>
