@@ -71,18 +71,6 @@
                         </button>
                     </th>
 
-                    @php($scontoSort = $sortInfo('sconto'))
-                    <th class="px-4 py-3 text-right">
-                        <button type="button" data-sort-field="sconto" data-sort-current="{{ $scontoSort['direction'] ?? '' }}" class="inline-flex items-center gap-1 rounded text-right hover:text-gray-900" title="Ordina per sconto">
-                            <span>Sconto</span>
-                            @if ($scontoSort['direction'] === 'asc')
-                                <span aria-hidden="true">↑{{ $scontoSort['priority'] }}</span>
-                            @elseif ($scontoSort['direction'] === 'desc')
-                                <span aria-hidden="true">↓{{ $scontoSort['priority'] }}</span>
-                            @endif
-                        </button>
-                    </th>
-
                     @php($residuoSort = $sortInfo('residuo'))
                     <th class="px-4 py-3 text-right">
                         <button type="button" data-sort-field="residuo" data-sort-current="{{ $residuoSort['direction'] ?? '' }}" class="inline-flex items-center gap-1 rounded text-right hover:text-gray-900" title="Ordina per residuo">
@@ -101,11 +89,10 @@
                 @foreach ($pratiche as $pratica)
                     <tr>
                         <td class="px-4 py-3 font-medium">{{ $pratica->viaggio->nome }}</td>
-                        <td class="px-4 py-3">{{ $pratica->clienti->map(fn ($cliente) => $cliente->cognome . ' ' . $cliente->nome)->join(', ') }}</td>
+                        <td class="px-4 py-3"><a href="{{ route('pratiche.show', $pratica) }}" class="font-medium text-blue-700 hover:underline" aria-label="Apri il riepilogo della pratica {{ $pratica->id }}">{{ $pratica->clienti->map(fn ($cliente) => $cliente->cognome . ' ' . $cliente->nome)->join(', ') }}</a></td>
                         <td class="px-4 py-3 text-right">{{ number_format($pratica->totale, 2, ',', '.') }} EUR</td>
                         <td class="px-4 py-3 text-right">{{ number_format($pratica->acconto, 2, ',', '.') }} EUR</td>
-                        <td class="px-4 py-3 text-right">{{ number_format($pratica->sconto, 2, ',', '.') }} EUR</td>
-                        <td class="px-4 py-3 text-right">{{ number_format($pratica->totale - $pratica->sconto - $pratica->acconto - $pratica->saldo, 2, ',', '.') }} EUR</td>
+                        <td class="px-4 py-3 text-right">{{ number_format($pratica->totale - $pratica->acconto - $pratica->saldo, 2, ',', '.') }} EUR</td>
                         <td class="px-4 py-3"><div class="flex justify-end gap-2">
                             <a href="{{ route('pratiche.edit', $pratica) }}" title="Modifica pratica" aria-label="Modifica pratica" class="inline-flex h-8 w-8 items-center justify-center rounded text-blue-600 hover:bg-blue-50"><svg aria-hidden="true" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9" /><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z" /></svg></a>
                             <form method="POST" action="{{ route('pratiche.destroy', $pratica) }}" onsubmit="return confirm('Vuoi eliminare questa pratica?');">@csrf @method('DELETE')<button type="submit" title="Elimina pratica" aria-label="Elimina pratica" class="inline-flex h-8 w-8 items-center justify-center rounded text-red-600 hover:bg-red-50"><svg aria-hidden="true" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18" /><path d="M8 6V4h8v2" /><path d="M19 6l-1 14H6L5 6" /><path d="M10 11v5M14 11v5" /></svg></button></form>
@@ -114,7 +101,7 @@
                 @endforeach
                 @for ($indice = $pratiche->count(); $indice < 5; $indice++)
                     <tr class="h-16">
-                        <td colspan="7" class="px-4 py-3 text-center text-sm text-gray-400">{{ $indice === 0 ? 'Nessuna pratica trovata.' : '' }}</td>
+                        <td colspan="6" class="px-4 py-3 text-center text-sm text-gray-400">{{ $indice === 0 ? 'Nessuna pratica trovata.' : '' }}</td>
                     </tr>
                 @endfor
             </tbody>

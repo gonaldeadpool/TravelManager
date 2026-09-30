@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Barryvdh\DomPDF\Facade\Pdf;
 use App\Models\Cliente;
 use App\Models\AppSetting;
 use App\Models\Pratica;
@@ -12,6 +13,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 class PraticaController extends Controller
@@ -88,7 +90,8 @@ class PraticaController extends Controller
     {
         $validated = $this->validatePratica($request, true);
         $pratica = Pratica::create($this->praticaData($validated));
-        $pratica->clienti()->sync($this->clientiConGratuita($validated));
+        $pratica->clienti()->sync($this->clientiConTariffe($validated));
+        $this->ricalcolaTotale($pratica);
         session()->forget('pratica_creazione');
 
         return redirect()->route('pratiche.index')->with('success', 'Pratica creata correttamente.');
@@ -101,15 +104,51 @@ class PraticaController extends Controller
         return view('pratiche.edit', $this->formData($pratica));
     }
 
+    public function show(Pratica $pratica): View
+    {
+        $this->preparaRiepilogo($pratica);
+
+        return view('pratiche.show', compact('pratica'));
+    }
+
+    public function riepilogoPdf(Pratica $pratica)
+    {
+        return $this->renderRiepilogoPdf($pratica, false);
+    }
+
+    public function riepilogoPdfDownload(Pratica $pratica)
+    {
+        return $this->renderRiepilogoPdf($pratica, true);
+    }
+
+    private function renderRiepilogoPdf(Pratica $pratica, bool $download)
+    {
+        $this->preparaRiepilogo($pratica);
+        $nomeFile = 'riepilogo-pratica-' . $pratica->id . '.pdf';
+        $pdf = Pdf::loadView('pratiche.riepilogo-pdf', compact('pratica'))->setPaper('a4');
+
+        return $download ? $pdf->download($nomeFile) : $pdf->stream($nomeFile);
+    }
+
+    private function preparaRiepilogo(Pratica $pratica): void
+    {
+        $pratica->load(['viaggio', 'clienti', 'documenti']);
+        $pratica->clienti->each(function (Cliente $cliente) use ($pratica) {
+            $cliente->setAttribute('quota_pratica', $this->quotaCliente($pratica, $cliente));
+        });
+    }
+
     public function update(Request $request, Pratica $pratica): RedirectResponse
     {
         $validated = $this->validatePratica($request);
         $pratica->update($this->praticaData($validated));
         $clienti = $pratica->clienti()->pluck('clienti.id')->all();
-        $pratica->clienti()->syncWithoutDetaching($this->clientiConGratuita([
+        $pratica->clienti()->syncWithoutDetaching($this->clientiConTariffe([
             'clienti' => $clienti,
             'gratuiti' => $validated['gratuiti'] ?? [],
+            'ridotti' => $validated['ridotti'] ?? [],
         ]));
+        $this->ricalcolaTotale($pratica);
 
         return redirect()->route('pratiche.index')->with('success', 'Pratica aggiornata correttamente.');
     }
@@ -172,7 +211,7 @@ class PraticaController extends Controller
     public function storeBozzaCreazione(Request $request): RedirectResponse
     {
         session(['pratica_creazione' => $request->only([
-            'viaggio_id', 'totale', 'sconto', 'acconto', 'data_acconto', 'saldo', 'data_saldo', 'note', 'clienti', 'gratuiti',
+            'viaggio_id', 'cabina', 'totale_quote', 'totale', 'sconto', 'assicurazione_annullamento', 'supplemento_singola', 'acconto', 'data_acconto', 'saldo', 'data_saldo', 'note', 'clienti', 'gratuiti', 'ridotti',
         ])]);
 
         return redirect()->route('pratiche.creazione.clienti.select');
@@ -392,7 +431,7 @@ class PraticaController extends Controller
                     break;
 
                 case 'residuo':
-                    $query->orderByRaw("(pratiche.totale - pratiche.sconto - pratiche.acconto - pratiche.saldo) {$direction}");
+                    $query->orderByRaw("(pratiche.totale - pratiche.acconto - pratiche.saldo) {$direction}");
                     break;
             }
         }
@@ -403,11 +442,10 @@ class PraticaController extends Controller
     private function statoPagamento(Pratica $pratica, $oggi, array $soglie): string
     {
         $totale = (float) $pratica->totale;
-        $sconto = (float) $pratica->sconto;
         $acconto = (float) $pratica->acconto;
         $saldo = (float) $pratica->saldo;
 
-        if ($saldo > 0 && $totale - $sconto - $acconto - $saldo <= 0) {
+        if ($saldo > 0 && $totale - $acconto - $saldo <= 0) {
             return 'saldo_versato';
         }
 
@@ -428,10 +466,22 @@ class PraticaController extends Controller
 
     private function validatePratica(Request $request, bool $richiedeClienti = false): array
     {
+        $viaggio = Viaggio::find($request->input('viaggio_id'));
+        $tipiCabina = collect($viaggio?->prezzi_cabine ?? [])->pluck('tipo')->filter()->values()->all();
+        $regoleCabina = $viaggio?->tipologia === 'crociera'
+            ? ['required', 'string', Rule::in($tipiCabina)]
+            : ['nullable', 'string', Rule::in($tipiCabina)];
+        $gratuiti = $request->input('gratuiti', []);
+        $gratuiti = is_array($gratuiti) ? $gratuiti : [];
+
         $rules = [
             'viaggio_id' => ['required', 'exists:viaggi,id'],
-            'totale' => ['required', 'numeric', 'min:0'],
+            'cabina' => $regoleCabina,
+            'totale_quote' => ['nullable', 'numeric', 'min:0'],
+            'totale' => ['nullable', 'numeric', 'min:0'],
             'sconto' => ['nullable', 'numeric', 'min:0'],
+            'assicurazione_annullamento' => ['nullable', 'numeric', 'min:0'],
+            'supplemento_singola' => ['nullable', 'numeric', 'min:0'],
             'acconto' => ['nullable', 'numeric', 'min:0'],
             'data_acconto' => ['nullable', 'date'],
             'saldo' => ['nullable', 'numeric', 'min:0'],
@@ -439,6 +489,8 @@ class PraticaController extends Controller
             'note' => ['nullable', 'string'],
             'gratuiti' => ['nullable', 'array'],
             'gratuiti.*' => ['integer', 'distinct', 'exists:clienti,id'],
+            'ridotti' => ['nullable', 'array'],
+            'ridotti.*' => ['integer', 'distinct', 'exists:clienti,id', Rule::notIn($gratuiti)],
         ];
 
         if ($richiedeClienti) {
@@ -446,36 +498,73 @@ class PraticaController extends Controller
             $rules['clienti.*'] = ['integer', 'distinct', 'exists:clienti,id'];
         }
 
-        return $request->validate($rules);
+        return $request->validate($rules, [
+            'ridotti.*.not_in' => 'Un cliente non può essere contemporaneamente gratuito e ridotto.',
+        ]);
     }
 
-    private function clientiConGratuita(array $validated): array
+    private function clientiConTariffe(array $validated): array
     {
         $gratuiti = collect($validated['gratuiti'] ?? [])->map(fn ($id) => (int) $id)->all();
+        $ridotti = collect($validated['ridotti'] ?? [])->map(fn ($id) => (int) $id)->all();
 
         return collect($validated['clienti'])
-            ->mapWithKeys(fn ($id) => [(int) $id => ['gratuito' => in_array((int) $id, $gratuiti, true)]])
+            ->mapWithKeys(fn ($id) => [(int) $id => [
+                'gratuito' => in_array((int) $id, $gratuiti, true),
+                'ridotto' => in_array((int) $id, $ridotti, true),
+            ]])
             ->all();
     }
 
     private function ricalcolaTotale(Pratica $pratica): void
     {
-        $pratica->loadMissing(['viaggio', 'clienti']);
+        $pratica->load(['viaggio', 'clienti']);
+        $totaleQuote = $pratica->clienti->sum(fn (Cliente $cliente) => $this->quotaCliente($pratica, $cliente));
+        $totale = max(0, $totaleQuote
+            + (float) $pratica->assicurazione_annullamento
+            + (float) $pratica->supplemento_singola
+            - (float) $pratica->sconto);
 
-        if ($pratica->viaggio->prezzo === null) {
-            return;
+        $pratica->update([
+            'totale_quote' => $totaleQuote,
+            'totale' => $totale,
+        ]);
+    }
+
+    private function quotaCliente(Pratica $pratica, Cliente $cliente): float
+    {
+        if ($cliente->pivot->gratuito) {
+            return 0;
         }
 
-        $partecipantiPaganti = $pratica->clienti->where('pivot.gratuito', false)->count();
-        $pratica->update(['totale' => $pratica->viaggio->prezzo * $partecipantiPaganti]);
+        $viaggio = $pratica->viaggio;
+        $quotaBase = $viaggio->tipologia === 'crociera'
+            ? (collect($viaggio->prezzi_cabine ?? [])->firstWhere('tipo', $pratica->cabina)['prezzo'] ?? $viaggio->prezzo)
+            : $viaggio->prezzo;
+
+        if ($cliente->pivot->ridotto) {
+            if ($viaggio->tipologia === 'crociera' && $viaggio->quota_fissa !== null) {
+                return (float) $viaggio->quota_fissa;
+            }
+
+            if ($viaggio->quota_ridotto !== null) {
+                return (float) $viaggio->quota_ridotto;
+            }
+        }
+
+        return (float) ($quotaBase ?? 0);
     }
 
     private function praticaData(array $validated): array
     {
         return [
             'viaggio_id' => $validated['viaggio_id'],
-            'totale' => $validated['totale'],
+            'cabina' => $validated['cabina'] ?? null,
+            'totale_quote' => 0,
+            'totale' => 0,
             'sconto' => $validated['sconto'] ?? 0,
+            'assicurazione_annullamento' => $validated['assicurazione_annullamento'] ?? 0,
+            'supplemento_singola' => $validated['supplemento_singola'] ?? 0,
             'acconto' => $validated['acconto'] ?? 0,
             'data_acconto' => $validated['data_acconto'] ?? null,
             'saldo' => $validated['saldo'] ?? 0,

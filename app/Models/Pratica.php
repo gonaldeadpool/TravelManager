@@ -10,8 +10,12 @@ class Pratica extends Model
 
     protected $fillable = [
         'viaggio_id',
+        'cabina',
+        'totale_quote',
         'totale',
         'sconto',
+        'assicurazione_annullamento',
+        'supplemento_singola',
         'acconto',
         'data_acconto',
         'saldo',
@@ -22,8 +26,11 @@ class Pratica extends Model
     protected function casts(): array
     {
         return [
+            'totale_quote' => 'decimal:2',
             'totale' => 'decimal:2',
             'sconto' => 'decimal:2',
+            'assicurazione_annullamento' => 'decimal:2',
+            'supplemento_singola' => 'decimal:2',
             'acconto' => 'decimal:2',
             'saldo' => 'decimal:2',
             'data_acconto' => 'date',
@@ -38,7 +45,7 @@ class Pratica extends Model
 
     public function clienti()
     {
-        return $this->belongsToMany(Cliente::class, 'cliente_pratica')->withPivot(['gratuito', 'posto', 'posto_bus']);
+        return $this->belongsToMany(Cliente::class, 'cliente_pratica')->withPivot(['gratuito', 'ridotto', 'posto', 'posto_bus']);
     }
 
     public function documenti()

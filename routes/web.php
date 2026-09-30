@@ -133,6 +133,18 @@ Route::resource('pratiche', PraticaController::class)
     ->parameters(['pratiche' => 'pratica'])
     ->except(['show']);
 
+Route::get('/pratiche/{pratica}/riepilogo', [PraticaController::class, 'show'])
+    ->middleware(['auth'])
+    ->name('pratiche.show');
+
+Route::get('/pratiche/{pratica}/riepilogo/pdf', [PraticaController::class, 'riepilogoPdf'])
+    ->middleware(['auth'])
+    ->name('pratiche.riepilogo.pdf');
+
+Route::get('/pratiche/{pratica}/riepilogo/pdf/download', [PraticaController::class, 'riepilogoPdfDownload'])
+    ->middleware(['auth'])
+    ->name('pratiche.riepilogo.pdf.download');
+
 Route::get('/pratiche/{pratica}/clienti', [PraticaController::class, 'selectClienti'])
     ->middleware(['auth'])
     ->name('pratiche.clienti.select');

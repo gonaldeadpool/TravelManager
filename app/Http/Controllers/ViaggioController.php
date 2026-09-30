@@ -267,6 +267,7 @@ class ViaggioController extends Controller
             'data_rientro' => ['required', 'date', 'after_or_equal:data_partenza'],
             'prezzo' => ['nullable', 'required_unless:tipologia,crociera', 'numeric', 'min:0'],
             'quota_ridotto' => ['nullable', 'numeric', 'min:0'],
+            'quota_fissa' => ['nullable', 'numeric', 'min:0'],
             'minimo_partecipanti' => ['required', 'integer', 'min:1'],
             'massimo_partecipanti' => ['nullable', 'integer', 'gte:minimo_partecipanti'],
             'data_acconto' => ['nullable', 'date'],
