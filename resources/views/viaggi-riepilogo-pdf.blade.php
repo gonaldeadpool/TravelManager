@@ -157,10 +157,11 @@
         <tbody>
             <tr><th>Tipologia</th><td>{{ ucfirst($viaggio->tipologia) }}</td><th>Destinazione</th><td>{{ $viaggio->destinazione }}</td></tr>
             <tr><th>Periodo</th><td>{{ $viaggio->data_partenza->format('d/m/Y') }} - {{ $viaggio->data_rientro->format('d/m/Y') }}</td><th>Durata</th><td>{{ $viaggio->data_partenza->diffInDays($viaggio->data_rientro) + 1 }} giorni, {{ $viaggio->data_partenza->diffInDays($viaggio->data_rientro) }} notti</td></tr>
-            <tr><th>Prezzo a persona</th><td>{{ $viaggio->prezzo !== null ? number_format($viaggio->prezzo, 2, ',', '.') . ' EUR' : '-' }}</td><th>Partecipanti</th><td>{{ $numeroPartecipanti }}</td></tr>
-            <tr><th>Minimo partecipanti</th><td>{{ $viaggio->minimo_partecipanti }}</td><th>Massimo partecipanti</th><td>{{ $viaggio->massimo_partecipanti ?? '-' }}</td></tr>
-            <tr><th>Data acconto</th><td>{{ $viaggio->data_acconto?->format('d/m/Y') ?? '-' }}</td><th>Importo acconto</th><td>{{ number_format($importoAcconto, 2, ',', '.') }} EUR</td></tr>
-            <tr><th>Data saldo</th><td>{{ $viaggio->data_saldo?->format('d/m/Y') ?? '-' }}</td><th>Importo saldo</th><td>{{ number_format($importoSaldo, 2, ',', '.') }} EUR</td></tr>
+            <tr><th>Quota a persona</th><td>{{ $viaggio->prezzo !== null ? number_format($viaggio->prezzo, 2, ',', '.') . ' EUR' : '-' }}</td><th>Quota ridotto</th><td>{{ $viaggio->quota_ridotto !== null ? number_format($viaggio->quota_ridotto, 2, ',', '.') . ' EUR' : '-' }}</td></tr>
+            <tr><th>Partecipanti</th><td>{{ $numeroPartecipanti }}</td><th>Minimo partecipanti</th><td>{{ $viaggio->minimo_partecipanti }}</td></tr>
+            <tr><th>Massimo partecipanti</th><td>{{ $viaggio->massimo_partecipanti ?? '-' }}</td><th>Data acconto</th><td>{{ $viaggio->data_acconto?->format('d/m/Y') ?? '-' }}</td></tr>
+            <tr><th>Importo acconto</th><td>{{ number_format($importoAcconto, 2, ',', '.') }} EUR</td><th>Data saldo</th><td>{{ $viaggio->data_saldo?->format('d/m/Y') ?? '-' }}</td></tr>
+            <tr><th>Importo saldo</th><td>{{ number_format($importoSaldo, 2, ',', '.') }} EUR</td><th></th><td></td></tr>
             <tr><th>Note</th><td colspan="3">{{ $viaggio->note ?: '-' }}</td></tr>
         </tbody>
     </table>

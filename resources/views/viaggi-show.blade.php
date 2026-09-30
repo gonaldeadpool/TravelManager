@@ -61,7 +61,8 @@
                         <div><dt class="text-gray-500">Destinazione</dt><dd class="mt-1 font-medium">{{ $viaggio->destinazione }}</dd></div>
                         <div><dt class="text-gray-500">Periodo</dt><dd class="mt-1 font-medium">{{ $viaggio->data_partenza->format('d/m/Y') }} - {{ $viaggio->data_rientro->format('d/m/Y') }}</dd></div>
                         <div><dt class="text-gray-500">Durata</dt><dd class="mt-1 font-medium">{{ $viaggio->data_partenza->diffInDays($viaggio->data_rientro) + 1 }} giorni, {{ $viaggio->data_partenza->diffInDays($viaggio->data_rientro) }} notti</dd></div>
-                        <div><dt class="text-gray-500">Prezzo a persona</dt><dd class="mt-1 font-medium">{{ $viaggio->prezzo !== null ? number_format($viaggio->prezzo, 2, ',', '.') . ' EUR' : '-' }}</dd></div>
+                        <div><dt class="text-gray-500">Quota a persona</dt><dd class="mt-1 font-medium">{{ $viaggio->prezzo !== null ? number_format($viaggio->prezzo, 2, ',', '.') . ' EUR' : '-' }}</dd></div>
+                        <div><dt class="text-gray-500">Quota ridotto</dt><dd class="mt-1 font-medium">{{ $viaggio->quota_ridotto !== null ? number_format($viaggio->quota_ridotto, 2, ',', '.') . ' EUR' : '-' }}</dd></div>
                         <div><dt class="text-gray-500">Minimo partecipanti</dt><dd class="mt-1 font-medium">{{ $viaggio->minimo_partecipanti }}</dd></div>
                         <div><dt class="text-gray-500">Massimo partecipanti</dt><dd class="mt-1 font-medium">{{ $viaggio->massimo_partecipanti ?? '-' }}</dd></div>
                         <div><dt class="text-gray-500">Numero partecipanti</dt><dd class="mt-1 font-medium">{{ $numeroPartecipanti }}</dd></div>

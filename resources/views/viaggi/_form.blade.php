@@ -79,11 +79,20 @@
                 <label for="destinazione" class="block mb-1">Dove *</label>
                 <input id="destinazione" type="text" name="destinazione" value="{{ old('destinazione', $viaggio->destinazione ?? '') }}" required class="border rounded w-full p-2">
             </div>
-            <div x-show="tipologia !== 'crociera'" x-cloak>
-                <label for="prezzo" class="block mb-1">Prezzo a persona *</label>
-                <div class="relative">
-                    <input id="prezzo" type="number" name="prezzo" min="0" step="0.01" value="{{ old('prezzo', $viaggio->prezzo ?? '') }}" :disabled="tipologia === 'crociera'" required class="border rounded w-full p-2 pr-8">
-                    <span class="absolute right-3 top-2 text-gray-500">EUR</span>
+            <div class="md:col-span-2 grid grid-cols-1 gap-4 md:grid-cols-2" x-show="tipologia !== 'crociera'" x-cloak>
+                <div>
+                    <label for="prezzo" class="block mb-1">Quota a persona *</label>
+                    <div class="relative">
+                        <input id="prezzo" type="number" name="prezzo" min="0" step="0.01" value="{{ old('prezzo', $viaggio->prezzo ?? '') }}" :disabled="tipologia === 'crociera'" required class="border rounded w-full p-2 pr-8">
+                        <span class="absolute right-3 top-2 text-gray-500">EUR</span>
+                    </div>
+                </div>
+                <div>
+                    <label for="quota_ridotto" class="block mb-1">Quota ridotto</label>
+                    <div class="relative">
+                        <input id="quota_ridotto" type="number" name="quota_ridotto" min="0" step="0.01" value="{{ old('quota_ridotto', $viaggio->quota_ridotto ?? '') }}" :disabled="tipologia === 'crociera'" class="border rounded w-full p-2 pr-8">
+                        <span class="absolute right-3 top-2 text-gray-500">EUR</span>
+                    </div>
                 </div>
             </div>
 
