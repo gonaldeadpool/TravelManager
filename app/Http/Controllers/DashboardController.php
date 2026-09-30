@@ -19,7 +19,7 @@ class DashboardController extends Controller
         'viaggi' => 'Viaggi',
         'pratiche' => 'Pratiche',
         'top_viaggi' => 'Viaggi più venduti',
-        'capacita_viaggi' => 'Stato riempimento viaggi',
+        'capacita_viaggi' => 'Stato conferma viaggi',
     ];
 
     public function index(): View

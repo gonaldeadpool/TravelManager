@@ -12,7 +12,7 @@
 
                 <!-- Navigation Links -->
                 <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
-                    @if (Auth::user()->canAccessMenu('dashboard'))<x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">{{ __('Travel Manager') }}</x-nav-link>@endif
+                    @if (Auth::user()->canAccessMenu('dashboard'))<x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">{{ __('Dashboard') }}</x-nav-link>@endif
                     @if (Auth::user()->canAccessMenu('clienti'))<x-nav-link :href="route('clienti')" :active="request()->routeIs('clienti')">{{ __('Clienti') }}</x-nav-link>@endif
                     @if (Auth::user()->canAccessMenu('viaggi'))<x-nav-link :href="route('viaggi.index')" :active="request()->routeIs('viaggi.*')">{{ __('Viaggi') }}</x-nav-link>@endif
                     @if (Auth::user()->canAccessMenu('calendario'))<x-nav-link :href="route('calendario')" :active="request()->routeIs('calendario*')">{{ __('Calendario') }}</x-nav-link>@endif
