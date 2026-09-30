@@ -68,7 +68,9 @@
                 <div><dt class="text-gray-500">Destinazione</dt><dd class="mt-1 font-medium">{{ $pratica->viaggio->destinazione }}</dd></div>
                 <div><dt class="text-gray-500">Partenza</dt><dd class="mt-1 font-medium">{{ $pratica->viaggio->data_partenza?->format('d/m/Y') ?? '-' }}</dd></div>
                 <div><dt class="text-gray-500">Rientro</dt><dd class="mt-1 font-medium">{{ $pratica->viaggio->data_rientro?->format('d/m/Y') ?? '-' }}</dd></div>
-                <div><dt class="text-gray-500">Cabina</dt><dd class="mt-1 font-medium">{{ $pratica->cabina ? ucfirst(str_replace('_', ' ', $pratica->cabina)) : '-' }}</dd></div>
+                @if ($pratica->viaggio->tipologia === 'crociera')
+                    <div><dt class="text-gray-500">Cabina</dt><dd class="mt-1 font-medium">{{ $pratica->cabina ? ucfirst(str_replace('_', ' ', $pratica->cabina)) : '-' }}</dd></div>
+                @endif
                 <div><dt class="text-gray-500">Data acconto</dt><dd class="mt-1 font-medium">{{ $pratica->viaggio->data_acconto?->format('d/m/Y') ?? '-' }}</dd></div>
                 <div><dt class="text-gray-500">Data saldo</dt><dd class="mt-1 font-medium">{{ $pratica->viaggio->data_saldo?->format('d/m/Y') ?? '-' }}</dd></div>
             </dl>
