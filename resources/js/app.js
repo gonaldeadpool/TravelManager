@@ -10,6 +10,78 @@ import itLocale from '@fullcalendar/core/locales/it';
 
 window.Alpine = Alpine;
 
+Alpine.data('dashboardWidgetOrder', (config) => ({
+	ordineSalvato: [...config.ordine],
+	elementoTrascinato: null,
+	messaggioOrdine: '',
+	init() {
+		this.ordinaElementi(this.ordineSalvato);
+	},
+	ordinaElementi(ordine) {
+		const griglia = this.$refs.griglia;
+		if (!griglia) return;
+
+		const priorita = new Map(ordine.map((chiave, indice) => [chiave, indice]));
+		const elementi = [...griglia.querySelectorAll(':scope > [data-dashboard-widget]')];
+		elementi
+			.sort((primo, secondo) => (priorita.get(primo.dataset.dashboardWidget) ?? Infinity) - (priorita.get(secondo.dataset.dashboardWidget) ?? Infinity))
+			.forEach((elemento) => griglia.append(elemento));
+	},
+	iniziaTrascinamento(evento) {
+		const widget = evento.target.closest('[data-dashboard-widget]');
+		if (!widget || !evento.dataTransfer) return;
+
+		this.elementoTrascinato = widget;
+		evento.dataTransfer.effectAllowed = 'move';
+		evento.dataTransfer.setData('text/plain', widget.dataset.dashboardWidget);
+		widget.classList.add('opacity-50');
+	},
+	riordinaDuranteTrascinamento(evento) {
+		const widgetDestinazione = evento.target.closest('[data-dashboard-widget]');
+		const widgetTrascinato = this.elementoTrascinato;
+		const griglia = this.$refs.griglia;
+		if (!widgetDestinazione || !widgetTrascinato || widgetDestinazione === widgetTrascinato || !griglia) return;
+
+		const rettangolo = widgetDestinazione.getBoundingClientRect();
+		const scartoX = (evento.clientX - rettangolo.left) / rettangolo.width - 0.5;
+		const scartoY = (evento.clientY - rettangolo.top) / rettangolo.height - 0.5;
+		const dopo = Math.abs(scartoX) > Math.abs(scartoY) ? scartoX > 0 : scartoY > 0;
+
+		if (dopo) {
+			if (widgetDestinazione.nextElementSibling !== widgetTrascinato) griglia.insertBefore(widgetTrascinato, widgetDestinazione.nextElementSibling);
+		} else if (widgetDestinazione !== widgetTrascinato.nextElementSibling) {
+			griglia.insertBefore(widgetTrascinato, widgetDestinazione);
+		}
+	},
+	async salvaOrdine() {
+		const griglia = this.$refs.griglia;
+		const ordine = [...griglia.querySelectorAll(':scope > [data-dashboard-widget]')].map((widget) => widget.dataset.dashboardWidget);
+
+		try {
+			const risposta = await fetch(config.url, {
+				method: 'POST',
+				headers: {
+					'Accept': 'application/json',
+					'Content-Type': 'application/json',
+					'X-CSRF-TOKEN': config.csrf,
+				},
+				body: JSON.stringify({ order: ordine }),
+			});
+			if (!risposta.ok) throw new Error('Salvataggio ordine non riuscito');
+
+			this.ordineSalvato = ordine;
+			this.messaggioOrdine = 'Ordine dei widget salvato.';
+		} catch {
+			this.ordinaElementi(this.ordineSalvato);
+			this.messaggioOrdine = 'Impossibile salvare l’ordine dei widget.';
+		}
+	},
+	terminaTrascinamento() {
+		this.elementoTrascinato?.classList.remove('opacity-50');
+		this.elementoTrascinato = null;
+	},
+}));
+
 Alpine.start();
 
 const calendario = document.getElementById('calendario-viaggi');

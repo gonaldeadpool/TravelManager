@@ -6,8 +6,10 @@ use App\Models\AppSetting;
 use App\Models\Cliente;
 use App\Models\Pratica;
 use App\Models\Viaggio;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class DashboardController extends Controller
@@ -17,6 +19,7 @@ class DashboardController extends Controller
         'viaggi' => 'Viaggi',
         'pratiche' => 'Pratiche',
         'top_viaggi' => 'Viaggi più venduti',
+        'capacita_viaggi' => 'Stato riempimento viaggi',
     ];
 
     public function index(): View
@@ -39,6 +42,46 @@ class DashboardController extends Controller
         });
 
         $viaggi = Viaggio::whereDate('data_partenza', '>=', $oggi)->get();
+        $viaggiCapacita = collect();
+
+        if (in_array('capacita_viaggi', $widgetsAttivi, true) && $viaggi->isNotEmpty()) {
+            $iscrittiPerViaggio = DB::table('cliente_pratica')
+                ->join('pratiche', 'pratiche.id', '=', 'cliente_pratica.pratica_id')
+                ->whereIn('pratiche.viaggio_id', $viaggi->modelKeys())
+                ->selectRaw('pratiche.viaggio_id as viaggio_id, COUNT(DISTINCT cliente_pratica.cliente_id) as iscritti')
+                ->groupBy('pratiche.viaggio_id')
+                ->pluck('iscritti', 'viaggio_id');
+
+            $viaggiCapacita = $viaggi->map(function (Viaggio $viaggio) use ($oggi, $iscrittiPerViaggio) {
+                $iscritti = (int) ($iscrittiPerViaggio[$viaggio->id] ?? 0);
+                $minimo = (int) $viaggio->minimo_partecipanti;
+                $massimo = $viaggio->massimo_partecipanti !== null ? (int) $viaggio->massimo_partecipanti : null;
+                $giorniAllaPartenza = (int) $oggi->diffInDays($viaggio->data_partenza, false);
+                $inScadenza = $giorniAllaPartenza >= 0 && $giorniAllaPartenza <= 30 && $iscritti < $minimo;
+                $quasiPieno = $massimo !== null
+                    && $massimo > 0
+                    && $iscritti >= ceil($massimo * 0.8)
+                    && $iscritti < $massimo;
+                $completo = $massimo !== null && $massimo > 0 && $iscritti >= $massimo;
+
+                return [
+                    'id' => $viaggio->id,
+                    'titolo' => $viaggio->nome,
+                    'dataPartenza' => $viaggio->data_partenza->format('d/m/Y'),
+                    'ordinamentoData' => $viaggio->data_partenza->getTimestamp(),
+                    'giorniAllaPartenza' => $giorniAllaPartenza,
+                    'numeroMinimo' => $minimo,
+                    'numeroMassimo' => $massimo,
+                    'iscritti' => $iscritti,
+                    'inScadenza' => $inScadenza,
+                    'priorita' => $inScadenza ? 0 : ($quasiPieno ? 1 : ($completo ? 2 : 3)),
+                ];
+            })->sortBy([
+                ['priorita', 'asc'],
+                ['ordinamentoData', 'asc'],
+            ])->values();
+        }
+
         $pratiche = Pratica::with('viaggio')
             ->whereHas('viaggio', fn ($query) => $query->whereDate('data_partenza', '>=', $oggi))
             ->get();
@@ -64,6 +107,7 @@ class DashboardController extends Controller
             'totalePratiche' => $pratiche->count(),
             'statiPratiche' => $statiPratiche,
             'topViaggi' => $topViaggi,
+            'travels' => $viaggiCapacita,
         ]);
     }
 
@@ -74,9 +118,35 @@ class DashboardController extends Controller
             'widgets.*' => ['string', 'in:' . implode(',', array_keys(self::WIDGETS))],
         ]);
 
-        $request->user()->update(['dashboard_widgets' => $validated['widgets'] ?? []]);
+        $selezionati = collect($validated['widgets'] ?? [])->unique()->values();
+        $ordineAttuale = collect($request->user()->dashboard_widgets ?? array_keys(self::WIDGETS));
+        $ordineAggiornato = $ordineAttuale
+            ->intersect($selezionati)
+            ->concat($selezionati->diff($ordineAttuale))
+            ->unique()
+            ->values();
+
+        $request->user()->update(['dashboard_widgets' => $ordineAggiornato->all()]);
 
         return redirect()->route('dashboard');
+    }
+
+    public function updateWidgetOrder(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'order' => ['required', 'array'],
+            'order.*' => ['required', 'string', 'distinct', 'in:' . implode(',', array_keys(self::WIDGETS))],
+        ]);
+
+        $widgetsAttivi = collect($request->user()->dashboard_widgets ?? array_keys(self::WIDGETS));
+        $ordineRichiesto = collect($validated['order'])->intersect($widgetsAttivi)->unique();
+        $ordineAggiornato = $ordineRichiesto
+            ->concat($widgetsAttivi->diff($ordineRichiesto))
+            ->values();
+
+        $request->user()->update(['dashboard_widgets' => $ordineAggiornato->all()]);
+
+        return response()->json(['ok' => true]);
     }
 
     private function statoPagamento(Pratica $pratica, $oggi, array $soglie): string
