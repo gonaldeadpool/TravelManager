@@ -89,6 +89,8 @@ class ViaggioController extends Controller
             $nome = \Illuminate\Support\Str::uuid()->toString() . '.' . $file->getClientOriginalExtension();
             LocalStoragePaths::disk(LocalStoragePaths::locandine())->putFileAs('', $file, $nome);
             $validated['locandina'] = $nome;
+        } else {
+            $validated['locandina'] = $this->locandinaPredefinita($validated['tipologia']);
         }
 
         Viaggio::create($validated);
@@ -225,6 +227,8 @@ class ViaggioController extends Controller
             $nome = \Illuminate\Support\Str::uuid()->toString() . '.' . $file->getClientOriginalExtension();
             LocalStoragePaths::disk(LocalStoragePaths::locandine())->putFileAs('', $file, $nome);
             $validated['locandina'] = $nome;
+        } elseif (! $viaggio->locandina || $this->isLocandinaPredefinita($viaggio->locandina)) {
+            $validated['locandina'] = $this->locandinaPredefinita($validated['tipologia']);
         }
 
         $viaggio->update($validated);
@@ -245,8 +249,19 @@ class ViaggioController extends Controller
 
     public function downloadLocandina(Viaggio $viaggio)
     {
-        $disk = LocalStoragePaths::disk(LocalStoragePaths::locandine());
         $percorso = $viaggio->locandina;
+
+        if (blank($percorso) || $this->isLocandinaPredefinita($percorso)) {
+            $percorso = filled($percorso) ? $percorso : $this->locandinaPredefinita($viaggio->tipologia);
+            abort_unless($this->isLocandinaPredefinita($percorso), 404);
+
+            $file = public_path('images/locandine-default/' . basename($percorso));
+            abort_unless(is_file($file), 404);
+
+            return response()->file($file, ['Content-Type' => 'image/svg+xml']);
+        }
+
+        $disk = LocalStoragePaths::disk(LocalStoragePaths::locandine());
 
         if (! $disk->exists($percorso)) {
             $disk = Storage::disk('public');
@@ -442,7 +457,25 @@ class ViaggioController extends Controller
 
     private function eliminaLocandina(string $percorso): void
     {
+        if ($this->isLocandinaPredefinita($percorso)) {
+            return;
+        }
+
         LocalStoragePaths::disk(LocalStoragePaths::locandine())->delete($percorso);
         Storage::disk('public')->delete($percorso);
+    }
+
+    private function locandinaPredefinita(string $tipologia): string
+    {
+        return '__default__/' . (in_array($tipologia, ['viaggio', 'tour', 'crociera'], true) ? $tipologia : 'viaggio') . '.svg';
+    }
+
+    private function isLocandinaPredefinita(?string $percorso): bool
+    {
+        return in_array($percorso, [
+            '__default__/viaggio.svg',
+            '__default__/tour.svg',
+            '__default__/crociera.svg',
+        ], true);
     }
 }

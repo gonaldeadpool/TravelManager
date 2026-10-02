@@ -5,15 +5,23 @@
         ['tipo' => 'vista_mare', 'prezzo' => ''],
         ['tipo' => 'balcone', 'prezzo' => ''],
     ]);
+    $tipologiaDefault = old('tipologia', $viaggio->tipologia ?? 'viaggio');
 @endphp
 
 <div x-data="{
     trasporti: @js($trasporti),
     prezziCabine: @js($prezziCabine),
     etaGratuita: @js(old('eta_gratuita', $viaggio->eta_gratuita ?? '')),
-    tipologia: @js(old('tipologia', $viaggio->tipologia ?? 'viaggio')),
-    locandinaPreview: @js($viaggio->locandina ? asset('storage/' . $viaggio->locandina) : null),
+    tipologia: @js($tipologiaDefault),
+    locandineDefault: @js([
+        'viaggio' => asset('images/locandine-default/viaggio.svg'),
+        'tour' => asset('images/locandine-default/tour.svg'),
+        'crociera' => asset('images/locandine-default/crociera.svg'),
+    ]),
+    locandinaPersonalizzata: @js($viaggio->locandina && !str_starts_with($viaggio->locandina, '__default__/')),
+    locandinaPreview: @js($viaggio->exists ? route('viaggi.locandina', $viaggio) : asset('images/locandine-default/' . $tipologiaDefault . '.svg')),
     aggiungiTrasporto() { this.trasporti.push({ tipo: 'bus', posti: '' }) },
+    cambiaTipologia() { if (!this.locandinaPersonalizzata) this.locandinaPreview = this.locandineDefault[this.tipologia] },
     rimuovi(array, indice) { array.splice(indice, 1) },
     durata() {
         if (!this.dataPartenza || !this.dataRientro) return null;
@@ -31,6 +39,7 @@
             return;
         }
 
+        this.locandinaPersonalizzata = true;
         const lettore = new FileReader();
         lettore.onload = (eventoLettura) => this.locandinaPreview = eventoLettura.target.result;
         lettore.readAsDataURL(file);
@@ -51,7 +60,7 @@
         <label for="locandina" class="mt-4 block mb-1 text-sm font-medium">Carica locandina</label>
         <input id="locandina" type="file" name="locandina" accept="image/*" @change="anteprimaLocandina($event)" class="w-full rounded border p-2 text-sm">
 
-        @if ($viaggio->locandina)
+        @if ($viaggio->exists)
             <a href="{{ route('viaggi.locandina', $viaggio) }}" target="_blank" class="mt-3 inline-block text-sm text-blue-600 hover:underline">Apri locandina attuale</a>
         @endif
     </aside>

@@ -126,13 +126,9 @@
                 @foreach ($viaggi as $viaggio)
                     <tr>
                         <td class="px-4 py-3">
-                            @if ($viaggio->locandina)
-                                <a href="{{ route('viaggi.locandina', $viaggio) }}" target="_blank" title="Apri locandina">
-                                    <img src="{{ route('viaggi.locandina', $viaggio) }}" alt="Locandina di {{ $viaggio->nome }}" class="h-16 w-12 rounded object-cover border">
-                                </a>
-                            @else
-                                <div class="flex h-16 w-12 items-center justify-center rounded border border-dashed bg-gray-50 text-center text-xs text-gray-400">Nessuna immagine</div>
-                            @endif
+                            <a href="{{ route('viaggi.locandina', $viaggio) }}" target="_blank" title="Apri locandina">
+                                <img src="{{ route('viaggi.locandina', $viaggio) }}" alt="Locandina di {{ $viaggio->nome }}" class="h-16 w-12 rounded object-cover border">
+                            </a>
                         </td>
                         <td class="px-4 py-3 font-medium"><a href="{{ route('viaggi.show', $viaggio) }}" class="text-blue-600 hover:underline">{{ $viaggio->nome }}</a></td>
                         <td class="px-4 py-3">{{ ucfirst($viaggio->tipologia) }}</td>

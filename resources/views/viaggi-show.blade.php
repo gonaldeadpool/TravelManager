@@ -47,11 +47,7 @@
 
         <div x-show="tab === 'riepilogo'" class="viaggio-print-panel mx-auto grid max-w-6xl grid-cols-1 gap-6 lg:grid-cols-[280px_minmax(0,1fr)]">
             <aside class="rounded bg-white p-6 shadow">
-                @if ($viaggio->locandina)
-                    <img src="{{ route('viaggi.locandina', $viaggio) }}" alt="Locandina di {{ $viaggio->nome }}" class="max-h-[360px] w-full rounded object-contain">
-                @else
-                    <div class="flex min-h-[240px] items-center justify-center rounded border border-dashed bg-gray-50 p-4 text-center text-sm text-gray-500">Nessuna locandina disponibile.</div>
-                @endif
+                <img src="{{ route('viaggi.locandina', $viaggio) }}" alt="Locandina di {{ $viaggio->nome }}" class="max-h-[360px] w-full rounded object-contain">
             </aside>
 
             <div class="space-y-6">
