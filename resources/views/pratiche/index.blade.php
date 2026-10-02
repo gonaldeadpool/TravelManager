@@ -7,6 +7,12 @@
         @if (session('success'))
             <div class="mb-4 rounded border border-green-400 bg-green-100 px-4 py-3 text-green-700">{{ session('success') }}</div>
         @endif
+        @if (session('emailSuccess'))
+            <div class="mb-4 rounded border border-green-400 bg-green-100 px-4 py-3 text-green-700">{{ session('emailSuccess') }}</div>
+        @endif
+        @if (session('emailError'))
+            <div class="mb-4 rounded border border-red-400 bg-red-100 px-4 py-3 text-red-700">{{ session('emailError') }}</div>
+        @endif
 
         @if ($viaggioFiltrato)
             <div class="mb-4 flex items-center justify-between gap-4 rounded border border-blue-200 bg-blue-50 px-4 py-3 text-blue-800">
@@ -39,6 +45,7 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('dialog[data-open-on-load]').forEach((dialog) => dialog.showModal());
     let timer;
     const ricerca = document.getElementById('ricerca-pratiche');
     const mostraPassati = document.getElementById('mostra-passati');
