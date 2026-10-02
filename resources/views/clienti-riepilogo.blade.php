@@ -2,7 +2,10 @@
     <x-slot name="header">
         <div class="flex items-center justify-between gap-4">
             <h2 class="text-xl font-semibold leading-tight text-gray-800">{{ $cliente->cognome }} {{ $cliente->nome }}</h2>
-            <a href="{{ route('clienti') }}" class="rounded border px-4 py-2 text-sm text-gray-700">Torna ai clienti</a>
+            <div class="flex items-center gap-2">
+                <a href="{{ route('clienti.edit', $cliente->id) }}" class="rounded border px-4 py-2 text-sm text-gray-700">Modifica cliente</a>
+                <a href="{{ route('clienti') }}" class="rounded border px-4 py-2 text-sm text-gray-700">Torna ai clienti</a>
+            </div>
         </div>
     </x-slot>
 

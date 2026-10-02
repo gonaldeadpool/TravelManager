@@ -18,6 +18,7 @@
                 <a href="{{ route('viaggi.riepilogo.pdf.download', $viaggio) }}" title="Scarica PDF" aria-label="Scarica PDF" class="inline-flex h-9 w-9 items-center justify-center rounded border text-gray-700 hover:bg-gray-100">
                     <svg aria-hidden="true" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>
                 </a>
+                <a href="{{ route('viaggi.edit', $viaggio) }}" class="rounded border px-4 py-2 text-sm text-gray-700">Modifica viaggio</a>
                 <a href="{{ route('viaggi.index') }}" class="rounded border px-4 py-2 text-sm text-gray-700">Torna ai viaggi</a>
             </div>
         </div>
