@@ -2,19 +2,24 @@
 
 namespace App\Http\Controllers;
 
-use Barryvdh\DomPDF\Facade\Pdf;
-use App\Models\Cliente;
+use App\Mail\PraticaRiepilogoMail;
 use App\Models\AppSetting;
+use App\Models\Cliente;
 use App\Models\Pratica;
 use App\Models\PraticaDocumento;
 use App\Models\Viaggio;
 use App\Support\LocalStoragePaths;
+use App\Support\MailSettings;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
+use Throwable;
 
 class PraticaController extends Controller
 {
@@ -119,6 +124,92 @@ class PraticaController extends Controller
     public function riepilogoPdfDownload(Pratica $pratica)
     {
         return $this->renderRiepilogoPdf($pratica, true);
+    }
+
+    public function sendRiepilogoEmail(Request $request, Pratica $pratica, MailSettings $mailSettings): RedirectResponse
+    {
+        $validated = $request->validate([
+            'client_recipients' => ['nullable', 'array', 'max:50'],
+            'client_recipients.*' => ['required', 'email', 'max:254'],
+            'manual_recipients' => ['nullable', 'string', 'max:5000'],
+            'subject' => ['required', 'string', 'max:255'],
+            'body' => ['nullable', 'string', 'max:10000'],
+        ]);
+
+        $pratica->load(['viaggio', 'clienti', 'documenti']);
+        $suggestedRecipients = $pratica->clienti
+            ->pluck('email')
+            ->filter(fn ($email) => filter_var($email, FILTER_VALIDATE_EMAIL))
+            ->map(fn ($email) => mb_strtolower(trim($email)))
+            ->all();
+        $selectedRecipients = array_map(
+            fn ($email) => mb_strtolower(trim($email)),
+            $validated['client_recipients'] ?? []
+        );
+
+        if (array_diff($selectedRecipients, $suggestedRecipients)) {
+            return back()->withErrors(['client_recipients' => 'Seleziona solo indirizzi dei clienti presenti nella pratica.'])->withInput();
+        }
+
+        $manualRecipients = preg_split('/[;,\s]+/', trim($validated['manual_recipients'] ?? ''), -1, PREG_SPLIT_NO_EMPTY) ?: [];
+        $invalidRecipients = array_filter($manualRecipients, fn ($email) => ! filter_var($email, FILTER_VALIDATE_EMAIL));
+        if ($invalidRecipients) {
+            return back()->withErrors(['manual_recipients' => 'Controlla gli indirizzi inseriti: separali con virgola, punto e virgola o a capo.'])->withInput();
+        }
+
+        $recipients = collect([...$selectedRecipients, ...$manualRecipients])
+            ->map(fn ($email) => trim($email))
+            ->unique(fn ($email) => mb_strtolower($email))
+            ->values();
+
+        if ($recipients->isEmpty()) {
+            return back()->withErrors(['client_recipients' => 'Seleziona o inserisci almeno un indirizzo email.'])->withInput();
+        }
+
+        if ($recipients->count() > 50) {
+            return back()->withErrors(['manual_recipients' => 'Puoi inviare la pratica a un massimo di 50 indirizzi per volta.'])->withInput();
+        }
+
+        try {
+            $mailSettings->configure();
+            $this->preparaRiepilogo($pratica);
+            $pdfContent = Pdf::loadView('pratiche.riepilogo-pdf', compact('pratica'))
+                ->setPaper('a4')
+                ->output();
+        } catch (Throwable $exception) {
+            Log::error('Preparazione invio email pratica non riuscita.', [
+                'pratica_id' => $pratica->id,
+                'exception' => $exception,
+            ]);
+
+            return back()->with('emailError', 'Impossibile preparare l’invio. Verifica la configurazione della posta e riprova.')->withInput();
+        }
+
+        $sent = 0;
+        $failed = 0;
+        foreach ($recipients as $recipient) {
+            try {
+                Mail::mailer('smtp')->to($recipient)->send(new PraticaRiepilogoMail(
+                    $validated['subject'],
+                    $validated['body'] ?? '',
+                    $pdfContent,
+                    'riepilogo-pratica-' . $pratica->id . '.pdf'
+                ));
+                $sent++;
+            } catch (Throwable $exception) {
+                $failed++;
+                Log::warning('Invio email riepilogo pratica non riuscito.', [
+                    'pratica_id' => $pratica->id,
+                    'exception' => $exception,
+                ]);
+            }
+        }
+
+        if ($failed > 0) {
+            return back()->with('emailError', "Invio completato parzialmente: {$sent} email inviate, {$failed} non riuscite. Controlla gli indirizzi e riprova per i destinatari mancanti.")->withInput();
+        }
+
+        return back()->with('emailSuccess', "Riepilogo inviato a {$sent} destinatari.");
     }
 
     private function renderRiepilogoPdf(Pratica $pratica, bool $download)

@@ -10,6 +10,12 @@
             </div>
         @endif
 
+        @if (session('mailError'))
+            <div class="mb-4 rounded border border-red-400 bg-red-100 px-4 py-3 text-red-700">
+                {{ session('mailError') }}
+            </div>
+        @endif
+
         @if ($errors->any())
             <div class="mb-4 rounded border border-red-400 bg-red-100 px-4 py-3 text-red-700">
                 <ul>
@@ -20,11 +26,14 @@
             </div>
         @endif
 
-        <div class="mx-auto max-w-4xl" x-data="{ tab: 'configurazione' }">
+        <div class="mx-auto max-w-4xl" x-data="{ tab: @js(session('mailError') || $errors->has('smtp_host') || $errors->has('smtp_port') || $errors->has('smtp_scheme') || $errors->has('smtp_username') || $errors->has('smtp_password') || $errors->has('from_address') || $errors->has('from_name') ? 'posta' : 'configurazione') }">
             <div class="mb-6 border-b border-gray-200">
                 <nav class="flex gap-6" aria-label="Sezioni amministrazione">
                     <button type="button" @click="tab = 'configurazione'" :class="tab === 'configurazione' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'" class="border-b-2 px-1 pb-3 text-sm font-semibold">Setup</button>
                     <button type="button" @click="tab = 'tecnica'" :class="tab === 'tecnica' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'" class="border-b-2 px-1 pb-3 text-sm font-semibold">Path file esterni</button>
+                    @if (Auth::user()->isAdmin())
+                        <button type="button" @click="tab = 'posta'" :class="tab === 'posta' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'" class="border-b-2 px-1 pb-3 text-sm font-semibold">Posta</button>
+                    @endif
                 </nav>
             </div>
 
@@ -98,8 +107,73 @@
                     </div>
                 </div>
 
-                <button type="submit" class="rounded bg-blue-600 px-4 py-2 text-white">Salva configurazione</button>
+                <button x-show="tab !== 'posta'" type="submit" class="rounded bg-blue-600 px-4 py-2 text-white">Salva configurazione</button>
             </form>
+
+            @if (Auth::user()->isAdmin())
+                <div x-show="tab === 'posta'" x-cloak class="space-y-6">
+                    <form method="POST" action="{{ route('amministrazione.mail.update') }}" class="space-y-6 rounded bg-white p-6 shadow">
+                        @csrf
+                        @method('PUT')
+                        <div>
+                            <h4 class="font-semibold">Server SMTP</h4>
+                            <p class="mt-1 text-sm text-gray-500">La password viene cifrata prima di essere salvata e non viene mai mostrata.</p>
+                        </div>
+
+                        <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+                            <div>
+                                <label for="smtp_host" class="mb-1 block">Server SMTP</label>
+                                <input id="smtp_host" name="smtp_host" value="{{ old('smtp_host', $mailSettings['smtp_host']) }}" required autocomplete="off" class="w-full rounded border p-2">
+                            </div>
+                            <div>
+                                <label for="smtp_port" class="mb-1 block">Porta</label>
+                                <input id="smtp_port" type="number" name="smtp_port" min="1" max="65535" value="{{ old('smtp_port', $mailSettings['smtp_port']) }}" required class="w-full rounded border p-2">
+                            </div>
+                            <div>
+                                <label for="smtp_scheme" class="mb-1 block">Sicurezza</label>
+                                <select id="smtp_scheme" name="smtp_scheme" class="w-full rounded border p-2">
+                                    <option value="smtp" @selected(old('smtp_scheme', $mailSettings['smtp_scheme']) === 'smtp')>STARTTLS</option>
+                                    <option value="smtps" @selected(old('smtp_scheme', $mailSettings['smtp_scheme']) === 'smtps')>SSL/TLS</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="smtp_username" class="mb-1 block">Nome utente SMTP</label>
+                                <input id="smtp_username" name="smtp_username" value="{{ old('smtp_username', $mailSettings['smtp_username']) }}" autocomplete="username" class="w-full rounded border p-2">
+                            </div>
+                            <div>
+                                <label for="smtp_password" class="mb-1 block">Password SMTP</label>
+                                <input id="smtp_password" type="password" name="smtp_password" autocomplete="new-password" class="w-full rounded border p-2">
+                                @if ($mailSettings['smtp_password_configured'])
+                                    <p class="mt-1 text-xs text-gray-500">Password già configurata; lascia vuoto per mantenerla.</p>
+                                    <label class="mt-2 inline-flex items-center gap-2 text-sm"><input type="checkbox" name="remove_smtp_password" value="1" class="rounded border-gray-300"> Rimuovi password salvata</label>
+                                @endif
+                            </div>
+                        </div>
+
+                        <div class="border-t border-gray-200 pt-5">
+                            <h4 class="mb-4 font-semibold">Mittente</h4>
+                            <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+                                <div>
+                                    <label for="from_address" class="mb-1 block">Indirizzo mittente</label>
+                                    <input id="from_address" type="email" name="from_address" value="{{ old('from_address', $mailSettings['from_address']) }}" required autocomplete="email" class="w-full rounded border p-2">
+                                </div>
+                                <div>
+                                    <label for="from_name" class="mb-1 block">Nome mittente</label>
+                                    <input id="from_name" name="from_name" value="{{ old('from_name', $mailSettings['from_name']) }}" required class="w-full rounded border p-2">
+                                </div>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="rounded bg-blue-600 px-4 py-2 text-white">Salva posta</button>
+                    </form>
+
+                    <form method="POST" action="{{ route('amministrazione.mail.test') }}" class="flex flex-wrap items-center justify-between gap-4 rounded bg-white p-6 shadow">
+                        @csrf
+                        <p class="text-sm text-gray-700">Invia una mail di prova all'indirizzo del tuo account.</p>
+                        <button type="submit" class="rounded border px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">Invia test</button>
+                    </form>
+                </div>
+            @endif
         </div>
     </div>
 </x-app-layout>

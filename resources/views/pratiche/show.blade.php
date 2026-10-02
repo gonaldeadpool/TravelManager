@@ -40,14 +40,91 @@
                 <h2 class="text-xl font-semibold leading-tight text-gray-800">Pratica #{{ $pratica->id }}</h2>
             </div>
             <div class="pratica-screen-only flex items-center gap-2">
-                <button type="button" onclick="window.print()" title="Stampa riepilogo" aria-label="Stampa riepilogo" class="inline-flex h-9 w-9 items-center justify-center rounded border text-gray-700 hover:bg-gray-100">
+                <a href="{{ route('pratiche.riepilogo.pdf', $pratica) }}" target="_blank" rel="noopener" title="Apri PDF per stampa" aria-label="Apri PDF per stampa" class="inline-flex h-9 w-9 items-center justify-center rounded border text-gray-700 hover:bg-gray-100">
                     <svg aria-hidden="true" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
-                </button>
+                </a>
+                <a href="{{ route('pratiche.riepilogo.pdf.download', $pratica) }}" title="Scarica PDF riepilogo" aria-label="Scarica PDF riepilogo" class="inline-flex h-9 w-9 items-center justify-center rounded border text-gray-700 hover:bg-gray-100">
+                    <svg aria-hidden="true" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                </a>
+                <button type="button" onclick="document.getElementById('email-pratica-dialog').showModal()" class="rounded border px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Invia via email</button>
                 <a href="{{ route('pratiche.edit', $pratica) }}" class="rounded border px-4 py-2 text-sm text-gray-700">Modifica pratica</a>
                 <a href="{{ route('pratiche.index') }}" class="rounded border px-4 py-2 text-sm text-gray-700">Torna alle pratiche</a>
             </div>
         </div>
     </x-slot>
+
+    @if (session('emailSuccess'))
+        <div class="pratica-screen-only mx-auto mt-6 max-w-6xl rounded border border-green-300 bg-green-50 px-4 py-3 text-green-800">{{ session('emailSuccess') }}</div>
+    @endif
+    @if (session('emailError'))
+        <div class="pratica-screen-only mx-auto mt-6 max-w-6xl rounded border border-red-300 bg-red-50 px-4 py-3 text-red-800">{{ session('emailError') }}</div>
+    @endif
+
+    <dialog
+        id="email-pratica-dialog"
+        @if ($errors->has('client_recipients') || $errors->has('manual_recipients') || $errors->has('subject') || $errors->has('body') || session('emailError')) open @endif
+        class="pratica-screen-only m-auto max-h-[90vh] w-[calc(100%-2rem)] max-w-2xl overflow-y-auto rounded border-0 bg-white p-0 shadow-xl backdrop:bg-gray-900/50"
+        onclick="if (event.target === this) this.close()"
+        aria-labelledby="email-pratica-title"
+    >
+            <form method="POST" action="{{ route('pratiche.riepilogo.email', $pratica) }}" class="space-y-5 p-6">
+                @csrf
+                <div class="flex items-start justify-between gap-4 border-b pb-4">
+                    <div>
+                        <h3 id="email-pratica-title" class="text-lg font-semibold text-gray-900">Invia riepilogo pratica</h3>
+                        <p class="mt-1 text-sm text-gray-500">Pratica #{{ $pratica->id }} · PDF allegato</p>
+                    </div>
+                    <button type="button" onclick="document.getElementById('email-pratica-dialog').close()" aria-label="Chiudi" class="inline-flex h-8 w-8 items-center justify-center rounded text-gray-500 hover:bg-gray-100">&times;</button>
+                </div>
+
+                <fieldset>
+                    <legend class="mb-2 text-sm font-medium text-gray-800">Destinatari suggeriti</legend>
+                    <div class="max-h-36 space-y-2 overflow-y-auto rounded border p-3">
+                        @php($indirizziSelezionati = collect(old('client_recipients', []))->map(fn ($email) => mb_strtolower((string) $email))->all())
+                        @php($indirizziSuggeriti = 0)
+                        @foreach ($pratica->clienti as $cliente)
+                            @if (filter_var($cliente->email, FILTER_VALIDATE_EMAIL))
+                                @php($indirizziSuggeriti++)
+                                <label class="flex items-center gap-2 text-sm">
+                                    <input type="checkbox" name="client_recipients[]" value="{{ $cliente->email }}" @checked(in_array(mb_strtolower($cliente->email), $indirizziSelezionati, true)) class="rounded border-gray-300 text-blue-600">
+                                    <span>{{ $cliente->cognome }} {{ $cliente->nome }}</span>
+                                    <span class="text-gray-500">&lt;{{ $cliente->email }}&gt;</span>
+                                </label>
+                            @endif
+                        @endforeach
+                        @if ($indirizziSuggeriti === 0)
+                            <p class="text-sm text-gray-500">Nessun cliente della pratica ha un indirizzo email valido.</p>
+                        @endif
+                    </div>
+                    @error('client_recipients')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+                    @error('client_recipients.*')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+                </fieldset>
+
+                <div>
+                    <label for="manual_recipients" class="mb-1 block text-sm font-medium text-gray-800">Altri indirizzi</label>
+                    <textarea id="manual_recipients" name="manual_recipients" rows="2" placeholder="nome@esempio.it; altro@esempio.it" class="w-full rounded border p-2">{{ old('manual_recipients') }}</textarea>
+                    <p class="mt-1 text-xs text-gray-500">Puoi inserire più indirizzi separandoli con virgola, punto e virgola o a capo.</p>
+                    @error('manual_recipients')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+                </div>
+
+                <div>
+                    <label for="email_subject" class="mb-1 block text-sm font-medium text-gray-800">Oggetto</label>
+                    <input id="email_subject" name="subject" value="{{ old('subject', 'Riepilogo pratica #' . $pratica->id . ' - ' . $pratica->viaggio->nome) }}" required maxlength="255" class="w-full rounded border p-2">
+                    @error('subject')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+                </div>
+
+                <div>
+                    <label for="email_body" class="mb-1 block text-sm font-medium text-gray-800">Messaggio</label>
+                    <textarea id="email_body" name="body" rows="6" maxlength="10000" placeholder="Aggiungi un messaggio" class="w-full rounded border p-2">{{ old('body', "Buongiorno,\n\nin allegato inviamo il riepilogo della pratica.\n\nCordiali saluti") }}</textarea>
+                    @error('body')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+                </div>
+
+                <div class="flex justify-end gap-3 border-t pt-4">
+                    <button type="button" onclick="document.getElementById('email-pratica-dialog').close()" class="rounded border px-4 py-2 text-sm text-gray-700">Annulla</button>
+                    <button type="submit" class="rounded bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">Invia email</button>
+                </div>
+            </form>
+    </dialog>
 
     <div class="pratica-print-document mx-auto max-w-6xl space-y-6 p-6">
         <div class="pratica-print-header hidden items-center justify-between border-b-2 border-gray-700 pb-4">

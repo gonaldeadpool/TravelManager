@@ -4,13 +4,18 @@ namespace App\Http\Controllers;
 
 use App\Models\AppSetting;
 use App\Support\LocalStoragePaths;
+use App\Support\MailSettings;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Mail\Message;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\View\View;
+use Throwable;
 
 class AmministrazioneController extends Controller
 {
-    public function edit(): View
+    public function edit(MailSettings $mailSettings): View
     {
         return view('amministrazione', [
             'locandinePath' => LocalStoragePaths::locandine(),
@@ -18,6 +23,7 @@ class AmministrazioneController extends Controller
             'documentiPratichePath' => LocalStoragePaths::documentiPratiche(),
             'scadenze' => $this->scadenze(),
             'scadenzePagamenti' => $this->scadenzePagamenti(),
+            'mailSettings' => $mailSettings->forForm(),
         ]);
     }
 
@@ -55,6 +61,45 @@ class AmministrazioneController extends Controller
         LocalStoragePaths::ensureDirectories();
 
         return redirect()->route('amministrazione')->with('success', 'Configurazione salvata correttamente.');
+    }
+
+    public function updateMail(Request $request, MailSettings $mailSettings): RedirectResponse
+    {
+        abort_unless($request->user()->isAdmin(), 403);
+
+        $validated = $request->validate([
+            'smtp_host' => ['required', 'string', 'max:255'],
+            'smtp_port' => ['required', 'integer', 'min:1', 'max:65535'],
+            'smtp_scheme' => ['required', 'in:smtp,smtps'],
+            'smtp_username' => ['nullable', 'string', 'max:255'],
+            'smtp_password' => ['nullable', 'string', 'max:1000'],
+            'remove_smtp_password' => ['nullable', 'boolean'],
+            'from_address' => ['required', 'email', 'max:254'],
+            'from_name' => ['required', 'string', 'max:255'],
+        ]);
+
+        $mailSettings->save($validated);
+
+        return redirect()->route('amministrazione')->with('success', 'Configurazione posta salvata correttamente.');
+    }
+
+    public function testMail(Request $request, MailSettings $mailSettings): RedirectResponse
+    {
+        abort_unless($request->user()->isAdmin(), 403);
+
+        try {
+            $mailSettings->configure();
+            Mail::mailer('smtp')->raw('Questa è una mail di prova della configurazione SMTP.', function (Message $message) use ($request): void {
+                $message->to($request->user()->email)
+                    ->subject('Verifica configurazione posta');
+            });
+        } catch (Throwable $exception) {
+            Log::error('Invio mail di prova SMTP non riuscito.', ['exception' => $exception]);
+
+            return redirect()->route('amministrazione')->with('mailError', 'Impossibile inviare la mail di prova. Verifica i parametri SMTP e riprova.');
+        }
+
+        return redirect()->route('amministrazione')->with('success', 'Mail di prova inviata a ' . $request->user()->email . '.');
     }
 
     private function scadenze(): array

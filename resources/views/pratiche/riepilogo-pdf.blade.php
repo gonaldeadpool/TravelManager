@@ -34,7 +34,7 @@
 <body>
     @php
         $logoPath = public_path('logo-europolo.png');
-        $hasLogo = extension_loaded('gd') && is_file($logoPath);
+        $hasLogo = is_file($logoPath);
         $dataDaPagare = $pratica->totale - $pratica->acconto - $pratica->saldo;
     @endphp
 

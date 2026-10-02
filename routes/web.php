@@ -149,6 +149,10 @@ Route::get('/pratiche/{pratica}/riepilogo/pdf/download', [PraticaController::cla
     ->middleware(['auth'])
     ->name('pratiche.riepilogo.pdf.download');
 
+Route::post('/pratiche/{pratica}/riepilogo/email', [PraticaController::class, 'sendRiepilogoEmail'])
+    ->middleware(['auth'])
+    ->name('pratiche.riepilogo.email');
+
 Route::get('/pratiche/{pratica}/clienti', [PraticaController::class, 'selectClienti'])
     ->middleware(['auth'])
     ->name('pratiche.clienti.select');
@@ -185,6 +189,14 @@ Route::resource('utenti', UserManagementController::class)
 Route::put('/amministrazione', [AmministrazioneController::class, 'update'])
     ->middleware(['auth'])
     ->name('amministrazione.update');
+
+Route::put('/amministrazione/posta', [AmministrazioneController::class, 'updateMail'])
+    ->middleware(['auth'])
+    ->name('amministrazione.mail.update');
+
+Route::post('/amministrazione/posta/test', [AmministrazioneController::class, 'testMail'])
+    ->middleware(['auth'])
+    ->name('amministrazione.mail.test');
 
 Route::get('/log', [LogController::class, 'index'])
     ->middleware(['auth'])
