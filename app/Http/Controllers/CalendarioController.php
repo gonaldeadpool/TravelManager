@@ -33,7 +33,7 @@ class CalendarioController extends Controller
             'borderColor' => $this->colore($viaggio->tipologia),
             'extendedProps' => [
                 'destinazione' => $viaggio->destinazione,
-                'tipologia' => ucfirst($viaggio->tipologia),
+                'tipologia' => $viaggio->tipologia_label,
             ],
         ]));
     }
@@ -43,6 +43,7 @@ class CalendarioController extends Controller
         return match ($tipologia) {
             'tour' => '#0f766e',
             'crociera' => '#0369a1',
+            'soggiorno' => '#be185d',
             default => '#4f46e5',
         };
     }

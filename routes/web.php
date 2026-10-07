@@ -124,6 +124,10 @@ Route::get('/pratiche/creazione/clienti', [PraticaController::class, 'selectClie
     ->middleware(['auth'])
     ->name('pratiche.creazione.clienti.select');
 
+Route::get('/pratiche/creazione/clienti/search', [PraticaController::class, 'searchClientiCreazione'])
+    ->middleware(['auth'])
+    ->name('pratiche.creazione.clienti.search');
+
 Route::post('/pratiche/creazione/bozza', [PraticaController::class, 'storeBozzaCreazione'])
     ->middleware(['auth'])
     ->name('pratiche.creazione.bozza');
@@ -160,6 +164,10 @@ Route::post('/pratiche/{pratica}/riepilogo/email', [PraticaController::class, 's
 Route::get('/pratiche/{pratica}/clienti', [PraticaController::class, 'selectClienti'])
     ->middleware(['auth'])
     ->name('pratiche.clienti.select');
+
+Route::get('/pratiche/{pratica}/clienti/search', [PraticaController::class, 'searchClienti'])
+    ->middleware(['auth'])
+    ->name('pratiche.clienti.search');
 
 Route::post('/pratiche/{pratica}/clienti', [PraticaController::class, 'storeClienti'])
     ->middleware(['auth'])

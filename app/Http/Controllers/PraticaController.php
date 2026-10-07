@@ -247,6 +247,55 @@ class PraticaController extends Controller
     public function selectClienti(Request $request, Pratica $pratica): View
     {
         $ricerca = $request->input('ricerca');
+
+        return view('pratiche.clienti', [
+            'pratica' => $pratica->load('clienti'),
+            'clienti' => $this->queryClientiSelezione($ricerca, $pratica)->paginate(10)->withQueryString(),
+            'ricerca' => $ricerca,
+        ]);
+    }
+
+    public function searchClienti(Request $request, Pratica $pratica): View
+    {
+        $ricerca = $request->input('q');
+
+        return view('pratiche.clienti._table', [
+            'pratica' => $pratica->load('clienti'),
+            'clienti' => $this->queryClientiSelezione($ricerca, $pratica)->paginate(10)
+                ->withPath(route('pratiche.clienti.select', $pratica))
+                ->appends(array_filter(['ricerca' => $ricerca])),
+            'ricerca' => $ricerca,
+        ]);
+    }
+
+    public function selectClientiCreazione(Request $request): View
+    {
+        $ricerca = $request->input('ricerca');
+        $bozza = session('pratica_creazione', []);
+
+        return view('pratiche.clienti-creazione', [
+            'clienti' => $this->queryClientiSelezioneCreazione($ricerca, $bozza)->paginate(10)->withQueryString(),
+            'ricerca' => $ricerca,
+            'clientiSelezionati' => $bozza['clienti'] ?? [],
+            'viaggioSelezionato' => isset($bozza['viaggio_id']) ? Viaggio::find($bozza['viaggio_id']) : null,
+        ]);
+    }
+
+    public function searchClientiCreazione(Request $request): View
+    {
+        $ricerca = $request->input('q');
+        $bozza = session('pratica_creazione', []);
+
+        return view('pratiche.clienti-creazione._table', [
+            'clienti' => $this->queryClientiSelezioneCreazione($ricerca, $bozza)->paginate(10)
+                ->withPath(route('pratiche.creazione.clienti.select'))
+                ->appends(array_filter(['ricerca' => $ricerca])),
+            'clientiSelezionati' => $bozza['clienti'] ?? [],
+        ]);
+    }
+
+    private function queryClientiSelezione(?string $ricerca, Pratica $pratica)
+    {
         $clienti = Cliente::query()->with('documenti')
             ->where(function ($query) use ($pratica) {
                 $query->whereDoesntHave('pratiche', fn ($pratiche) => $pratiche->where('viaggio_id', $pratica->viaggio_id))
@@ -261,17 +310,11 @@ class PraticaController extends Controller
             });
         }
 
-        return view('pratiche.clienti', [
-            'pratica' => $pratica->load('clienti'),
-            'clienti' => $clienti->orderBy('cognome')->orderBy('nome')->paginate(10)->withQueryString(),
-            'ricerca' => $ricerca,
-        ]);
+        return $clienti->orderBy('cognome')->orderBy('nome');
     }
 
-    public function selectClientiCreazione(Request $request): View
+    private function queryClientiSelezioneCreazione(?string $ricerca, array $bozza)
     {
-        $ricerca = $request->input('ricerca');
-        $bozza = session('pratica_creazione', []);
         $viaggioId = $bozza['viaggio_id'] ?? null;
         $clientiSelezionati = $bozza['clienti'] ?? [];
         $clienti = Cliente::query();
@@ -291,12 +334,7 @@ class PraticaController extends Controller
             });
         }
 
-        return view('pratiche.clienti-creazione', [
-            'clienti' => $clienti->orderBy('cognome')->orderBy('nome')->paginate(10)->withQueryString(),
-            'ricerca' => $ricerca,
-            'clientiSelezionati' => $clientiSelezionati,
-            'viaggioSelezionato' => $viaggioId ? Viaggio::find($viaggioId) : null,
-        ]);
+        return $clienti->orderBy('cognome')->orderBy('nome');
     }
 
     public function storeBozzaCreazione(Request $request): RedirectResponse

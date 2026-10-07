@@ -276,7 +276,7 @@ class ViaggioController extends Controller
     {
         return $request->validate([
             'nome' => ['required', 'string', 'max:150'],
-            'tipologia' => ['required', 'in:viaggio,tour,crociera'],
+            'tipologia' => ['required', 'in:' . implode(',', array_keys(Viaggio::TIPOLOGIE))],
             'destinazione' => ['required', 'string', 'max:150'],
             'data_partenza' => ['required', 'date'],
             'data_rientro' => ['required', 'date', 'after_or_equal:data_partenza'],
@@ -306,7 +306,7 @@ class ViaggioController extends Controller
 
         return Viaggio::query()
             ->when(! $mostraPassati, fn ($query) => $query->whereDate('data_partenza', '>=', today()))
-            ->when(in_array($tipologia, ['viaggio', 'tour', 'crociera'], true), fn ($query) => $query->where('tipologia', $tipologia))
+            ->when(array_key_exists((string) $tipologia, Viaggio::TIPOLOGIE), fn ($query) => $query->where('tipologia', $tipologia))
             ->when($ricerca, function ($query, $ricerca) use ($operatore) {
             $query->where(function ($query) use ($ricerca, $operatore) {
                 $query->where('nome', $operatore, "%{$ricerca}%")
@@ -467,13 +467,14 @@ class ViaggioController extends Controller
 
     private function locandinaPredefinita(string $tipologia): string
     {
-        return '__default__/' . (in_array($tipologia, ['viaggio', 'tour', 'crociera'], true) ? $tipologia : 'viaggio') . '.svg';
+        return '__default__/' . (array_key_exists($tipologia, Viaggio::TIPOLOGIE) ? $tipologia : 'viaggio') . '.svg';
     }
 
     private function isLocandinaPredefinita(?string $percorso): bool
     {
         return in_array($percorso, [
             '__default__/viaggio.svg',
+            '__default__/soggiorno.svg',
             '__default__/tour.svg',
             '__default__/crociera.svg',
         ], true);

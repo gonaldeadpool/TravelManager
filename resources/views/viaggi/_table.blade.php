@@ -131,7 +131,7 @@
                             </a>
                         </td>
                         <td class="w-2/5 break-words px-2 py-3 font-medium sm:px-4"><a href="{{ route('viaggi.show', $viaggio) }}" class="text-blue-600 hover:underline">{{ $viaggio->nome }}</a></td>
-                        <td class="w-[30%] break-words px-2 py-3 sm:px-4">{{ ucfirst($viaggio->tipologia) }}</td>
+                        <td class="w-[30%] break-words px-2 py-3 sm:px-4">{{ $viaggio->tipologia_label }}</td>
                         <td class="hidden px-4 py-3 xl:table-cell">{{ $viaggio->destinazione }}</td>
                         <td class="hidden whitespace-nowrap px-4 py-3 lg:table-cell">{{ $viaggio->data_partenza->format('d/m/Y') }} - {{ $viaggio->data_rientro->format('d/m/Y') }}</td>
                         <td class="hidden whitespace-nowrap px-4 py-3 md:table-cell">

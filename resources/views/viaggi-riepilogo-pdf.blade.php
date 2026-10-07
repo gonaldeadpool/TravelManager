@@ -155,7 +155,7 @@
     <h2>Riepilogo</h2>
     <table class="grid">
         <tbody>
-            <tr><th>Tipologia</th><td>{{ ucfirst($viaggio->tipologia) }}</td><th>Destinazione</th><td>{{ $viaggio->destinazione }}</td></tr>
+            <tr><th>Tipologia</th><td>{{ $viaggio->tipologia_label }}</td><th>Destinazione</th><td>{{ $viaggio->destinazione }}</td></tr>
             <tr><th>Periodo</th><td>{{ $viaggio->data_partenza->format('d/m/Y') }} - {{ $viaggio->data_rientro->format('d/m/Y') }}</td><th>Durata</th><td>{{ $viaggio->data_partenza->diffInDays($viaggio->data_rientro) + 1 }} giorni, {{ $viaggio->data_partenza->diffInDays($viaggio->data_rientro) }} notti</td></tr>
             <tr><th>Quota a persona</th><td>{{ $viaggio->prezzo !== null ? number_format($viaggio->prezzo, 2, ',', '.') . ' EUR' : '-' }}</td><th>Quota ridotto</th><td>{{ $viaggio->quota_ridotto !== null ? number_format($viaggio->quota_ridotto, 2, ',', '.') . ' EUR' : '-' }}</td></tr>
             <tr><th>Partecipanti</th><td>{{ $numeroPartecipanti }}</td><th>Minimo partecipanti</th><td>{{ $viaggio->minimo_partecipanti }}</td></tr>

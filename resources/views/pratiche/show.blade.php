@@ -79,7 +79,7 @@
             <h3 class="mb-4 text-lg font-semibold">Destinazione viaggio</h3>
             <dl class="pratica-trip-data grid grid-cols-1 gap-4 text-sm md:grid-cols-2 lg:grid-cols-3">
                 <div><dt class="text-gray-500">Nome viaggio</dt><dd class="mt-1 font-medium">{{ $pratica->viaggio->nome }}</dd></div>
-                <div><dt class="text-gray-500">Tipologia</dt><dd class="mt-1 font-medium">{{ ucfirst($pratica->viaggio->tipologia) }}</dd></div>
+                <div><dt class="text-gray-500">Tipologia</dt><dd class="mt-1 font-medium">{{ $pratica->viaggio->tipologia_label }}</dd></div>
                 <div><dt class="text-gray-500">Destinazione</dt><dd class="mt-1 font-medium">{{ $pratica->viaggio->destinazione }}</dd></div>
                 <div><dt class="text-gray-500">Partenza</dt><dd class="mt-1 font-medium">{{ $pratica->viaggio->data_partenza?->format('d/m/Y') ?? '-' }}</dd></div>
                 <div><dt class="text-gray-500">Rientro</dt><dd class="mt-1 font-medium">{{ $pratica->viaggio->data_rientro?->format('d/m/Y') ?? '-' }}</dd></div>

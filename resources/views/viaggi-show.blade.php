@@ -54,7 +54,7 @@
                 <section class="rounded bg-white p-6 shadow">
                     <h3 class="mb-4 text-lg font-semibold">Informazioni del viaggio</h3>
                     <dl class="grid grid-cols-1 gap-4 text-sm md:grid-cols-2">
-                        <div><dt class="text-gray-500">Tipologia</dt><dd class="mt-1 font-medium">{{ ucfirst($viaggio->tipologia) }}</dd></div>
+                        <div><dt class="text-gray-500">Tipologia</dt><dd class="mt-1 font-medium">{{ $viaggio->tipologia_label }}</dd></div>
                         <div><dt class="text-gray-500">Destinazione</dt><dd class="mt-1 font-medium">{{ $viaggio->destinazione }}</dd></div>
                         <div><dt class="text-gray-500">Periodo</dt><dd class="mt-1 font-medium">{{ $viaggio->data_partenza->format('d/m/Y') }} - {{ $viaggio->data_rientro->format('d/m/Y') }}</dd></div>
                         <div><dt class="text-gray-500">Durata</dt><dd class="mt-1 font-medium">{{ $viaggio->data_partenza->diffInDays($viaggio->data_rientro) + 1 }} giorni, {{ $viaggio->data_partenza->diffInDays($viaggio->data_rientro) }} notti</dd></div>

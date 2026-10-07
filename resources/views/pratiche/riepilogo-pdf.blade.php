@@ -51,7 +51,7 @@
 
     <h2>Destinazione viaggio</h2>
     <table class="grid">
-        <tr><th>Nome viaggio</th><td>{{ $pratica->viaggio->nome }}</td><th>Tipologia</th><td>{{ ucfirst($pratica->viaggio->tipologia) }}</td></tr>
+        <tr><th>Nome viaggio</th><td>{{ $pratica->viaggio->nome }}</td><th>Tipologia</th><td>{{ $pratica->viaggio->tipologia_label }}</td></tr>
         <tr><th>Destinazione</th><td colspan="{{ $pratica->viaggio->tipologia === 'crociera' ? 1 : 3 }}">{{ $pratica->viaggio->destinazione }}</td>@if ($pratica->viaggio->tipologia === 'crociera')<th>Cabina</th><td>{{ $pratica->cabina ? ucfirst(str_replace('_', ' ', $pratica->cabina)) : '-' }}</td>@endif</tr>
         <tr><th>Partenza</th><td>{{ $pratica->viaggio->data_partenza?->format('d/m/Y') ?? '-' }}</td><th>Rientro</th><td>{{ $pratica->viaggio->data_rientro?->format('d/m/Y') ?? '-' }}</td></tr>
         <tr><th>Data acconto</th><td>{{ $pratica->viaggio->data_acconto?->format('d/m/Y') ?? '-' }}</td><th>Data saldo</th><td>{{ $pratica->viaggio->data_saldo?->format('d/m/Y') ?? '-' }}</td></tr>

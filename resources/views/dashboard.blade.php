@@ -24,7 +24,7 @@
     </x-slot>
     @php
         $clienti = [['In regola', 'in_regola', '#38bdf8'], ['In scadenza', 'in_scadenza', '#facc15'], ['Scaduti', 'scaduti', '#ef4444']];
-        $viaggi = [['Viaggi', 'viaggio', '#34d399'], ['Tour', 'tour', '#60a5fa'], ['Crociere', 'crociera', '#a78bfa']];
+        $viaggi = [['Viaggi giornalieri', 'viaggio', '#34d399'], ['Soggiorni', 'soggiorno', '#f472b6'], ['Tour', 'tour', '#60a5fa'], ['Crociere', 'crociera', '#a78bfa']];
         $pratiche = [['Acconto non versato', 'acconto_non_versato', '#facc15'], ['Acconto non versato in scadenza', 'acconto_non_versato_scadenza', '#f97316'], ['Saldo non versato in scadenza', 'saldo_non_versato_scadenza', '#ef4444']];
         $sezioni = [
             'clienti' => ['Clienti', $totaleClienti, route('clienti'), $clienti, 'documenti_stato', $statiClienti],

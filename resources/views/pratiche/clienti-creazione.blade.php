@@ -10,16 +10,82 @@
                 <div><h3 class="text-lg font-semibold">Elenco clienti</h3><p class="mt-1 text-sm text-gray-500">Seleziona i partecipanti disponibili per {{ $viaggioSelezionato?->nome ?? 'il viaggio selezionato' }}.</p></div>
                 <div class="flex gap-3"><a href="{{ route('clienti.create') }}" target="_blank" class="rounded bg-green-600 px-4 py-2 text-white">Nuova anagrafica</a><a href="{{ route('pratiche.create', ['bozza' => 1]) }}" class="rounded border px-4 py-2 text-gray-700">Torna alla pratica</a></div>
             </div>
-            <form method="GET" class="mb-4 flex gap-2"><label for="ricerca-clienti" class="sr-only">Cerca cliente</label><input id="ricerca-clienti" type="search" name="ricerca" value="{{ $ricerca }}" placeholder="Cerca per nome, cognome o email" class="w-full rounded border px-3 py-2 md:max-w-md"><button class="rounded border px-4 py-2 text-gray-700">Cerca</button></form>
-            <form method="POST" action="{{ route('pratiche.creazione.clienti.store') }}">
-                @csrf
-                <div class="overflow-x-auto rounded bg-white shadow">
-                    <table class="w-full text-left"><thead class="border-b bg-gray-50 text-sm text-gray-600"><tr><th class="w-12 px-4 py-3"><span class="sr-only">Seleziona</span></th><th class="px-4 py-3">Nome</th><th class="px-4 py-3">Cognome</th><th class="px-4 py-3">Email</th><th class="px-4 py-3">Telefono</th></tr></thead>
-                        <tbody class="divide-y">@forelse ($clienti as $cliente)<tr><td class="px-4 py-3"><input type="checkbox" name="clienti[]" value="{{ $cliente->id }}" @checked(in_array($cliente->id, $clientiSelezionati)) class="rounded border-gray-300 text-blue-600"></td><td class="px-4 py-3 font-medium">{{ $cliente->nome }}</td><td class="px-4 py-3">{{ $cliente->cognome }}</td><td class="px-4 py-3"><x-contact-email :cliente="$cliente" :defer="true" /></td><td class="px-4 py-3"><x-contact-phone :number="$cliente->telefono" /></td></tr>@empty<tr><td colspan="5" class="px-4 py-8 text-center text-gray-500">Nessun cliente trovato.</td></tr>@endforelse</tbody>
-                    </table>
-                </div>
-                <div class="mt-4 flex flex-col gap-4 md:flex-row md:items-center md:justify-between"><div>{{ $clienti->links() }}</div><button class="rounded bg-blue-600 px-4 py-2 text-white">Conferma clienti selezionati</button></div>
-            </form>
+            <form method="GET" class="mb-4" onsubmit="return false;"><label for="ricerca-clienti" class="sr-only">Cerca cliente</label><input id="ricerca-clienti" type="search" name="ricerca" value="{{ $ricerca }}" placeholder="Cerca per nome, cognome o email" autocomplete="off" class="w-full rounded border px-3 py-2 md:max-w-md"></form>
+            <div id="clienti-table-container">
+                @include('pratiche.clienti-creazione._table')
+            </div>
         </div>
     </div>
 </x-app-layout>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    let timer;
+    const ricerca = document.getElementById('ricerca-clienti');
+    const tabella = document.getElementById('clienti-table-container');
+    const searchUrl = @js(route('pratiche.creazione.clienti.search'));
+    const selezionati = new Set(@js(array_map('strval', $clientiSelezionati)));
+
+    function sincronizzaSelezione() {
+        tabella.querySelectorAll('input[name="clienti[]"]').forEach((cb) => {
+            if (cb.checked) selezionati.add(cb.value);
+        });
+    }
+
+    function applicaSelezione() {
+        tabella.querySelectorAll('input[name="clienti[]"]').forEach((cb) => {
+            cb.checked = selezionati.has(cb.value);
+        });
+    }
+
+    async function aggiornaTabella(parametri) {
+        sincronizzaSelezione();
+        const response = await fetch(`${searchUrl}?${parametri}`);
+        if (response.ok) {
+            tabella.innerHTML = await response.text();
+            applicaSelezione();
+        }
+    }
+
+    ricerca.addEventListener('input', function () {
+        clearTimeout(timer);
+
+        timer = setTimeout(function () {
+            aggiornaTabella(new URLSearchParams({ q: ricerca.value }));
+        }, 400);
+    });
+
+    tabella.addEventListener('change', function (event) {
+        const checkbox = event.target.closest('input[name="clienti[]"]');
+        if (!checkbox) return;
+        if (checkbox.checked) selezionati.add(checkbox.value);
+        else selezionati.delete(checkbox.value);
+    });
+
+    tabella.addEventListener('click', function (event) {
+        const link = event.target.closest('a[href*="page="]');
+        if (!link) return;
+        event.preventDefault();
+
+        const pagina = new URL(link.href, window.location.origin).searchParams.get('page');
+        const parametri = new URLSearchParams({ q: ricerca.value });
+        if (pagina) parametri.set('page', pagina);
+        aggiornaTabella(parametri);
+    });
+
+    tabella.addEventListener('submit', function (event) {
+        event.preventDefault();
+        const form = event.target;
+        sincronizzaSelezione();
+        form.querySelectorAll('input[name="clienti[]"]').forEach((el) => el.remove());
+        selezionati.forEach((id) => {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'clienti[]';
+            input.value = id;
+            form.appendChild(input);
+        });
+        form.submit();
+    });
+});
+</script>

@@ -15,6 +15,7 @@
     tipologia: @js($tipologiaDefault),
     locandineDefault: @js([
         'viaggio' => asset('images/locandine-default/viaggio.svg'),
+        'soggiorno' => asset('images/locandine-default/soggiorno.svg'),
         'tour' => asset('images/locandine-default/tour.svg'),
         'crociera' => asset('images/locandine-default/crociera.svg'),
     ]),
@@ -78,7 +79,8 @@
             <div>
                 <label for="tipologia" class="block mb-1">Tipo di esperienza *</label>
                 <select id="tipologia" name="tipologia" x-model="tipologia" @change="cambiaTipologia()" required class="border rounded w-full p-2">
-                    <option value="viaggio" @selected(old('tipologia', $viaggio->tipologia ?? 'viaggio') === 'viaggio')>Viaggio</option>
+                    <option value="viaggio" @selected(old('tipologia', $viaggio->tipologia ?? 'viaggio') === 'viaggio')>Viaggio giornaliero</option>
+                    <option value="soggiorno" @selected(old('tipologia', $viaggio->tipologia ?? '') === 'soggiorno')>Soggiorno</option>
                     <option value="tour" @selected(old('tipologia', $viaggio->tipologia ?? '') === 'tour')>Tour</option>
                     <option value="crociera" @selected(old('tipologia', $viaggio->tipologia ?? '') === 'crociera')>Crociera</option>
                 </select>

@@ -8,6 +8,13 @@ class Viaggio extends Model
 {
     protected $table = 'viaggi';
 
+    public const TIPOLOGIE = [
+        'viaggio' => 'Viaggio giornaliero',
+        'soggiorno' => 'Soggiorno',
+        'tour' => 'Tour',
+        'crociera' => 'Crociera',
+    ];
+
     protected $fillable = [
         'nome',
         'tipologia',
@@ -46,6 +53,11 @@ class Viaggio extends Model
             'prezzi_cabine' => 'array',
             'eta_gratuita' => 'integer',
         ];
+    }
+
+    public function getTipologiaLabelAttribute(): string
+    {
+        return self::TIPOLOGIE[$this->tipologia] ?? ucfirst((string) $this->tipologia);
     }
 
     public function pratiche()
