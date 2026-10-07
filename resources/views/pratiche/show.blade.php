@@ -115,8 +115,8 @@
                             <tr>
                                 <td class="px-3 py-3 font-medium">{{ $cliente->cognome }} {{ $cliente->nome }}<div class="mt-1 text-xs text-gray-500">{{ $cliente->pivot->gratuito ? 'Gratuito' : ($cliente->pivot->ridotto ? 'Ridotto' : 'Intero') }}</div></td>
                                 <td class="px-3 py-3">{{ $cliente->codice_fiscale ?: '-' }}</td>
-                                <td class="px-3 py-3">{{ $cliente->email ?: '-' }}</td>
-                                <td class="px-3 py-3">{{ $cliente->cellulare ?: ($cliente->telefono ?: '-') }}</td>
+                                <td class="px-3 py-3"><x-contact-email :cliente="$cliente" :defer="true" /></td>
+                                <td class="px-3 py-3"><x-contact-phone :number="$cliente->cellulare ?: $cliente->telefono" /></td>
                                 <td class="px-3 py-3 whitespace-nowrap">{{ number_format((float) $cliente->quota_pratica, 2, ',', '.') }} EUR</td>
                                 <td class="px-3 py-3">{{ $cliente->pivot->posto ? (($cliente->pivot->posto_bus !== null ? 'Bus ' . ($cliente->pivot->posto_bus + 1) . ' - ' : '') . 'Posto ' . $cliente->pivot->posto) : '-' }}</td>
                             </tr>

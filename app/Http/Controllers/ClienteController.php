@@ -2,12 +2,16 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\PraticaRiepilogoMail;
 use App\Models\Cliente;
 use App\Models\ClienteDocumento;
 use App\Models\AppSetting;
 use App\Support\LocalStoragePaths;
+use App\Support\MailSettings;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
 
@@ -114,6 +118,51 @@ class ClienteController extends Controller
             'scadenzeDocumenti' => $this->scadenzeDocumenti(),
             'ordinamenti' => $ordinamenti,
         ]);
+    }
+
+    public function sendEmail(Request $request, Cliente $cliente, MailSettings $mailSettings): RedirectResponse
+    {
+        $validated = $request->validate([
+            'recipients' => ['required', 'string', 'max:5000'],
+            'subject' => ['required', 'string', 'max:255'],
+            'body' => ['nullable', 'string', 'max:10000'],
+        ]);
+
+        $recipients = collect(preg_split('/[;,\s]+/', trim($validated['recipients']), -1, PREG_SPLIT_NO_EMPTY) ?: []);
+        if ($recipients->isEmpty() || $recipients->contains(fn ($email) => ! filter_var($email, FILTER_VALIDATE_EMAIL))) {
+            return back()->withErrors(['recipients' => 'Controlla gli indirizzi inseriti: separali con virgola, punto e virgola o a capo.'])->withInput();
+        }
+
+        $recipients = $recipients->unique(fn ($email) => mb_strtolower($email))->values();
+        if ($recipients->count() > 50) {
+            return back()->withErrors(['recipients' => 'Puoi inviare a un massimo di 50 indirizzi per volta.'])->withInput();
+        }
+
+        try {
+            $mailSettings->configure();
+        } catch (\Throwable $exception) {
+            Log::error('Configurazione posta non riuscita per email cliente.', ['cliente_id' => $cliente->id, 'exception' => $exception]);
+
+            return back()->with('emailError', 'Impossibile preparare l’invio. Verifica la configurazione della posta e riprova.')->withInput();
+        }
+
+        $sent = 0;
+        $failed = 0;
+        foreach ($recipients as $recipient) {
+            try {
+                Mail::mailer('smtp')->to($recipient)->send(new PraticaRiepilogoMail($validated['subject'], $validated['body'] ?? ''));
+                $sent++;
+            } catch (\Throwable $exception) {
+                $failed++;
+                Log::warning('Invio email cliente non riuscito.', ['cliente_id' => $cliente->id, 'exception' => $exception]);
+            }
+        }
+
+        if ($failed > 0) {
+            return back()->with('emailError', "Invio completato parzialmente: {$sent} email inviate, {$failed} non riuscite.")->withInput();
+        }
+
+        return back()->with('emailSuccess', "Email inviata a {$sent} destinatari.");
     }
 
     public function create(): View

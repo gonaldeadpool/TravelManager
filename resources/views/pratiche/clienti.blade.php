@@ -47,8 +47,8 @@
                                     <td class="px-4 py-3"><input type="checkbox" name="clienti[]" value="{{ $cliente->id }}" @checked($pratica->clienti->contains($cliente)) class="rounded border-gray-300 text-blue-600"></td>
                                     <td class="px-4 py-3 font-medium">{{ $cliente->nome }}</td>
                                     <td class="px-4 py-3">{{ $cliente->cognome }}</td>
-                                    <td class="px-4 py-3">{{ $cliente->email ?: '-' }}</td>
-                                    <td class="px-4 py-3">{{ $cliente->telefono ?: '-' }}</td>
+                                    <td class="px-4 py-3"><x-contact-email :cliente="$cliente" :defer="true" /></td>
+                                    <td class="px-4 py-3"><x-contact-phone :number="$cliente->telefono" /></td>
                                 </tr>
                             @empty
                                 <tr><td colspan="5" class="px-4 py-8 text-center text-gray-500">Nessun cliente trovato.</td></tr>

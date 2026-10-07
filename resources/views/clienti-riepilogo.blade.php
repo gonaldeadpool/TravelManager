@@ -25,9 +25,9 @@
                     <div><dt class="text-gray-500">Codice fiscale</dt><dd class="mt-1 font-medium">{{ $cliente->codice_fiscale ?: '-' }}</dd></div>
                     <div><dt class="text-gray-500">Data di nascita</dt><dd class="mt-1 font-medium">{{ $cliente->data_nascita?->format('d/m/Y') ?? '-' }}</dd></div>
                     <div><dt class="text-gray-500">Luogo di nascita</dt><dd class="mt-1 font-medium">{{ $cliente->luogo_nascita ?: '-' }}</dd></div>
-                    <div><dt class="text-gray-500">Email</dt><dd class="mt-1 font-medium">{{ $cliente->email ?: '-' }}</dd></div>
-                    <div><dt class="text-gray-500">Telefono</dt><dd class="mt-1 font-medium">{{ $cliente->telefono ?: '-' }}</dd></div>
-                    <div><dt class="text-gray-500">Cellulare</dt><dd class="mt-1 font-medium">{{ $cliente->cellulare ?: '-' }}</dd></div>
+                    <div><dt class="text-gray-500">Email</dt><dd class="mt-1 font-medium"><x-contact-email :cliente="$cliente" /></dd></div>
+                    <div><dt class="text-gray-500">Telefono</dt><dd class="mt-1 font-medium"><x-contact-phone :number="$cliente->telefono" /></dd></div>
+                    <div><dt class="text-gray-500">Cellulare</dt><dd class="mt-1 font-medium"><x-contact-phone :number="$cliente->cellulare" /></dd></div>
                     <div><dt class="text-gray-500">Citta</dt><dd class="mt-1 font-medium">{{ $cliente->citta ?: '-' }}</dd></div>
                     <div class="md:col-span-2"><dt class="text-gray-500">Indirizzo</dt><dd class="mt-1 font-medium">{{ trim(collect([$cliente->indirizzo, $cliente->cap, $cliente->provincia, $cliente->nazione])->filter()->implode(', ')) ?: '-' }}</dd></div>
                     <div class="md:col-span-2"><dt class="text-gray-500">Note</dt><dd class="mt-1 whitespace-pre-line font-medium">{{ $cliente->note ?: '-' }}</dd></div>

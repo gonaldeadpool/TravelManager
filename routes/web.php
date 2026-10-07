@@ -42,6 +42,10 @@ Route::get('/clienti/{cliente}/riepilogo', [ClienteController::class, 'riepilogo
     ->middleware(['auth'])
     ->name('clienti.riepilogo');
 
+Route::post('/clienti/{cliente}/email', [ClienteController::class, 'sendEmail'])
+    ->middleware(['auth'])
+    ->name('clienti.email');
+
 Route::get('/clienti/nuovo', [ClienteController::class, 'create'])
     ->middleware(['auth'])
     ->name('clienti.create');

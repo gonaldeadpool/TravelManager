@@ -4,6 +4,12 @@
     </x-slot>
 
     <div class="p-6">
+        @if (session('emailSuccess'))
+            <div class="mb-4 rounded border border-green-400 bg-green-100 px-4 py-3 text-green-700">{{ session('emailSuccess') }}</div>
+        @endif
+        @if (session('emailError'))
+            <div class="mb-4 rounded border border-red-400 bg-red-100 px-4 py-3 text-red-700">{{ session('emailError') }}</div>
+        @endif
         @if (session('error'))
             <div class="mb-4 rounded border border-red-400 bg-red-100 px-4 py-3 text-red-700">{{ session('error') }}</div>
         @endif
@@ -37,6 +43,7 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('dialog[data-open-on-load]').forEach((dialog) => dialog.showModal());
     let timer;
     const ricerca = document.getElementById('ricerca-clienti');
     const tabella = document.getElementById('clienti-table-container');

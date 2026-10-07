@@ -31,8 +31,17 @@
 
             <!-- Page Content -->
             <main>
+                @if (! request()->routeIs('clienti', 'pratiche.*') && (session('emailSuccess') || session('emailError')))
+                    <div class="mx-auto mt-6 max-w-6xl rounded border px-4 py-3 {{ session('emailError') ? 'border-red-300 bg-red-50 text-red-800' : 'border-green-300 bg-green-50 text-green-800' }}">{{ session('emailError') ?? session('emailSuccess') }}</div>
+                @endif
                 {{ $slot }}
             </main>
+            @stack('dialogs')
+            <script>
+                document.addEventListener('DOMContentLoaded', () => {
+                    document.querySelectorAll('dialog[data-open-on-load]').forEach((dialog) => { if (!dialog.open) dialog.showModal(); });
+                });
+            </script>
         </div>
     </body>
 </html>

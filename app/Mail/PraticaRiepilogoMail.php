@@ -16,8 +16,8 @@ class PraticaRiepilogoMail extends Mailable
     public function __construct(
         public string $subjectText,
         public string $bodyText,
-        public string $pdfContent,
-        public string $pdfFilename,
+        public ?string $pdfContent = null,
+        public ?string $pdfFilename = null,
     ) {}
 
     public function envelope(): Envelope
@@ -35,6 +35,10 @@ class PraticaRiepilogoMail extends Mailable
 
     public function attachments(): array
     {
+        if ($this->pdfContent === null) {
+            return [];
+        }
+
         return [
             Attachment::fromData(fn () => $this->pdfContent, $this->pdfFilename)
                 ->withMime('application/pdf'),

@@ -201,8 +201,8 @@
                                 @foreach ($pratica->clienti as $cliente)
                                     <tr>
                                         <td class="px-4 py-3 font-medium">{{ $cliente->cognome }} {{ $cliente->nome }}</td>
-                                        <td class="px-4 py-3">{{ $cliente->email ?: '-' }}</td>
-                                        <td class="px-4 py-3">{{ $cliente->telefono ?: '-' }}</td>
+                                        <td class="px-4 py-3"><x-contact-email :cliente="$cliente" :defer="true" /></td>
+                                        <td class="px-4 py-3"><x-contact-phone :number="$cliente->telefono" /></td>
                                         <td class="px-4 py-3 text-right"><a href="{{ route('pratiche.edit', $pratica) }}" class="text-blue-600 hover:underline">Apri pratica #{{ $pratica->id }}</a></td>
                                     </tr>
                                 @endforeach
