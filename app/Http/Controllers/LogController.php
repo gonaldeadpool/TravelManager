@@ -7,7 +7,7 @@ use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class LogController extends Controller
 {
-    private const TIPI = ['laravel', 'nginx_access', 'nginx_error'];
+    private const TIPI = ['laravel', 'nginx_access', 'nginx_error', 'postgres'];
 
     public function index(): View
     {
@@ -43,6 +43,7 @@ class LogController extends Controller
             'laravel' => 'laravel',
             'nginx_access' => 'nginx-access',
             'nginx_error' => 'nginx-error',
+            'postgres' => 'postgres',
         };
     }
 
@@ -52,7 +53,18 @@ class LogController extends Controller
             'laravel' => $this->ultimoLogLaravel(),
             'nginx_access' => env('LOG_NGINX_ACCESS_PATH', '/var/log/nginx/access.log'),
             'nginx_error' => env('LOG_NGINX_ERROR_PATH', '/var/log/nginx/error.log'),
+            'postgres' => env('LOG_POSTGRES_PATH') ?: $this->ultimoLogPostgres(),
         };
+    }
+
+    private function ultimoLogPostgres(): string
+    {
+        // Debian/Ubuntu: /var/log/postgresql/postgresql-<versione>-main.log
+        $piuRecente = collect(glob('/var/log/postgresql/postgresql*.log') ?: [])
+            ->sortByDesc(fn (string $percorso) => filemtime($percorso))
+            ->first();
+
+        return $piuRecente ?? '/var/log/postgresql/postgresql.log';
     }
 
     private function ultimoLogLaravel(): string
