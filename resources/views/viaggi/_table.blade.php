@@ -20,12 +20,12 @@
 @endphp
 
 <div class="overflow-x-auto bg-white shadow rounded">
-        <table class="w-full text-left">
+        <table class="table-fixed w-full text-left xl:table-auto">
             <thead class="border-b bg-gray-50 text-sm text-gray-600">
                 <tr>
-                    <th class="px-4 py-3">Locandina</th>
+                    <th class="w-16 px-2 py-3 sm:px-4">Locandina</th>
                     @php($viaggioSort = $sortInfo('viaggio'))
-                    <th class="px-4 py-3">
+                    <th class="w-2/5 px-2 py-3 sm:px-4">
                         <button type="button" data-sort-field="viaggio" class="inline-flex items-center gap-1 hover:text-gray-900">
                             <span>Viaggio</span>
                             @if ($viaggioSort['direction'] === 'asc')
@@ -37,7 +37,7 @@
                     </th>
 
                     @php($tipologiaSort = $sortInfo('tipologia'))
-                    <th class="px-4 py-3">
+                    <th class="w-[30%] px-2 py-3 sm:px-4">
                         <button type="button" data-sort-field="tipologia" class="inline-flex items-center gap-1 hover:text-gray-900">
                             <span>Tipologia</span>
                             @if ($tipologiaSort['direction'] === 'asc')
@@ -49,7 +49,7 @@
                     </th>
 
                     @php($destinazioneSort = $sortInfo('destinazione'))
-                    <th class="px-4 py-3">
+                    <th class="hidden px-4 py-3 xl:table-cell">
                         <button type="button" data-sort-field="destinazione" class="inline-flex items-center gap-1 hover:text-gray-900">
                             <span>Destinazione</span>
                             @if ($destinazioneSort['direction'] === 'asc')
@@ -61,7 +61,7 @@
                     </th>
 
                     @php($periodoSort = $sortInfo('periodo'))
-                    <th class="px-4 py-3">
+                    <th class="hidden px-4 py-3 lg:table-cell">
                         <button type="button" data-sort-field="periodo" class="inline-flex items-center gap-1 hover:text-gray-900">
                             <span>Periodo</span>
                             @if ($periodoSort['direction'] === 'asc')
@@ -73,7 +73,7 @@
                     </th>
 
                     @php($durataSort = $sortInfo('durata'))
-                    <th class="px-4 py-3">
+                    <th class="hidden px-4 py-3 md:table-cell">
                         <button type="button" data-sort-field="durata" class="inline-flex items-center gap-1 hover:text-gray-900">
                             <span>Durata</span>
                             @if ($durataSort['direction'] === 'asc')
@@ -85,7 +85,7 @@
                     </th>
 
                     @php($prezzoSort = $sortInfo('prezzo'))
-                    <th class="px-4 py-3">
+                    <th class="hidden px-4 py-3 sm:table-cell">
                         <button type="button" data-sort-field="prezzo" class="inline-flex items-center gap-1 hover:text-gray-900">
                             <span>Prezzo</span>
                             @if ($prezzoSort['direction'] === 'asc')
@@ -97,7 +97,7 @@
                     </th>
 
                     @php($minimoSort = $sortInfo('minimo'))
-                    <th class="px-4 py-3">
+                    <th class="hidden px-4 py-3 lg:table-cell">
                         <button type="button" data-sort-field="minimo" class="inline-flex items-center gap-1 hover:text-gray-900">
                             <span>Minimo</span>
                             @if ($minimoSort['direction'] === 'asc')
@@ -109,7 +109,7 @@
                     </th>
 
                     @php($partecipantiSort = $sortInfo('partecipanti'))
-                    <th class="px-4 py-3">
+                    <th class="hidden px-4 py-3 xl:table-cell">
                         <button type="button" data-sort-field="partecipanti" class="inline-flex items-center gap-1 hover:text-gray-900">
                             <span>Partecipanti</span>
                             @if ($partecipantiSort['direction'] === 'asc')
@@ -119,29 +119,29 @@
                             @endif
                         </button>
                     </th>
-                    <th class="px-4 py-3 text-right">Azioni</th>
+                    <th class="hidden px-4 py-3 text-right md:table-cell">Azioni</th>
                 </tr>
             </thead>
             <tbody class="divide-y">
                 @foreach ($viaggi as $viaggio)
                     <tr>
-                        <td class="px-4 py-3">
+                        <td class="w-16 px-2 py-3 sm:px-4">
                             <a href="{{ route('viaggi.locandina', $viaggio) }}" target="_blank" title="Apri locandina">
                                 <img src="{{ route('viaggi.locandina', $viaggio) }}" alt="Locandina di {{ $viaggio->nome }}" class="h-16 w-12 rounded object-cover border">
                             </a>
                         </td>
-                        <td class="px-4 py-3 font-medium"><a href="{{ route('viaggi.show', $viaggio) }}" class="text-blue-600 hover:underline">{{ $viaggio->nome }}</a></td>
-                        <td class="px-4 py-3">{{ ucfirst($viaggio->tipologia) }}</td>
-                        <td class="px-4 py-3">{{ $viaggio->destinazione }}</td>
-                        <td class="px-4 py-3 whitespace-nowrap">{{ $viaggio->data_partenza->format('d/m/Y') }} - {{ $viaggio->data_rientro->format('d/m/Y') }}</td>
-                        <td class="px-4 py-3 whitespace-nowrap">
+                        <td class="w-2/5 break-words px-2 py-3 font-medium sm:px-4"><a href="{{ route('viaggi.show', $viaggio) }}" class="text-blue-600 hover:underline">{{ $viaggio->nome }}</a></td>
+                        <td class="w-[30%] break-words px-2 py-3 sm:px-4">{{ ucfirst($viaggio->tipologia) }}</td>
+                        <td class="hidden px-4 py-3 xl:table-cell">{{ $viaggio->destinazione }}</td>
+                        <td class="hidden whitespace-nowrap px-4 py-3 lg:table-cell">{{ $viaggio->data_partenza->format('d/m/Y') }} - {{ $viaggio->data_rientro->format('d/m/Y') }}</td>
+                        <td class="hidden whitespace-nowrap px-4 py-3 md:table-cell">
                             {{ $viaggio->data_partenza->diffInDays($viaggio->data_rientro) + 1 }} giorni,
                             {{ $viaggio->data_partenza->diffInDays($viaggio->data_rientro) }} notti
                         </td>
-                        <td class="px-4 py-3 whitespace-nowrap">{{ number_format((float) $viaggio->prezzo, 2, ',', '.') }} EUR</td>
-                        <td class="px-4 py-3 whitespace-nowrap">{{ $viaggio->minimo_partecipanti ?? '-' }}</td>
-                        <td class="px-4 py-3 whitespace-nowrap">{{ $viaggio->pratiche->flatMap->clienti->unique('id')->count() }}</td>
-                        <td class="px-4 py-3">
+                        <td class="hidden whitespace-nowrap px-4 py-3 sm:table-cell">{{ number_format((float) $viaggio->prezzo, 2, ',', '.') }} EUR</td>
+                        <td class="hidden whitespace-nowrap px-4 py-3 lg:table-cell">{{ $viaggio->minimo_partecipanti ?? '-' }}</td>
+                        <td class="hidden whitespace-nowrap px-4 py-3 xl:table-cell">{{ $viaggio->pratiche->flatMap->clienti->unique('id')->count() }}</td>
+                        <td class="hidden px-4 py-3 md:table-cell">
                             <div class="flex justify-end gap-2">
                                 <a href="{{ route('pratiche.index', ['viaggio_id' => $viaggio->id]) }}" title="Pratiche" aria-label="Apri pratiche del viaggio" class="inline-flex h-8 w-8 items-center justify-center rounded text-gray-600 hover:bg-gray-100 hover:text-gray-900">
                                     <span aria-hidden="true" class="text-sm font-bold">P</span>

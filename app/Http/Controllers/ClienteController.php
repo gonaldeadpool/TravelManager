@@ -283,7 +283,7 @@ class ClienteController extends Controller
             return [];
         }
 
-        $allowedFields = ['cliente', 'email', 'telefono', 'documenti'];
+        $allowedFields = ['cliente', 'email', 'cellulare', 'documenti'];
         $entries = [];
 
         foreach (explode(',', $sort) as $token) {
@@ -330,8 +330,8 @@ class ClienteController extends Controller
                     $query->orderBy('clienti.email', $direction);
                     break;
 
-                case 'telefono':
-                    $query->orderBy('clienti.telefono', $direction);
+                case 'cellulare':
+                    $query->orderBy('clienti.cellulare', $direction);
                     break;
 
                 case 'documenti':

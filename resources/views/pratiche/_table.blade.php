@@ -20,7 +20,7 @@
 @endphp
 
 <div class="overflow-x-auto">
-        <table class="min-w-full divide-y divide-gray-200 text-sm">
+        <table class="table-fixed min-w-full divide-y divide-gray-200 text-sm md:table-auto">
             <thead class="bg-gray-50 text-left text-gray-600">
                 <tr>
                     @php($viaggioSort = $sortInfo('viaggio'))
@@ -48,7 +48,7 @@
                     </th>
 
                     @php($totaleSort = $sortInfo('totale'))
-                    <th class="px-4 py-3 text-right">
+                    <th class="hidden px-4 py-3 text-right sm:table-cell">
                         <button type="button" data-sort-field="totale" data-sort-current="{{ $totaleSort['direction'] ?? '' }}" class="inline-flex items-center gap-1 rounded text-right hover:text-gray-900" title="Ordina per totale">
                             <span>Totale</span>
                             @if ($totaleSort['direction'] === 'asc')
@@ -60,7 +60,7 @@
                     </th>
 
                     @php($accontoSort = $sortInfo('acconto'))
-                    <th class="px-4 py-3 text-right">
+                    <th class="hidden px-4 py-3 text-right md:table-cell">
                         <button type="button" data-sort-field="acconto" data-sort-current="{{ $accontoSort['direction'] ?? '' }}" class="inline-flex items-center gap-1 rounded text-right hover:text-gray-900" title="Ordina per acconto">
                             <span>Acconto</span>
                             @if ($accontoSort['direction'] === 'asc')
@@ -72,7 +72,7 @@
                     </th>
 
                     @php($residuoSort = $sortInfo('residuo'))
-                    <th class="px-4 py-3 text-right">
+                    <th class="hidden px-4 py-3 text-right lg:table-cell">
                         <button type="button" data-sort-field="residuo" data-sort-current="{{ $residuoSort['direction'] ?? '' }}" class="inline-flex items-center gap-1 rounded text-right hover:text-gray-900" title="Ordina per residuo">
                             <span>Residuo</span>
                             @if ($residuoSort['direction'] === 'asc')
@@ -82,18 +82,18 @@
                             @endif
                         </button>
                     </th>
-                    <th class="px-4 py-3"></th>
+                    <th class="hidden px-4 py-3 lg:table-cell"></th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-gray-200">
                 @foreach ($pratiche as $pratica)
                     <tr>
-                        <td class="px-4 py-3 font-medium">{{ $pratica->viaggio->nome }}</td>
-                        <td class="px-4 py-3"><a href="{{ route('pratiche.show', $pratica) }}" class="font-medium text-blue-700 hover:underline" aria-label="Apri il riepilogo della pratica {{ $pratica->id }}">{{ $pratica->clienti->map(fn ($cliente) => $cliente->cognome . ' ' . $cliente->nome)->join(', ') }}</a></td>
-                        <td class="px-4 py-3 text-right">{{ number_format($pratica->totale, 2, ',', '.') }} EUR</td>
-                        <td class="px-4 py-3 text-right">{{ number_format($pratica->acconto, 2, ',', '.') }} EUR</td>
-                        <td class="px-4 py-3 text-right">{{ number_format($pratica->totale - $pratica->acconto - $pratica->saldo, 2, ',', '.') }} EUR</td>
-                        <td class="px-4 py-3"><div class="flex justify-end gap-2">
+                        <td class="break-words px-2 py-3 font-medium sm:px-4">{{ $pratica->viaggio->nome }}</td>
+                        <td class="break-words px-2 py-3 sm:px-4"><a href="{{ route('pratiche.show', $pratica) }}" class="font-medium text-blue-700 hover:underline" aria-label="Apri il riepilogo della pratica {{ $pratica->id }}">{{ $pratica->clienti->map(fn ($cliente) => $cliente->cognome . ' ' . $cliente->nome)->join(', ') }}</a></td>
+                        <td class="hidden px-4 py-3 text-right sm:table-cell">{{ number_format($pratica->totale, 2, ',', '.') }} EUR</td>
+                        <td class="hidden px-4 py-3 text-right md:table-cell">{{ number_format($pratica->acconto, 2, ',', '.') }} EUR</td>
+                        <td class="hidden px-4 py-3 text-right lg:table-cell">{{ number_format($pratica->totale - $pratica->acconto - $pratica->saldo, 2, ',', '.') }} EUR</td>
+                        <td class="hidden px-4 py-3 lg:table-cell"><div class="flex justify-end gap-2">
                             <button type="button" onclick="const dialog = document.getElementById('pdf-pratica-dialog-{{ $pratica->id }}'); const frame = document.getElementById('pdf-pratica-frame-{{ $pratica->id }}'); if (!frame.dataset.loaded) { frame.src = frame.dataset.src; frame.dataset.loaded = 'true'; } dialog.showModal()" title="Stampa pratica" aria-label="Anteprima di stampa pratica {{ $pratica->id }}" class="inline-flex h-8 w-8 items-center justify-center rounded text-gray-700 hover:bg-gray-100"><svg aria-hidden="true" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 0-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg></button>
                             <button type="button" onclick="document.getElementById('email-pratica-dialog-{{ $pratica->id }}').showModal()" title="Invia pratica via email" aria-label="Invia pratica {{ $pratica->id }} via email" class="inline-flex h-8 w-8 items-center justify-center rounded text-gray-700 hover:bg-gray-100"><svg aria-hidden="true" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg></button>
                             <a href="{{ route('pratiche.edit', $pratica) }}" title="Modifica pratica" aria-label="Modifica pratica" class="inline-flex h-8 w-8 items-center justify-center rounded text-blue-600 hover:bg-blue-50"><svg aria-hidden="true" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9" /><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z" /></svg></a>

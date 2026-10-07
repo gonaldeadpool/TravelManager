@@ -94,18 +94,45 @@ if (calendario) {
 	document.body.append(menuContesto);
 
 	let dataSelezionata = null;
+	const breakpointMobile = window.matchMedia('(max-width: 639px)');
+	let layoutMobile = breakpointMobile.matches;
+	let vistaDesktop = 'dayGridMonth';
 	const nascondiMenu = () => menuContesto.classList.add('hidden');
 
 	new Calendar(calendario, {
 		plugins: [dayGridPlugin, timeGridPlugin, listPlugin, interactionPlugin],
 		locale: itLocale,
-		initialView: 'dayGridMonth',
+		initialView: layoutMobile ? 'listMonth' : vistaDesktop,
 		firstDay: 1,
 		height: 'auto',
 		headerToolbar: {
 			left: 'prev,next today',
 			center: 'title',
 			right: 'dayGridMonth,timeGridWeek,timeGridDay,listMonth',
+		},
+		windowResize(info) {
+			const mobile = breakpointMobile.matches;
+			const calendar = info.view.calendar;
+
+			if (mobile !== layoutMobile) {
+				if (mobile && info.view.type !== 'listMonth') {
+					vistaDesktop = info.view.type;
+					calendar.changeView('listMonth');
+				} else if (!mobile && info.view.type === 'listMonth') {
+					calendar.changeView(vistaDesktop);
+				}
+
+				layoutMobile = mobile;
+			}
+
+			calendar.setOption('headerToolbar', mobile
+				? { left: 'prev,next', center: 'title', right: 'today' }
+				: { left: 'prev,next today', center: 'title', right: 'dayGridMonth,timeGridWeek,timeGridDay,listMonth' });
+		},
+		datesSet(info) {
+			if (!layoutMobile && info.view.type !== 'listMonth') {
+				vistaDesktop = info.view.type;
+			}
 		},
 		buttonText: {
 			today: 'Oggi',
