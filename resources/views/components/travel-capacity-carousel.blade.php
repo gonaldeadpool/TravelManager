@@ -1,6 +1,42 @@
 @props(['travels'])
 
-<section data-dashboard-widget="capacita_viaggi" x-data="travelCapacityCarousel()" x-init="inizializza()" class="min-w-0 rounded-lg border border-gray-200 bg-white p-5 shadow-sm" aria-labelledby="travel-capacity-title">
+@php
+    $primo = $travels->first();
+    if ($primo) {
+        $miniIscritti = (int) $primo['iscritti'];
+        $miniMinimo = (int) $primo['numeroMinimo'];
+        $miniMassimo = $primo['numeroMassimo'] !== null ? (int) $primo['numeroMassimo'] : null;
+        if ($miniMassimo !== null && $miniMassimo > 0 && $miniIscritti >= $miniMassimo) {
+            $miniColore = '#3B82F6';
+        } elseif ($miniIscritti < $miniMinimo) {
+            $miniColore = '#EF4444';
+        } elseif ($miniMassimo !== null && $miniMassimo > 0 && $miniIscritti >= ceil($miniMassimo * 0.8)) {
+            $miniColore = '#F97316';
+        } else {
+            $miniColore = '#22C55E';
+        }
+    }
+@endphp
+<section data-dashboard-widget="capacita_viaggi" x-data="{ aperto: false }" class="min-w-0 rounded-lg border border-gray-200 bg-white p-3 shadow-sm md:p-5" aria-labelledby="travel-capacity-title">
+    <div x-show="!aperto" class="flex md:hidden">
+        <span data-drag-handle role="button" tabindex="-1" aria-label="Trascina per riordinare" class="flex h-10 w-7 shrink-0 cursor-grab touch-none items-center justify-center self-center rounded text-gray-400 md:hidden"><svg aria-hidden="true" class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor"><circle cx="8" cy="5" r="1.5"/><circle cx="16" cy="5" r="1.5"/><circle cx="8" cy="12" r="1.5"/><circle cx="16" cy="12" r="1.5"/><circle cx="8" cy="19" r="1.5"/><circle cx="16" cy="19" r="1.5"/></svg></span>
+        <button type="button" @click="aperto = true; $nextTick(() => $dispatch('capacita-riallinea'))" class="flex min-w-0 flex-1 items-center gap-3 text-left" aria-label="Espandi Stato conferma viaggi">
+            <span class="min-w-0 flex-1">
+                <span class="block text-xs font-semibold uppercase text-gray-500">Stato conferma viaggi</span>
+                @if ($primo)
+                    <span class="block truncate font-semibold text-gray-900">{{ $primo['titolo'] }}</span>
+                    <span class="block text-sm text-gray-500">{{ $primo['dataPartenza'] }}@if ($travels->count() > 1) · +{{ $travels->count() - 1 }}@endif</span>
+                @else
+                    <span class="block text-sm text-gray-500">Nessuna partenza futura</span>
+                @endif
+            </span>
+            @if ($primo)
+                <span class="flex h-14 w-14 shrink-0 items-center justify-center rounded-md text-base font-bold tabular-nums" style="color: {{ $miniColore }}; background-color: {{ $miniColore }}1A">{{ $miniIscritti }}/{{ $miniMinimo }}</span>
+            @endif
+        </button>
+    </div>
+    <div :class="aperto ? '' : 'hidden md:block'" x-data="travelCapacityCarousel()" x-init="inizializza()" @capacita-riallinea.window="riallinea()">
+    <button type="button" x-show="aperto" @click="aperto = false" class="mb-2 text-xs text-blue-600 md:hidden">Riduci</button>
     <div class="mb-4 flex items-center justify-between gap-4">
         <div class="flex items-center gap-2">
             <button type="button" draggable="true" title="Trascina per riordinare" aria-label="Sposta widget Stato conferma viaggi" class="cursor-grab rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-700 active:cursor-grabbing">
@@ -132,6 +168,7 @@
             </div>
         </div>
     @endif
+    </div>
 </section>
 
 <script>
@@ -140,6 +177,7 @@
             indice: 0,
             trascinamento: null,
             inizializza() { if (this.$refs.traccia) this.aggiornaIndice(); },
+            riallinea() { this.$nextTick(() => this.aggiornaIndice()); },
             vaiA(direzione) {
                 const traccia = this.$refs.traccia;
                 const slides = traccia?.querySelectorAll('[data-capacity-slide]') ?? [];
@@ -150,7 +188,8 @@
                 const traccia = this.$refs.traccia;
                 if (!traccia) return;
                 const slide = traccia.querySelector('[data-capacity-slide]');
-                if (slide) this.indice = Math.round(traccia.scrollLeft / slide.getBoundingClientRect().width);
+                const larghezza = slide?.getBoundingClientRect().width;
+                if (larghezza > 0) this.indice = Math.round(traccia.scrollLeft / larghezza);
             },
             iniziaTrascinamento(evento) {
                 if (evento.pointerType !== 'mouse' || evento.button !== 0 || !this.$refs.traccia) return;

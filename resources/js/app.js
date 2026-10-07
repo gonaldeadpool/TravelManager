@@ -13,6 +13,7 @@ window.Alpine = Alpine;
 Alpine.data('dashboardWidgetOrder', (config) => ({
 	ordineSalvato: [...config.ordine],
 	elementoTrascinato: null,
+	toccoAttivo: false,
 	messaggioOrdine: '',
 	init() {
 		this.ordinaElementi(this.ordineSalvato);
@@ -37,15 +38,18 @@ Alpine.data('dashboardWidgetOrder', (config) => ({
 		widget.classList.add('opacity-50');
 	},
 	riordinaDuranteTrascinamento(evento) {
-		const widgetDestinazione = evento.target.closest('[data-dashboard-widget]');
+		this.spostaWidget(evento.target.closest('[data-dashboard-widget]'), evento.clientX, evento.clientY);
+	},
+	spostaWidget(widgetDestinazione, clientX, clientY) {
 		const widgetTrascinato = this.elementoTrascinato;
 		const griglia = this.$refs.griglia;
-		if (!widgetDestinazione || !widgetTrascinato || widgetDestinazione === widgetTrascinato || !griglia) return;
+		if (!widgetDestinazione || !widgetTrascinato || widgetDestinazione === widgetTrascinato || !griglia || widgetDestinazione.parentElement !== griglia) return;
 
 		const rettangolo = widgetDestinazione.getBoundingClientRect();
-		const scartoX = (evento.clientX - rettangolo.left) / rettangolo.width - 0.5;
-		const scartoY = (evento.clientY - rettangolo.top) / rettangolo.height - 0.5;
-		const dopo = Math.abs(scartoX) > Math.abs(scartoY) ? scartoX > 0 : scartoY > 0;
+		const scartoX = (clientX - rettangolo.left) / rettangolo.width - 0.5;
+		const scartoY = (clientY - rettangolo.top) / rettangolo.height - 0.5;
+		const colonnaSingola = window.matchMedia('(max-width: 767px)').matches;
+		const dopo = !colonnaSingola && Math.abs(scartoX) > Math.abs(scartoY) ? scartoX > 0 : scartoY > 0;
 
 		if (dopo) {
 			if (widgetDestinazione.nextElementSibling !== widgetTrascinato) griglia.insertBefore(widgetTrascinato, widgetDestinazione.nextElementSibling);
@@ -53,7 +57,34 @@ Alpine.data('dashboardWidgetOrder', (config) => ({
 			griglia.insertBefore(widgetTrascinato, widgetDestinazione);
 		}
 	},
-	async salvaOrdine() {
+	iniziaTocco(evento) {
+		if (evento.pointerType === 'mouse') return;
+		const maniglia = evento.target.closest('[data-drag-handle]');
+		const widget = maniglia?.closest('[data-dashboard-widget]');
+		if (!widget) return;
+
+		evento.preventDefault();
+		this.elementoTrascinato = widget;
+		this.toccoAttivo = true;
+		maniglia.setPointerCapture(evento.pointerId);
+		widget.classList.add('opacity-60', 'ring-2', 'ring-blue-400');
+	},
+	muoviTocco(evento) {
+		if (!this.toccoAttivo) return;
+		evento.preventDefault();
+		const sotto = document.elementFromPoint(evento.clientX, evento.clientY)?.closest('[data-dashboard-widget]');
+		this.spostaWidget(sotto, evento.clientX, evento.clientY);
+
+		if (evento.clientY < 80) window.scrollBy(0, -12);
+		else if (evento.clientY > window.innerHeight - 80) window.scrollBy(0, 12);
+	},
+	finisciTocco() {
+		if (!this.toccoAttivo) return;
+		this.toccoAttivo = false;
+		this.elementoTrascinato?.classList.remove('opacity-60', 'ring-2', 'ring-blue-400');
+		this.elementoTrascinato = null;
+		this.salvaOrdine();
+	},	async salvaOrdine() {
 		const griglia = this.$refs.griglia;
 		const ordine = [...griglia.querySelectorAll(':scope > [data-dashboard-widget]')].map((widget) => widget.dataset.dashboardWidget);
 
