@@ -340,7 +340,7 @@ class PraticaController extends Controller
     public function storeBozzaCreazione(Request $request): RedirectResponse
     {
         session(['pratica_creazione' => $request->only([
-            'viaggio_id', 'cabina', 'totale_quote', 'totale', 'sconto', 'assicurazione_annullamento', 'supplemento_singola', 'acconto', 'data_acconto', 'saldo', 'data_saldo', 'note', 'clienti', 'gratuiti', 'ridotti',
+            'viaggio_id', 'cabina', 'totale_quote', 'totale', 'sconto', 'assicurazione_annullamento', 'supplemento_singola', 'supplemento_post_bus_riservato', 'acconto', 'data_acconto', 'saldo', 'data_saldo', 'note', 'clienti', 'gratuiti', 'ridotti',
         ])]);
 
         return redirect()->route('pratiche.creazione.clienti.select');
@@ -611,6 +611,7 @@ class PraticaController extends Controller
             'sconto' => ['nullable', 'numeric', 'min:0'],
             'assicurazione_annullamento' => ['nullable', 'numeric', 'min:0'],
             'supplemento_singola' => ['nullable', 'numeric', 'min:0'],
+            'supplemento_post_bus_riservato' => ['nullable', 'numeric', 'min:0'],
             'acconto' => ['nullable', 'numeric', 'min:0'],
             'data_acconto' => ['nullable', 'date'],
             'saldo' => ['nullable', 'numeric', 'min:0'],
@@ -652,6 +653,7 @@ class PraticaController extends Controller
         $totale = max(0, $totaleQuote
             + (float) $pratica->assicurazione_annullamento
             + (float) $pratica->supplemento_singola
+            + (float) $pratica->supplemento_post_bus_riservato
             - (float) $pratica->sconto);
 
         $pratica->update([
@@ -694,6 +696,7 @@ class PraticaController extends Controller
             'sconto' => $validated['sconto'] ?? 0,
             'assicurazione_annullamento' => $validated['assicurazione_annullamento'] ?? 0,
             'supplemento_singola' => $validated['supplemento_singola'] ?? 0,
+            'supplemento_post_bus_riservato' => $validated['supplemento_post_bus_riservato'] ?? 0,
             'acconto' => $validated['acconto'] ?? 0,
             'data_acconto' => $validated['data_acconto'] ?? null,
             'saldo' => $validated['saldo'] ?? 0,

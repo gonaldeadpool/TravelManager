@@ -195,14 +195,17 @@
             @else
                 <div class="overflow-x-auto">
                     <table class="min-w-full divide-y divide-gray-200 text-sm">
-                        <thead class="bg-gray-50 text-left text-gray-600"><tr><th class="px-4 py-3">Cliente</th><th class="px-4 py-3">Email</th><th class="px-4 py-3">Telefono</th><th class="px-4 py-3 text-right">Pratica</th></tr></thead>
+                        <thead class="bg-gray-50 text-left text-gray-600"><tr><th class="px-4 py-3">Cliente</th><th class="px-4 py-3">Cellulare</th><th class="px-4 py-3">Città di residenza</th><th class="px-4 py-3 text-right">Acconto</th><th class="px-4 py-3 text-right">Saldo</th><th class="px-4 py-3 text-center">Note</th><th class="px-4 py-3 text-right">Pratica</th></tr></thead>
                         <tbody class="divide-y divide-gray-200">
                             @foreach ($viaggio->pratiche as $pratica)
                                 @foreach ($pratica->clienti as $cliente)
                                     <tr>
                                         <td class="px-4 py-3 font-medium">{{ $cliente->cognome }} {{ $cliente->nome }}</td>
-                                        <td class="px-4 py-3"><x-contact-email :cliente="$cliente" :defer="true" /></td>
-                                        <td class="px-4 py-3"><x-contact-phone :number="$cliente->telefono" /></td>
+                                        <td class="px-4 py-3"><x-contact-phone :number="$cliente->cellulare" /></td>
+                                        <td class="px-4 py-3">{{ $cliente->citta ?: '-' }}</td>
+                                        <td class="px-4 py-3 text-right">{{ number_format($pratica->acconto, 2, ',', '.') }} EUR</td>
+                                        <td class="px-4 py-3 text-right">{{ number_format($pratica->saldo, 2, ',', '.') }} EUR</td>
+                                        <td class="px-4 py-3 text-center"><x-note-tooltip :note="$pratica->note" /></td>
                                         <td class="px-4 py-3 text-right"><a href="{{ route('pratiche.edit', $pratica) }}" class="text-blue-600 hover:underline">Apri pratica #{{ $pratica->id }}</a></td>
                                     </tr>
                                 @endforeach

@@ -134,6 +134,7 @@
                 <div class="flex justify-between gap-4 border-b py-2"><dt class="text-gray-600">Totale quote</dt><dd class="text-right font-medium">{{ number_format($pratica->totale_quote, 2, ',', '.') }} EUR</dd></div>
                 <div class="flex justify-between gap-4 border-b py-2"><dt class="text-gray-600">Assicurazione annullamento</dt><dd class="text-right font-medium">{{ number_format($pratica->assicurazione_annullamento, 2, ',', '.') }} EUR</dd></div>
                 <div class="flex justify-between gap-4 border-b py-2"><dt class="text-gray-600">Supplemento singola</dt><dd class="text-right font-medium">{{ number_format($pratica->supplemento_singola, 2, ',', '.') }} EUR</dd></div>
+                <div class="flex justify-between gap-4 border-b py-2"><dt class="text-gray-600">Supplemento post bus riservato</dt><dd class="text-right font-medium">{{ number_format($pratica->supplemento_post_bus_riservato, 2, ',', '.') }} EUR</dd></div>
                 <div class="flex justify-between gap-4 border-b py-2"><dt class="text-gray-600">Sconto</dt><dd class="text-right font-medium">{{ number_format($pratica->sconto, 2, ',', '.') }} EUR</dd></div>
                 <div class="flex justify-between gap-4 border-b py-2"><dt class="text-gray-600">Acconto versato</dt><dd class="text-right font-medium">{{ number_format($pratica->acconto, 2, ',', '.') }} EUR</dd></div>
                 <div class="flex justify-between gap-4 border-b py-2"><dt class="text-gray-600">Saldo versato</dt><dd class="text-right font-medium">{{ number_format($pratica->saldo, 2, ',', '.') }} EUR</dd></div>
@@ -144,6 +145,7 @@
                 <div class="pratica-financial-row"><span>Totale quote</span><span>{{ number_format($pratica->totale_quote, 2, ',', '.') }} EUR</span></div>
                 <div class="pratica-financial-row"><span>Assicurazione annullamento</span><span>{{ number_format($pratica->assicurazione_annullamento, 2, ',', '.') }} EUR</span></div>
                 <div class="pratica-financial-row"><span>Supplemento singola</span><span>{{ number_format($pratica->supplemento_singola, 2, ',', '.') }} EUR</span></div>
+                <div class="pratica-financial-row"><span>Supplemento post bus riservato</span><span>{{ number_format($pratica->supplemento_post_bus_riservato, 2, ',', '.') }} EUR</span></div>
                 @if ((float) $pratica->sconto > 0)
                     <div class="pratica-financial-row"><span>Sconto</span><span>{{ number_format($pratica->sconto, 2, ',', '.') }} EUR</span></div>
                 @endif

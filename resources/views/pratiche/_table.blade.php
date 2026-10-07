@@ -82,6 +82,7 @@
                             @endif
                         </button>
                     </th>
+                    <th class="hidden px-4 py-3 text-center sm:table-cell">Note</th>
                     <th class="hidden px-4 py-3 lg:table-cell"></th>
                 </tr>
             </thead>
@@ -93,6 +94,7 @@
                         <td class="hidden px-4 py-3 text-right sm:table-cell">{{ number_format($pratica->totale, 2, ',', '.') }} EUR</td>
                         <td class="hidden px-4 py-3 text-right md:table-cell">{{ number_format($pratica->acconto, 2, ',', '.') }} EUR</td>
                         <td class="hidden px-4 py-3 text-right lg:table-cell">{{ number_format($pratica->totale - $pratica->acconto - $pratica->saldo, 2, ',', '.') }} EUR</td>
+                        <td class="hidden px-4 py-3 text-center sm:table-cell"><x-note-tooltip :note="$pratica->note" /></td>
                         <td class="hidden px-4 py-3 lg:table-cell"><div class="flex justify-end gap-2">
                             <button type="button" onclick="const dialog = document.getElementById('pdf-pratica-dialog-{{ $pratica->id }}'); const frame = document.getElementById('pdf-pratica-frame-{{ $pratica->id }}'); if (!frame.dataset.loaded) { frame.src = frame.dataset.src; frame.dataset.loaded = 'true'; } dialog.showModal()" title="Stampa pratica" aria-label="Anteprima di stampa pratica {{ $pratica->id }}" class="inline-flex h-8 w-8 items-center justify-center rounded text-gray-700 hover:bg-gray-100"><svg aria-hidden="true" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 0-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg></button>
                             <button type="button" onclick="document.getElementById('email-pratica-dialog-{{ $pratica->id }}').showModal()" title="Invia pratica via email" aria-label="Invia pratica {{ $pratica->id }} via email" class="inline-flex h-8 w-8 items-center justify-center rounded text-gray-700 hover:bg-gray-100"><svg aria-hidden="true" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg></button>
@@ -111,6 +113,7 @@
                         <td class="hidden px-4 py-3 sm:table-cell"></td>
                         <td class="hidden px-4 py-3 md:table-cell"></td>
                         <td class="hidden px-4 py-3 lg:table-cell"></td>
+                        <td class="hidden px-4 py-3 sm:table-cell"></td>
                         <td class="hidden px-4 py-3 lg:table-cell"></td>
                     </tr>
                 @endfor

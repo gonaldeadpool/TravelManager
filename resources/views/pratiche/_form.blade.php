@@ -49,7 +49,7 @@
                 <select id="cabina" name="cabina" x-model="cabina" @change="aggiornaTotaleQuote()" :required="tipologiaViaggio === 'crociera'" :disabled="tipologiaViaggio !== 'crociera'" class="w-full rounded border p-2 disabled:bg-gray-100">
                     <option value="">Seleziona una cabina</option>
                     <template x-for="opzione in prezziCabine" :key="opzione.tipo">
-                        <option :value="opzione.tipo" x-text="etichettaCabina(opzione)"></option>
+                        <option :value="opzione.tipo" :selected="opzione.tipo === cabina" x-text="etichettaCabina(opzione)"></option>
                     </template>
                 </select>
             </div>
@@ -127,6 +127,10 @@
                 <div class="relative"><input id="supplemento_singola" type="text" inputmode="decimal" x-model="supplementoSingola" @blur="supplementoSingola = formattaImporto(supplementoSingola)" placeholder="0,00" class="w-full rounded border p-2 pr-12 text-right"><input type="hidden" name="supplemento_singola" :value="numeroImporto(supplementoSingola)"><span class="absolute right-3 top-2 text-sm text-gray-500">EUR</span></div>
             </div>
             <div class="min-w-0 space-y-1">
+                <label for="supplemento_post_bus_riservato" class="font-medium">Supplemento post bus riservato</label>
+                <div class="relative"><input id="supplemento_post_bus_riservato" type="text" inputmode="decimal" x-model="supplementoPostBusRiservato" @blur="supplementoPostBusRiservato = formattaImporto(supplementoPostBusRiservato)" placeholder="0,00" class="w-full rounded border p-2 pr-12 text-right"><input type="hidden" name="supplemento_post_bus_riservato" :value="numeroImporto(supplementoPostBusRiservato)"><span class="absolute right-3 top-2 text-sm text-gray-500">EUR</span></div>
+            </div>
+            <div class="min-w-0 space-y-1">
                 <label for="sconto" class="font-medium">Sconto</label>
                 <div class="relative"><input id="sconto" type="text" inputmode="decimal" x-model="sconto" @blur="sconto = formattaImporto(sconto)" placeholder="0,00" class="w-full rounded border p-2 pr-12 text-right"><input type="hidden" name="sconto" :value="numeroImporto(sconto)"><span class="absolute right-3 top-2 text-sm text-gray-500">EUR</span></div>
             </div>
@@ -168,6 +172,7 @@
             sconto: @js(old('sconto', $pratica->exists ? $pratica->sconto : ($bozza['sconto'] ?? 0))),
             assicurazioneAnnullamento: @js(old('assicurazione_annullamento', $pratica->exists ? $pratica->assicurazione_annullamento : ($bozza['assicurazione_annullamento'] ?? 0))),
             supplementoSingola: @js(old('supplemento_singola', $pratica->exists ? $pratica->supplemento_singola : ($bozza['supplemento_singola'] ?? 0))),
+            supplementoPostBusRiservato: @js(old('supplemento_post_bus_riservato', $pratica->exists ? $pratica->supplemento_post_bus_riservato : ($bozza['supplemento_post_bus_riservato'] ?? 0))),
             acconto: @js(old('acconto', $pratica->exists ? $pratica->acconto : ($bozza['acconto'] ?? 0))),
             saldo: @js(old('saldo', $pratica->exists ? $pratica->saldo : ($bozza['saldo'] ?? 0))),
             dataAcconto: @js($dataAcconto),
@@ -180,6 +185,7 @@
                 this.$watch('saldo', (valore) => { if (this.valoreImporto(valore) > 0 && !this.dataSaldo) this.dataSaldo = new Date().toISOString().slice(0, 10); });
                 this.assicurazioneAnnullamento = this.formattaImporto(this.assicurazioneAnnullamento);
                 this.supplementoSingola = this.formattaImporto(this.supplementoSingola);
+                this.supplementoPostBusRiservato = this.formattaImporto(this.supplementoPostBusRiservato);
                 this.sconto = this.formattaImporto(this.sconto);
                 this.acconto = this.formattaImporto(this.acconto);
                 this.saldo = this.formattaImporto(this.saldo);
@@ -189,6 +195,7 @@
                 return Math.max(0, this.valoreImporto(this.totaleQuote)
                     + this.valoreImporto(this.assicurazioneAnnullamento)
                     + this.valoreImporto(this.supplementoSingola)
+                    + this.valoreImporto(this.supplementoPostBusRiservato)
                     - this.valoreImporto(this.sconto)).toFixed(2);
             },
             get residuo() { return this.valoreImporto(this.totale) - this.valoreImporto(this.acconto) - this.valoreImporto(this.saldo); },

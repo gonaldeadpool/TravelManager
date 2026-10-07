@@ -79,6 +79,7 @@
             <tr><td>Totale quote</td><td>{{ number_format($pratica->totale_quote, 2, ',', '.') }} EUR</td></tr>
             <tr><td>Assicurazione annullamento</td><td>{{ number_format($pratica->assicurazione_annullamento, 2, ',', '.') }} EUR</td></tr>
             <tr><td>Supplemento singola</td><td>{{ number_format($pratica->supplemento_singola, 2, ',', '.') }} EUR</td></tr>
+            <tr><td>Supplemento post bus riservato</td><td>{{ number_format($pratica->supplemento_post_bus_riservato, 2, ',', '.') }} EUR</td></tr>
             @if ((float) $pratica->sconto > 0)
                 <tr><td>Sconto</td><td>{{ number_format($pratica->sconto, 2, ',', '.') }} EUR</td></tr>
             @endif
