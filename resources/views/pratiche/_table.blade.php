@@ -106,10 +106,18 @@
                 @endforeach
                 @for ($indice = $pratiche->count(); $indice < 5; $indice++)
                     <tr class="h-16">
-                        <td colspan="6" class="px-4 py-3 text-center text-sm text-gray-400">{{ $indice === 0 ? 'Nessuna pratica trovata.' : '' }}</td>
+                        <td class="px-2 py-3 sm:px-4"></td>
+                        <td class="px-2 py-3 sm:px-4"></td>
+                        <td class="hidden px-4 py-3 sm:table-cell"></td>
+                        <td class="hidden px-4 py-3 md:table-cell"></td>
+                        <td class="hidden px-4 py-3 lg:table-cell"></td>
+                        <td class="hidden px-4 py-3 lg:table-cell"></td>
                     </tr>
                 @endfor
             </tbody>
         </table>
+        @if ($pratiche->isEmpty())
+            <p class="px-4 py-6 text-center text-sm text-gray-400">Nessuna pratica trovata.</p>
+        @endif
     </div>
     <div class="border-t px-4 py-3">{{ $pratiche->links() }}</div>

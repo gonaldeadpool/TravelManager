@@ -43,6 +43,12 @@ document.addEventListener('DOMContentLoaded', function () {
     const documentiStato = @js($documentiStato ?? null);
     let ordinamenti = @js($ordinamenti ?? []);
 
+    function aggiornaTabella(html) {
+        window.Alpine.destroyTree(tabella);
+        tabella.innerHTML = html;
+        window.Alpine.initTree(tabella);
+    }
+
     function serializzaOrdinamenti() {
         return ordinamenti.map((entry) => `${entry.field}:${entry.direction}`).join(',');
     }
@@ -75,7 +81,7 @@ document.addEventListener('DOMContentLoaded', function () {
         if (ordinamenti.length) parametri.set('sort', serializzaOrdinamenti());
         if (pagina) parametri.set('page', pagina);
         const response = await fetch(`{{ route('clienti.search') }}?${parametri}`);
-        if (response.ok) tabella.innerHTML = await response.text();
+        if (response.ok) aggiornaTabella(await response.text());
     }
 
     ricerca.addEventListener('input', function () {
@@ -88,7 +94,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const response = await fetch(`{{ route('clienti.search') }}?${parametri}`);
 
             if (response.ok) {
-                tabella.innerHTML = await response.text();
+                aggiornaTabella(await response.text());
             }
         }, 400);
     });
@@ -105,7 +111,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (documentiStato) parametri.set('documenti_stato', documentiStato);
                 if (ordinamenti.length) parametri.set('sort', serializzaOrdinamenti());
                 const response = await fetch(`{{ route('clienti.search') }}?${parametri}`);
-                if (response.ok) tabella.innerHTML = await response.text();
+                if (response.ok) aggiornaTabella(await response.text());
             }, 0);
             return;
         }

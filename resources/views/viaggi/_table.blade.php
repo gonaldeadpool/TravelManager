@@ -170,11 +170,23 @@
                 @endforeach
                 @for ($indice = $viaggi->count(); $indice < 5; $indice++)
                     <tr class="h-16">
-                        <td colspan="10" class="px-4 py-3 text-center text-sm text-gray-400">{{ $indice === 0 ? 'Nessun viaggio trovato.' : '' }}</td>
+                        <td class="w-16 px-2 py-3 sm:px-4"></td>
+                        <td class="w-2/5 px-2 py-3 sm:px-4"></td>
+                        <td class="w-[30%] px-2 py-3 sm:px-4"></td>
+                        <td class="hidden px-4 py-3 xl:table-cell"></td>
+                        <td class="hidden px-4 py-3 lg:table-cell"></td>
+                        <td class="hidden px-4 py-3 md:table-cell"></td>
+                        <td class="hidden px-4 py-3 sm:table-cell"></td>
+                        <td class="hidden px-4 py-3 lg:table-cell"></td>
+                        <td class="hidden px-4 py-3 xl:table-cell"></td>
+                        <td class="hidden px-4 py-3 md:table-cell"></td>
                     </tr>
                 @endfor
             </tbody>
         </table>
+        @if ($viaggi->isEmpty())
+            <p class="px-4 py-6 text-center text-sm text-gray-400">Nessun viaggio trovato.</p>
+        @endif
     </div>
 
     <div class="mt-4">{{ $viaggi->links() }}</div>
