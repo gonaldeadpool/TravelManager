@@ -12,6 +12,8 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
+use Illuminate\Support\Facades\Storage;
+use App\Models\User;
 use Illuminate\View\View;
 use Throwable;
 
@@ -73,6 +75,46 @@ class ProfileController extends Controller
         return Redirect::route('profile.edit')->with('status', 'profile-updated');
     }
 
+    public function updateAvatar(Request $request): RedirectResponse
+    {
+        $request->validate([
+            'avatar' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
+        ], [], ['avatar' => 'immagine di profilo']);
+
+        $user = $request->user();
+        $vecchio = $user->avatar_path;
+        $user->avatar_path = $request->file('avatar')->store('avatars', 'local');
+        $user->save();
+
+        if ($vecchio) {
+            Storage::disk('local')->delete($vecchio);
+        }
+
+        return Redirect::route('profile.edit')->with('status', 'avatar-updated');
+    }
+
+    public function destroyAvatar(Request $request): RedirectResponse
+    {
+        $user = $request->user();
+
+        if ($user->avatar_path) {
+            Storage::disk('local')->delete($user->avatar_path);
+            $user->avatar_path = null;
+            $user->save();
+        }
+
+        return Redirect::route('profile.edit')->with('status', 'avatar-removed');
+    }
+
+    public function showAvatar(User $user)
+    {
+        abort_unless($user->avatar_path && Storage::disk('local')->exists($user->avatar_path), 404);
+
+        return response()->file(Storage::disk('local')->path($user->avatar_path), [
+            'Cache-Control' => 'private, max-age=86400',
+            'X-Content-Type-Options' => 'nosniff',
+        ]);
+    }
     /**
      * Delete the user's account.
      */

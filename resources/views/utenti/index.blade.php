@@ -16,7 +16,7 @@
                 <tbody class="divide-y">
                     @foreach ($users as $utente)
                         <tr>
-                            <td class="px-4 py-3 font-medium">{{ $utente->name }}</td>
+                            <td class="px-4 py-3 font-medium"><span class="inline-flex items-center gap-2">@php $connesso = in_array($utente->id, $utentiConnessi, true) || $utente->is(auth()->user()); @endphp<span class="h-3 w-3 shrink-0 rounded-full {{ $connesso ? 'bg-green-500' : 'bg-red-500' }}" title="{{ $connesso ? 'Connesso' : 'Non connesso' }}" role="img" aria-label="{{ $connesso ? 'Connesso' : 'Non connesso' }}"></span>{{ $utente->name }}</span></td>
                             <td class="px-4 py-3">{{ $utente->email }}</td>
                             <td class="px-4 py-3">{{ ucfirst($utente->role) }}</td>
                             <td class="px-4 py-3"><div class="flex justify-end gap-3"><a href="{{ route('utenti.edit', $utente) }}" class="text-blue-600 hover:underline">Modifica</a>@if (!$utente->is(auth()->user()))<form method="POST" action="{{ route('utenti.destroy', $utente) }}" onsubmit="return confirm('Eliminare questo utente?')">@csrf @method('DELETE')<button class="text-red-600 hover:underline">Elimina</button></form>@endif</div></td>

@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Illuminate\Validation\Rules;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class UserManagementController extends Controller
@@ -23,7 +24,14 @@ class UserManagementController extends Controller
 
     public function index(): View
     {
-        return view('utenti.index', ['users' => User::orderBy('name')->get()]);
+        $utentiConnessi = DB::table('sessions')
+            ->whereNotNull('user_id')
+            ->where('last_activity', '>=', now()->subMinutes((int) config('session.lifetime'))->getTimestamp())
+            ->pluck('user_id')
+            ->unique()
+            ->all();
+
+        return view('utenti.index', ['users' => User::orderBy('name')->get(), 'utentiConnessi' => $utentiConnessi]);
     }
 
     public function create(): View

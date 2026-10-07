@@ -33,6 +33,7 @@
                                     <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
                                 </svg>
                             </div>
+                            <x-avatar :user="Auth::user()" class="ms-3" />
                         </button>
                     </x-slot>
 
@@ -81,9 +82,12 @@
     <div x-cloak x-show="open" x-transition.opacity class="fixed inset-0 z-50 lg:hidden" id="responsive-navigation">
         <button type="button" @click="open = false" class="absolute inset-0 h-full w-full bg-black/50" aria-label="Chiudi menu"></button>
         <aside x-show="open" x-transition:enter="transform transition ease-out duration-300" x-transition:enter-start="-translate-x-full" x-transition:enter-end="translate-x-0" x-transition:leave="transform transition ease-in duration-200" x-transition:leave-start="translate-x-0" x-transition:leave-end="-translate-x-full" role="dialog" aria-modal="true" aria-label="Menu principale" class="relative h-full w-4/5 max-w-sm overflow-y-auto bg-white shadow-xl">
-            <div class="border-b border-gray-200 px-4 py-4">
-                <div class="font-medium text-base text-gray-800">{{ Auth::user()->name }}</div>
-                <div class="break-all font-medium text-sm text-gray-500">{{ Auth::user()->email }}</div>
+            <div class="flex items-center gap-3 border-b border-gray-200 px-4 py-4">
+                <div class="min-w-0 flex-1">
+                    <div class="font-medium text-base text-gray-800">{{ Auth::user()->name }}</div>
+                    <div class="break-all font-medium text-sm text-gray-500">{{ Auth::user()->email }}</div>
+                </div>
+                <x-avatar :user="Auth::user()" size="h-10 w-10" />
             </div>
 
             <div class="py-2">

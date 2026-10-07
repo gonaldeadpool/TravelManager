@@ -269,10 +269,14 @@ class ClienteController extends Controller
         $request->validate([
             'nome' => ['required', 'max:100'],
             'cognome' => ['required', 'max:100'],
+            'provincia' => ['nullable', 'string', 'max:2'],
+            'cap' => ['nullable', 'string', 'max:10'],
             'documento_tipo' => ['nullable', 'in:carta_identita,passaporto,patente,altro'],
             'documento_numero' => ['nullable', 'string', 'max:100'],
             'documento_scadenza' => ['nullable', 'date'],
             'documento_file' => ['nullable', 'file', 'mimes:pdf,jpeg,jpg', 'max:10240'],
+        ], [
+            'provincia.max' => 'La provincia deve essere indicata con la sigla di 2 lettere (es. LO).',
         ]);
     }
 

@@ -152,6 +152,7 @@
                 <input
                     type="text"
                     name="cap"
+                    maxlength="10"
                     value="{{ old('cap', $cliente->cap ?? '') }}"
                     class="border rounded w-full p-2">
             </div>
@@ -172,6 +173,8 @@
                 <input
                     type="text"
                     name="provincia"
+                    maxlength="2"
+                    placeholder="Sigla (es. LO)"
                     value="{{ old('provincia', $cliente->provincia ?? '') }}"
                     class="border rounded w-full p-2">
             </div>
