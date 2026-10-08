@@ -33,14 +33,14 @@
             $clientiDisponibiliTappe = $partecipanti->whereNotIn('id', $clientiInTappa);
         @endphp
         <div class="mx-auto mb-6 max-w-6xl border-b border-gray-200">
-            <nav class="flex gap-6" aria-label="Sezioni viaggio">
-                <button type="button" @click="tab = 'riepilogo'" :class="tab === 'riepilogo' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'" class="border-b-2 px-1 pb-3 text-sm font-semibold">Riepilogo</button>
-                <button type="button" @click="tab = 'partecipanti'" :class="tab === 'partecipanti' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'" class="border-b-2 px-1 pb-3 text-sm font-semibold">Partecipanti</button>
+            <nav class="flex gap-6 overflow-x-auto whitespace-nowrap" aria-label="Sezioni viaggio">
+                <button type="button" @click="tab = 'riepilogo'" :class="tab === 'riepilogo' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'" class="shrink-0 border-b-2 px-1 pb-3 text-sm font-semibold">Riepilogo</button>
+                <button type="button" @click="tab = 'partecipanti'" :class="tab === 'partecipanti' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'" class="shrink-0 border-b-2 px-1 pb-3 text-sm font-semibold">Partecipanti</button>
                 @foreach ($busTrasporti as $indiceBus => $bus)
-                    <button type="button" @click="tab = 'posti-{{ $indiceBus }}'" :class="tab === 'posti-{{ $indiceBus }}' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'" class="border-b-2 px-1 pb-3 text-sm font-semibold">Bus {{ $indiceBus + 1 }}</button>
+                    <button type="button" @click="tab = 'posti-{{ $indiceBus }}'" :class="tab === 'posti-{{ $indiceBus }}' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'" class="shrink-0 border-b-2 px-1 pb-3 text-sm font-semibold">Bus {{ $indiceBus + 1 }}</button>
                 @endforeach
                 @if ($busTrasporti->isNotEmpty())
-                    <button type="button" @click="tab = 'tappe'" :class="tab === 'tappe' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'" class="border-b-2 px-1 pb-3 text-sm font-semibold">Tappe di raccolta</button>
+                    <button type="button" @click="tab = 'tappe'" :class="tab === 'tappe' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'" class="shrink-0 border-b-2 px-1 pb-3 text-sm font-semibold">Tappe di raccolta</button>
                 @endif
             </nav>
         </div>
@@ -85,8 +85,8 @@
         </div>
 
         @if ($busTrasporti->isNotEmpty())
-            <div x-cloak :style="tab.startsWith('posti-') ? 'display: flex; align-items: flex-start; gap: 1.5rem;' : 'display: none;'" class="viaggio-print-panel viaggio-print-layout mx-auto max-w-6xl">
-                <div style="flex: 1 1 auto; min-width: 0;">
+            <div x-cloak :class="tab.startsWith('posti-') ? 'flex flex-col gap-4 md:flex-row md:items-start md:gap-6' : 'hidden'" class="viaggio-print-panel viaggio-print-layout mx-auto max-w-6xl">
+                <div class="w-full min-w-0 md:flex-1">
                     @foreach ($busTrasporti as $indiceBus => $bus)
                         @php
                             $postiBus = (int) ($bus['posti'] ?? 0);
@@ -100,29 +100,29 @@
                                 }
                             }
                         @endphp
-                        <div x-show="tab === 'posti-{{ $indiceBus }}'" x-cloak class="viaggio-print-panel rounded bg-white p-6 shadow">
-                            <div class="mb-5"><h3 class="text-lg font-semibold">Assegnazione posti bus {{ $indiceBus + 1 }}</h3><p class="mt-1 text-sm text-gray-500">Trascina un cliente sul posto desiderato.</p></div>
-                            <div class="overflow-x-auto rounded-xl bg-slate-700 p-5">
-                                <div class="mx-auto max-w-2xl rounded-[3rem] border-4 border-slate-300 bg-slate-100 p-5 shadow-inner">
-                                    <div class="mb-5 flex items-center justify-between rounded-full bg-slate-300 px-5 py-3 text-xs font-semibold uppercase tracking-wider text-slate-600"><span>Autista</span><span>Bus {{ $indiceBus + 1 }} - {{ $postiBus }} posti</span><span>Hostess</span></div>
+                        <div x-show="tab === 'posti-{{ $indiceBus }}'" x-cloak class="viaggio-print-panel rounded bg-white p-3 shadow sm:p-6">
+                            <div class="mb-4 sm:mb-5"><h3 class="text-lg font-semibold">Assegnazione posti bus {{ $indiceBus + 1 }}</h3><p class="mt-1 text-sm text-gray-500"><span class="hidden md:inline">Trascina un cliente oppure selezionalo e clicca su un posto disponibile.</span><span class="md:hidden">Tocca un posto disponibile e scegli il cliente.</span></p><p class="mt-1 hidden text-sm font-medium text-blue-700 md:block" data-bus-selection-status aria-live="polite"></p></div>
+                            <div class="rounded-xl bg-slate-700 p-2 sm:p-5">
+                                <div class="mx-auto w-full max-w-2xl rounded-[2rem] border-4 border-slate-300 bg-slate-100 p-2 shadow-inner sm:rounded-[3rem] sm:p-5">
+                                    <div class="mb-3 flex items-center justify-between gap-1 rounded-full bg-slate-300 px-2 py-2 text-[9px] font-semibold uppercase tracking-wide text-slate-600 sm:mb-5 sm:gap-2 sm:px-5 sm:py-3 sm:text-xs sm:tracking-wider"><span>Autista</span><span class="text-center">Bus {{ $indiceBus + 1 }} - {{ $postiBus }} posti</span><span>Hostess</span></div>
                                     <div class="space-y-2">
                                         @foreach ($righePosti as $riga)
-                                            <div class="grid grid-cols-5 gap-2" style="display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 0.5rem;">
+                                            <div class="grid grid-cols-5 gap-1 sm:gap-2" style="display: grid; grid-template-columns: repeat(5, minmax(0, 1fr));">
                                                 @for ($colonna = 1; $colonna <= 5; $colonna++)
                                                     @php($posto = $riga[$colonna])
                                                     @if ($posto)
                                                         @php($chiavePosto = $indiceBus . ':' . $posto)
-                                                        <div class="seat min-h-16 rounded-lg bg-white p-2 text-xs" style="border: 3px solid {{ $postiAssegnati->has($chiavePosto) ? '#dc2626' : '#16a34a' }};" data-bus="{{ $indiceBus }}" data-seat="{{ $posto }}" ondragover="event.preventDefault()" ondrop="assegnaPosto(event, {{ $indiceBus }}, {{ $posto }})">
+                                                        <div role="button" tabindex="0" aria-label="Posto {{ $posto }}{{ $postiAssegnati->has($chiavePosto) ? ', occupato' : ', disponibile' }}" class="seat min-h-11 min-w-0 cursor-pointer rounded-lg bg-white p-1 text-[10px] sm:min-h-16 sm:p-2 sm:text-xs" style="border: 3px solid {{ $postiAssegnati->has($chiavePosto) ? '#dc2626' : '#16a34a' }};" data-bus="{{ $indiceBus }}" data-seat="{{ $posto }}">
                                                             <div class="font-bold text-slate-700">{{ $posto }}</div>
                                                             @if ($postiAssegnati->has($chiavePosto))
                                                                 @php($clienteSeduto = $postiAssegnati->get($chiavePosto))
-                                                                <div draggable="true" data-client-id="{{ $clienteSeduto->id }}" data-client-name="{{ $clienteSeduto->cognome }} {{ $clienteSeduto->nome }}" data-seat-client class="mt-2 cursor-grab truncate rounded bg-blue-100 px-1 py-1 text-[11px] text-blue-800 active:cursor-grabbing">{{ $clienteSeduto->cognome }} {{ $clienteSeduto->nome }}</div>
+                                                                <div draggable="true" data-client-id="{{ $clienteSeduto->id }}" data-client-name="{{ $clienteSeduto->cognome }} {{ $clienteSeduto->nome }}" data-seat-client class="mt-1 cursor-grab truncate rounded bg-blue-100 px-1 py-1 text-[9px] text-blue-800 active:cursor-grabbing sm:mt-2 sm:text-[11px]">{{ $clienteSeduto->cognome }} {{ $clienteSeduto->nome }}</div>
                                                             @else
-                                                                <div class="seat-placeholder mt-2 h-5 rounded border border-dashed border-slate-300"></div>
+                                                                <div class="seat-placeholder mt-1 h-3 rounded border border-dashed border-slate-300 sm:mt-2 sm:h-5"></div>
                                                             @endif
                                                         </div>
                                                     @else
-                                                        <div aria-hidden="true" class="min-h-16 rounded-lg border-2 border-dashed border-slate-200 bg-slate-50"></div>
+                                                        <div aria-hidden="true" class="min-h-11 min-w-0 rounded-lg border-2 border-dashed border-slate-200 bg-slate-50 sm:min-h-16"></div>
                                                     @endif
                                                 @endfor
                                             </div>
@@ -133,7 +133,7 @@
                         </div>
                     @endforeach
                 </div>
-                <aside class="rounded bg-gray-50 p-4 shadow" style="flex: 0 0 300px; width: 300px;">
+                <aside class="hidden w-full rounded bg-gray-50 p-4 shadow md:block md:w-72 md:flex-none">
                     <h4 class="mb-3 font-semibold">Clienti disponibili</h4>
                     <div id="clienti-disponibili" class="space-y-2" ondragover="event.preventDefault()" ondrop="rimuoviPosto(event)">
                         @forelse ($clientiDisponibili as $cliente)
@@ -221,16 +221,90 @@
 @if ($busTrasporti->isNotEmpty())
     <script>
         let clienteTrascinato = null;
+        let clienteSelezionato = null;
+        let timeoutFeedbackPosti = null;
+        const menuClientiPosti = document.createElement('div');
+        menuClientiPosti.className = 'fixed z-50 hidden max-h-[60vh] overflow-y-auto rounded-lg border border-slate-200 bg-white p-2 shadow-xl md:hidden';
+        menuClientiPosti.setAttribute('role', 'listbox');
+        menuClientiPosti.setAttribute('aria-label', 'Seleziona il cliente per il posto');
+        document.body.appendChild(menuClientiPosti);
 
-        document.querySelectorAll('[data-client-id]').forEach((cliente) => {
-            cliente.addEventListener('dragstart', () => {
-                clienteTrascinato = cliente.dataset.clientId;
-            });
-        });
+        const feedbackPosti = document.createElement('p');
+        feedbackPosti.className = 'fixed bottom-4 left-1/2 z-50 hidden -translate-x-1/2 rounded px-4 py-3 text-sm shadow-lg';
+        feedbackPosti.setAttribute('role', 'status');
+        feedbackPosti.setAttribute('aria-live', 'polite');
+        document.body.appendChild(feedbackPosti);
+
+        function mostraFeedbackPosti(messaggio, errore = false) {
+            feedbackPosti.textContent = messaggio;
+            feedbackPosti.className = `fixed bottom-4 left-1/2 z-50 -translate-x-1/2 rounded px-4 py-3 text-sm shadow-lg ${errore ? 'bg-red-700 text-white' : 'bg-slate-800 text-white'}`;
+            window.clearTimeout(timeoutFeedbackPosti);
+            timeoutFeedbackPosti = window.setTimeout(() => feedbackPosti.classList.add('hidden'), 4000);
+        }
+
+        function menuPostiMobile() {
+            return window.matchMedia('(max-width: 767px)').matches;
+        }
+
+        function chiudiMenuClientiPosti() {
+            menuClientiPosti.classList.add('hidden');
+            menuClientiPosti.replaceChildren();
+        }
+
+        function sincronizzaListaClientiDisponibili() {
+            const lista = document.getElementById('clienti-disponibili');
+            if (!lista) return;
+
+            const clienti = lista.querySelectorAll('.client-card');
+            document.getElementById('nessun-cliente-disponibile')?.remove();
+            if (clienti.length === 0) {
+                const messaggio = document.createElement('p');
+                messaggio.id = 'nessun-cliente-disponibile';
+                messaggio.className = 'rounded border border-dashed p-3 text-sm text-gray-500';
+                messaggio.textContent = 'Tutti i clienti hanno un posto assegnato.';
+                lista.appendChild(messaggio);
+            }
+        }
 
         function collegaTrascinamento(cliente) {
             cliente.addEventListener('dragstart', () => {
                 clienteTrascinato = cliente.dataset.clientId;
+            });
+            cliente.addEventListener('click', () => {
+                if (!menuPostiMobile()) selezionaCliente(cliente.dataset.clientId);
+            });
+        }
+
+        function deselezionaCliente() {
+            clienteSelezionato = null;
+            document.querySelectorAll('[data-client-id]').forEach((cliente) => {
+                cliente.classList.remove('ring-2', 'ring-blue-600');
+            });
+            document.querySelectorAll('[data-bus-selection-status]').forEach((status) => {
+                status.textContent = '';
+            });
+        }
+
+        function selezionaCliente(id) {
+            if (clienteSelezionato === String(id)) {
+                deselezionaCliente();
+                return;
+            }
+            clienteSelezionato = String(id);
+
+            document.querySelectorAll('[data-client-id]').forEach((cliente) => {
+                const selezionato = clienteSelezionato !== null && cliente.dataset.clientId === clienteSelezionato;
+                cliente.classList.toggle('ring-2', selezionato);
+                cliente.classList.toggle('ring-blue-600', selezionato);
+            });
+
+            document.querySelectorAll('[data-bus-selection-status]').forEach((status) => {
+                const cliente = clienteSelezionato
+                    ? document.querySelector(`[data-client-id="${CSS.escape(clienteSelezionato)}"]`)
+                    : null;
+                status.textContent = cliente
+                    ? `${cliente.dataset.clientName} selezionato. Clicca su un posto disponibile.`
+                    : '';
             });
         }
 
@@ -248,8 +322,9 @@
 
         function mostraClienteDisponibile(id, nome) {
             const lista = document.getElementById('clienti-disponibili');
-            document.getElementById('nessun-cliente-disponibile')?.remove();
-            if (!lista.querySelector(`[data-client-id="${CSS.escape(id)}"]`)) lista.appendChild(creaSchedaCliente(id, nome));
+            if (!lista) return;
+            if (!lista.querySelector(`[data-client-id="${CSS.escape(String(id))}"]`)) lista.appendChild(creaSchedaCliente(id, nome));
+            sincronizzaListaClientiDisponibili();
         }
 
         function aggiornaSedile(sedile, id, nome) {
@@ -258,59 +333,154 @@
             sedile.style.border = '3px solid #dc2626';
             const cliente = document.createElement('div');
             cliente.draggable = true;
-            cliente.dataset.clientId = id;
+            cliente.dataset.clientId = String(id);
             cliente.dataset.clientName = nome;
             cliente.dataset.seatClient = '';
-            cliente.className = 'mt-2 cursor-grab truncate rounded bg-blue-100 px-1 py-1 text-[11px] text-blue-800 active:cursor-grabbing';
+            cliente.className = 'mt-1 cursor-grab truncate rounded bg-blue-100 px-1 py-1 text-[9px] text-blue-800 active:cursor-grabbing sm:mt-2 sm:text-[11px]';
             cliente.textContent = nome;
             collegaTrascinamento(cliente);
             sedile.appendChild(cliente);
+            sedile.setAttribute('aria-label', `Posto ${sedile.dataset.seat}, occupato da ${nome}`);
+        }
+
+        function liberaSedileUI(sedile, cliente) {
+            cliente.remove();
+            sedile.style.border = '3px solid #16a34a';
+            sedile.setAttribute('aria-label', `Posto ${sedile.dataset.seat}, disponibile`);
+            const placeholder = document.createElement('div');
+            placeholder.className = 'seat-placeholder mt-1 h-3 rounded border border-dashed border-slate-300 sm:mt-2 sm:h-5';
+            sedile.appendChild(placeholder);
+        }
+
+        function apriMenuClientiPosto(sedile) {
+            const clienti = [...document.querySelectorAll('#clienti-disponibili .client-card')];
+            const occupante = sedile.querySelector('[data-seat-client]');
+            menuClientiPosti.replaceChildren();
+
+            if (occupante) {
+                const liberaPosto = document.createElement('button');
+                liberaPosto.type = 'button';
+                liberaPosto.setAttribute('role', 'option');
+                liberaPosto.className = 'block w-full rounded px-3 py-2 text-left text-sm font-semibold text-red-700 hover:bg-red-50 focus:bg-red-50 focus:outline-none';
+                liberaPosto.textContent = 'Libera posto';
+                liberaPosto.addEventListener('click', async () => {
+                    const liberato = await rimuoviPosto(null, occupante.dataset.clientId);
+                    if (liberato) chiudiMenuClientiPosti();
+                });
+                menuClientiPosti.appendChild(liberaPosto);
+
+                if (clienti.length > 0) {
+                    const separatore = document.createElement('p');
+                    separatore.className = 'border-t px-3 pb-1 pt-2 text-xs font-semibold uppercase tracking-wide text-slate-500';
+                    separatore.textContent = 'Sostituisci con';
+                    menuClientiPosti.appendChild(separatore);
+                }
+            }
+
+            if (clienti.length === 0 && !occupante) {
+                const messaggio = document.createElement('p');
+                messaggio.className = 'px-3 py-2 text-sm text-slate-600';
+                messaggio.textContent = 'Tutti i clienti hanno già un posto.';
+                menuClientiPosti.appendChild(messaggio);
+            } else {
+                clienti.forEach((cliente) => {
+                    const opzione = document.createElement('button');
+                    opzione.type = 'button';
+                    opzione.setAttribute('role', 'option');
+                    opzione.className = 'block w-full rounded px-3 py-2 text-left text-sm hover:bg-blue-50 focus:bg-blue-50 focus:outline-none';
+                    opzione.textContent = cliente.dataset.clientName;
+                    opzione.addEventListener('click', async () => {
+                        const assegnata = await salvaAssegnazionePosto(
+                            cliente.dataset.clientId,
+                            sedile.dataset.bus,
+                            sedile.dataset.seat
+                        );
+                        if (assegnata) chiudiMenuClientiPosti();
+                    });
+                    menuClientiPosti.appendChild(opzione);
+                });
+            }
+
+            menuClientiPosti.classList.remove('hidden');
+            const rettangolo = sedile.getBoundingClientRect();
+            const larghezza = Math.min(288, window.innerWidth - 24);
+            menuClientiPosti.style.width = `${larghezza}px`;
+            const altezza = menuClientiPosti.getBoundingClientRect().height;
+            const sinistra = Math.max(12, Math.min(rettangolo.left, window.innerWidth - larghezza - 12));
+            const dallAlto = rettangolo.bottom + altezza + 8 <= window.innerHeight
+                ? rettangolo.bottom + 4
+                : Math.max(8, rettangolo.top - altezza - 4);
+            menuClientiPosti.style.left = `${sinistra}px`;
+            menuClientiPosti.style.top = `${dallAlto}px`;
+        }
+
+        async function salvaAssegnazionePosto(clienteId, bus, posto) {
+            const response = await fetch('{{ route('viaggi.posti.store', $viaggio) }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                    'Accept': 'application/json',
+                },
+                body: JSON.stringify({ cliente_id: clienteId, bus, posto }),
+            }).catch((errore) => {
+                console.error('Assegnazione posto bus non riuscita.', errore);
+                mostraFeedbackPosti('Impossibile salvare il posto. Verifica la connessione e riprova.', true);
+                return null;
+            });
+
+            if (!response) return false;
+            if (!response.ok) {
+                console.error('Assegnazione posto bus rifiutata.', response.status);
+                mostraFeedbackPosti('Impossibile assegnare il posto. Aggiorna la pagina e riprova.', true);
+                return false;
+            }
+
+            const sorgente = document.querySelector(`[data-client-id="${CSS.escape(String(clienteId))}"]`);
+            const sedileDestinazione = document.querySelector(`[data-bus="${CSS.escape(String(bus))}"][data-seat="${CSS.escape(String(posto))}"]`);
+            if (!sorgente || !sedileDestinazione) {
+                window.location.reload();
+                return true;
+            }
+
+            const sedileOrigine = sorgente.closest('[data-seat]');
+            const occupante = sedileDestinazione.querySelector('[data-seat-client]');
+            const nomeSorgente = sorgente.dataset.clientName;
+
+            if (occupante && occupante.dataset.clientId !== String(clienteId)) {
+                mostraClienteDisponibile(occupante.dataset.clientId, occupante.dataset.clientName);
+            }
+            if (sedileOrigine && sedileOrigine !== sedileDestinazione) {
+                liberaSedileUI(sedileOrigine, sorgente);
+            } else if (!sedileOrigine) {
+                sorgente.remove();
+            }
+            aggiornaSedile(sedileDestinazione, clienteId, nomeSorgente);
+            sincronizzaListaClientiDisponibili();
+            clienteTrascinato = null;
+            deselezionaCliente();
+
+            return true;
         }
 
         async function assegnaPosto(event, bus, posto) {
             event.preventDefault();
-            if (!clienteTrascinato) return;
+            const idCliente = event.dataTransfer?.getData('text/plain') || clienteTrascinato;
+            if (!idCliente) return;
 
-            const response = await fetch('{{ route('viaggi.posti.store', $viaggio) }}', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                    'Accept': 'application/json',
-                },
-                body: JSON.stringify({ cliente_id: clienteTrascinato, bus, posto }),
-            });
-
-            if (response.ok) {
-                const sorgente = document.querySelector(`[data-client-id="${CSS.escape(clienteTrascinato)}"]`);
-                const sedileDestinazione = document.querySelector(`[data-bus="${bus}"][data-seat="${posto}"]`);
-                const occupante = sedileDestinazione.querySelector('[data-seat-client]');
-                const nomeSorgente = sorgente.dataset.clientName;
-
-                if (occupante && occupante.dataset.clientId !== clienteTrascinato) {
-                    mostraClienteDisponibile(occupante.dataset.clientId, occupante.dataset.clientName);
-                }
-                const sedileOrigine = sorgente.closest('[data-seat]');
-                if (sedileOrigine && sedileOrigine !== sedileDestinazione) {
-                    const placeholderOrigine = document.createElement('div');
-                    placeholderOrigine.className = 'seat-placeholder mt-2 h-5 rounded border border-dashed border-slate-300';
-                    sedileOrigine.appendChild(placeholderOrigine);
-                    sedileOrigine.style.border = '3px solid #16a34a';
-                    sorgente.remove();
-                } else if (!sedileOrigine) {
-                    sorgente.remove();
-                }
-                aggiornaSedile(sedileDestinazione, clienteTrascinato, nomeSorgente);
-            }
+            await salvaAssegnazionePosto(idCliente, bus, posto);
             clienteTrascinato = null;
         }
 
-        async function rimuoviPosto(event) {
-            event.preventDefault();
-            if (!clienteTrascinato) return;
+        async function rimuoviPosto(event, idCliente = null) {
+            event?.preventDefault();
+            const idDaRimuovere = idCliente || event?.dataTransfer?.getData('text/plain') || clienteTrascinato;
+            if (!idDaRimuovere) return;
 
-            const sorgente = document.querySelector(`[data-client-id="${CSS.escape(clienteTrascinato)}"]`);
+            const sorgente = document.querySelector(`[data-client-id="${CSS.escape(String(idDaRimuovere))}"]`);
             const sedileOrigine = sorgente?.closest('[data-seat]');
+            if (!sorgente || !sedileOrigine) return;
+
             const response = await fetch('{{ route('viaggi.posti.store', $viaggio) }}', {
                 method: 'POST',
                 headers: {
@@ -318,22 +488,68 @@
                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
                     'Accept': 'application/json',
                 },
-                body: JSON.stringify({ cliente_id: clienteTrascinato, bus: sedileOrigine?.dataset.bus ?? 0, posto: null }),
+                body: JSON.stringify({ cliente_id: idDaRimuovere, bus: sedileOrigine.dataset.bus, posto: null }),
+            }).catch((errore) => {
+                console.error('Rilascio posto bus non riuscito.', errore);
+                mostraFeedbackPosti('Impossibile liberare il posto. Verifica la connessione e riprova.', true);
+                return null;
             });
 
-            if (response.ok && sorgente) {
-                const nome = sorgente.dataset.clientName;
-                if (sedileOrigine) {
-                    sorgente.remove();
-                    sedileOrigine.style.border = '3px solid #16a34a';
-                    const placeholder = document.createElement('div');
-                    placeholder.className = 'seat-placeholder mt-2 h-5 rounded border border-dashed border-slate-300';
-                    sedileOrigine.appendChild(placeholder);
-                }
-                mostraClienteDisponibile(clienteTrascinato, nome);
+            if (!response) return false;
+            if (!response.ok) {
+                console.error('Rilascio posto bus rifiutato.', response.status);
+                mostraFeedbackPosti('Impossibile liberare il posto. Aggiorna la pagina e riprova.', true);
+                return false;
             }
+
+            const nome = sorgente.dataset.clientName;
+            liberaSedileUI(sedileOrigine, sorgente);
+            mostraClienteDisponibile(idDaRimuovere, nome);
             clienteTrascinato = null;
+            deselezionaCliente();
+
+            return true;
         }
+
+        document.querySelectorAll('[data-client-id]').forEach(collegaTrascinamento);
+        document.querySelectorAll('[data-seat]').forEach((sedile) => {
+            sedile.addEventListener('dragover', (event) => event.preventDefault());
+            sedile.addEventListener('drop', (event) => assegnaPosto(event, sedile.dataset.bus, sedile.dataset.seat));
+            sedile.addEventListener('click', async () => {
+                const occupante = sedile.querySelector('[data-seat-client]');
+                if (menuPostiMobile()) {
+                    apriMenuClientiPosto(sedile);
+                    return;
+                }
+
+                chiudiMenuClientiPosti();
+                if (!occupante && clienteSelezionato) {
+                    await salvaAssegnazionePosto(clienteSelezionato, sedile.dataset.bus, sedile.dataset.seat);
+                }
+            });
+            sedile.addEventListener('dblclick', (event) => {
+                const occupante = sedile.querySelector('[data-seat-client]');
+                if (occupante) rimuoviPosto(event, occupante.dataset.clientId);
+            });
+            sedile.addEventListener('keydown', (event) => {
+                if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault();
+                    sedile.click();
+                }
+            });
+        });
+
+        document.addEventListener('click', (event) => {
+            if (!menuClientiPosti.contains(event.target) && !event.target.closest('[data-seat]')) {
+                chiudiMenuClientiPosti();
+            }
+        });
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape') chiudiMenuClientiPosti();
+        });
+        window.addEventListener('scroll', chiudiMenuClientiPosti, true);
+        window.addEventListener('resize', chiudiMenuClientiPosti);
+        sincronizzaListaClientiDisponibili();
     </script>
 @endif
 

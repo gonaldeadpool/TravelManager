@@ -18,6 +18,7 @@ Le regole qui sotto sono quelle riscontrate nel codice corrente, non una specifi
 - La capacità mostrata in dashboard conta clienti distinti per viaggio (`COUNT(DISTINCT cliente_id)`), non il numero di pratiche. Avviso di minimo in scadenza: entro 30 giorni dalla partenza (inclusi), iscritti sotto il minimo. Quasi pieno: almeno 80% del massimo ma meno del massimo; completo: iscritti almeno al massimo.
 - L'assegnazione tappa richiede tappa appartenente al viaggio e cliente partecipante. L'assegnazione sostituisce ogni tappa precedente del cliente per quel viaggio; la pivot consente al massimo una tappa per cliente/viaggio.
 - L'assegnazione posto bus richiede un bus configurato e un cliente partecipante al viaggio. Conflitti sullo stesso indice bus/posto fra partecipanti dello stesso viaggio vengono rimossi prima dell'assegnazione. L'assegnazione è replicata sulle pratiche in cui il cliente partecipa.
+- Nella piantina bus desktop si può assegnare trascinando oppure selezionando un cliente con un click e un posto libero con il successivo. Su mobile la lista laterale è nascosta: toccando un posto si apre un menu con i clienti senza posto; se il posto è occupato, il menu mostra in cima «Libera posto» e consente di sostituire l'occupante con un cliente disponibile. Il doppio click su un posto occupato lo libera anche su desktop e riporta il cliente tra quelli disponibili.
 
 ## Calcolo importi pratica
 
