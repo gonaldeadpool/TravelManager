@@ -276,7 +276,7 @@
         @endforeach
 
         <div class="page-break"></div>
-        <h2>Tappe di raccolta</h2>
+        <h2>Tappe Bus</h2>
         @forelse ($tappeRaccolta as $tappa)
             <h3>{{ $tappa->nome }} - {{ $tappa->orario->format('H:i') }}</h3>
             <table class="grid">

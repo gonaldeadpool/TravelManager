@@ -9,17 +9,23 @@
         }
     </style>
     <x-slot name="header">
-        <div class="flex items-center justify-between gap-4">
-            <h2 class="text-xl font-semibold leading-tight text-gray-800">{{ $viaggio->nome }}</h2>
-            <div class="flex items-center gap-2">
+        <div class="flex items-center justify-between gap-2 md:gap-4">
+            <h2 class="min-w-0 flex-1 truncate whitespace-nowrap text-lg font-semibold leading-tight text-gray-800 md:text-xl" title="{{ $viaggio->nome }}">{{ $viaggio->nome }}</h2>
+            <div class="flex shrink-0 items-center gap-2">
                 <a href="{{ route('viaggi.riepilogo.pdf', $viaggio) }}" target="_blank" rel="noopener" title="Anteprima di stampa PDF" aria-label="Anteprima di stampa PDF" class="inline-flex h-9 w-9 items-center justify-center rounded border text-gray-700 hover:bg-gray-100">
                     <svg aria-hidden="true" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
                 </a>
                 <a href="{{ route('viaggi.riepilogo.pdf.download', $viaggio) }}" title="Scarica PDF" aria-label="Scarica PDF" class="inline-flex h-9 w-9 items-center justify-center rounded border text-gray-700 hover:bg-gray-100">
                     <svg aria-hidden="true" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>
                 </a>
-                <a href="{{ route('viaggi.edit', $viaggio) }}" class="rounded border px-4 py-2 text-sm text-gray-700">Modifica viaggio</a>
-                <a href="{{ route('viaggi.index') }}" class="rounded border px-4 py-2 text-sm text-gray-700">Torna ai viaggi</a>
+                <a href="{{ route('viaggi.edit', $viaggio) }}" title="Modifica viaggio" aria-label="Modifica viaggio" class="inline-flex h-9 w-9 items-center justify-center rounded border text-gray-700 hover:bg-gray-100 md:w-auto md:px-4 md:text-sm">
+                    <svg aria-hidden="true" class="h-5 w-5 md:hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+                    <span class="hidden md:inline">Modifica viaggio</span>
+                </a>
+                <a href="{{ route('viaggi.index') }}" title="Torna ai viaggi" aria-label="Torna ai viaggi" class="inline-flex h-9 w-9 items-center justify-center rounded border text-gray-700 hover:bg-gray-100 md:w-auto md:px-4 md:text-sm">
+                    <svg aria-hidden="true" class="h-5 w-5 md:hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg>
+                    <span class="hidden md:inline">Torna ai viaggi</span>
+                </a>
             </div>
         </div>
     </x-slot>
@@ -32,15 +38,26 @@
             $clientiInTappa = $tappeRaccolta->flatMap->clienti->pluck('id')->unique();
             $clientiDisponibiliTappe = $partecipanti->whereNotIn('id', $clientiInTappa);
         @endphp
-        <div class="mx-auto mb-6 max-w-6xl border-b border-gray-200">
-            <nav class="flex gap-6 overflow-x-auto whitespace-nowrap" aria-label="Sezioni viaggio">
+        <div class="mx-auto mb-6 max-w-6xl border-b border-gray-200 pb-3 md:pb-0">
+            <label for="viaggio-sezione" class="sr-only">Sezione riepilogo viaggio</label>
+            <select id="viaggio-sezione" x-model="tab" class="w-full rounded border border-gray-300 bg-white p-3 text-sm font-semibold text-gray-700 md:hidden">
+                <option value="riepilogo">Riepilogo</option>
+                <option value="partecipanti">Partecipanti</option>
+                @foreach ($busTrasporti as $indiceBus => $bus)
+                    <option value="posti-{{ $indiceBus }}">Bus {{ $indiceBus + 1 }}</option>
+                @endforeach
+                @if ($busTrasporti->isNotEmpty())
+                    <option value="tappe">Tappe Bus</option>
+                @endif
+            </select>
+            <nav class="hidden gap-6 overflow-x-auto whitespace-nowrap md:flex" aria-label="Sezioni viaggio">
                 <button type="button" @click="tab = 'riepilogo'" :class="tab === 'riepilogo' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'" class="shrink-0 border-b-2 px-1 pb-3 text-sm font-semibold">Riepilogo</button>
                 <button type="button" @click="tab = 'partecipanti'" :class="tab === 'partecipanti' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'" class="shrink-0 border-b-2 px-1 pb-3 text-sm font-semibold">Partecipanti</button>
                 @foreach ($busTrasporti as $indiceBus => $bus)
                     <button type="button" @click="tab = 'posti-{{ $indiceBus }}'" :class="tab === 'posti-{{ $indiceBus }}' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'" class="shrink-0 border-b-2 px-1 pb-3 text-sm font-semibold">Bus {{ $indiceBus + 1 }}</button>
                 @endforeach
                 @if ($busTrasporti->isNotEmpty())
-                    <button type="button" @click="tab = 'tappe'" :class="tab === 'tappe' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'" class="shrink-0 border-b-2 px-1 pb-3 text-sm font-semibold">Tappe di raccolta</button>
+                    <button type="button" @click="tab = 'tappe'" :class="tab === 'tappe' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'" class="shrink-0 border-b-2 px-1 pb-3 text-sm font-semibold">Tappe Bus</button>
                 @endif
             </nav>
         </div>
@@ -147,10 +164,10 @@
         @endif
 
         @if ($busTrasporti->isNotEmpty())
-        <div x-cloak :style="tab === 'tappe' ? 'display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 1.5rem;' : 'display: none;'" class="viaggio-print-panel viaggio-print-layout mx-auto max-w-6xl">
+        <div x-cloak x-show="tab === 'tappe'" class="viaggio-print-panel viaggio-print-layout mx-auto grid max-w-6xl grid-cols-1 gap-6 md:grid-cols-[minmax(0,1fr)_300px]">
             <section class="rounded bg-white p-6 shadow">
                 <div class="mb-5 flex items-center justify-between gap-4">
-                    <div><h3 class="text-lg font-semibold">Tappe di raccolta</h3><p class="mt-1 text-sm text-gray-500">Crea le fermate e assegna i partecipanti con il drag & drop.</p></div>
+                    <div><h3 class="text-lg font-semibold">Tappe Bus</h3><p class="mt-1 text-sm text-gray-500"><span class="hidden md:inline">Crea le fermate e assegna i partecipanti con il drag & drop.</span><span class="md:hidden">Tocca una tappa per assegnare i clienti; doppio tap sul nome per rimuoverli.</span></p></div>
                     <button type="button" id="mostra-form-tappa" class="whitespace-nowrap rounded bg-blue-600 px-4 py-2 text-sm text-white">Aggiungi tappa</button>
                 </div>
                 <form id="form-tappa" class="mb-5 hidden rounded border border-blue-200 bg-blue-50 p-4" data-url="{{ route('viaggi.tappe-raccolta.store', $viaggio) }}">
@@ -166,7 +183,7 @@
                             <div class="mb-3 flex items-center justify-between"><h4 class="font-semibold">{{ $tappa->nome }} <span class="font-normal text-gray-500">- {{ $tappa->orario->format('H:i') }}</span></h4><span class="text-xs text-gray-500">Trascina qui i clienti</span></div>
                             <div class="tappa-clienti min-h-16 space-y-2 rounded border-2 border-dashed border-blue-200 p-3" data-drop-tappa ondragover="event.preventDefault()" ondrop="assegnaTappa(event, this.closest('[data-tappa-id]').dataset.tappaId, this.closest('[data-tappa-id]').dataset.tappaUrl)">
                                 @foreach ($tappa->clienti as $cliente)
-                                    <div class="flex items-center justify-between rounded bg-blue-50 px-3 py-2 text-sm" data-tappa-cliente="{{ $cliente->id }}" data-tappa-cliente-name="{{ $cliente->cognome }} {{ $cliente->nome }}"><span>{{ $cliente->cognome }} {{ $cliente->nome }}</span><button type="button" title="Rimuovi dalla tappa" aria-label="Rimuovi dalla tappa" class="text-red-600" onclick="rimuoviDaTappa(event, {{ $tappa->id }}, {{ $cliente->id }})">&#10005;</button></div>
+                                    <div class="flex items-center justify-between rounded bg-blue-50 px-3 py-2 text-sm" data-tappa-cliente="{{ $cliente->id }}" data-tappa-cliente-name="{{ $cliente->cognome }} {{ $cliente->nome }}"><span>{{ $cliente->cognome }} {{ $cliente->nome }}</span><button type="button" title="Rimuovi dalla tappa" aria-label="Rimuovi dalla tappa" class="hidden text-red-600 md:inline" onclick="rimuoviDaTappa(event, {{ $tappa->id }}, {{ $cliente->id }})">&#10005;</button></div>
                                 @endforeach
                                 @if ($tappa->clienti->isEmpty())<span class="text-sm text-gray-400">Nessun cliente assegnato.</span>@endif
                             </div>
@@ -176,7 +193,7 @@
                     @endforelse
                 </div>
             </section>
-            <aside class="rounded bg-gray-50 p-4 shadow">
+            <aside class="hidden rounded bg-gray-50 p-4 shadow md:block">
                 <h4 class="mb-3 font-semibold">Partecipanti disponibili</h4>
                 <div id="clienti-disponibili-tappe" class="space-y-2">
                     @forelse ($clientiDisponibiliTappe as $cliente)
@@ -616,23 +633,92 @@
         event.preventDefault();
         clienteTappaTrascinato = event.dataTransfer?.getData('text/plain') || clienteTappaTrascinato;
         if (!clienteTappaTrascinato) return;
-        const lista = event.currentTarget;
-        const cliente = document.querySelector(`[data-tappa-client-id="${CSS.escape(String(clienteTappaTrascinato))}"]`);
-        const response = await fetch(url, {method: 'POST', headers: {'X-CSRF-TOKEN': csrfTokenTappe, 'Accept': 'application/json', 'Content-Type': 'application/json'}, body: JSON.stringify({cliente_id: clienteTappaTrascinato})});
-        if (response.ok && cliente) {
+        const clienteId = clienteTappaTrascinato;
+        clienteTappaTrascinato = null;
+        await assegnaClienteTappa(event.currentTarget, tappaId, url, clienteId);
+    }
+
+    async function assegnaClienteTappa(lista, tappaId, url, clienteId) {
+        const cliente = document.querySelector(`[data-tappa-client-id="${CSS.escape(String(clienteId))}"]`);
+        const response = await fetch(url, {method: 'POST', headers: {'X-CSRF-TOKEN': csrfTokenTappe, 'Accept': 'application/json', 'Content-Type': 'application/json'}, body: JSON.stringify({cliente_id: clienteId})});
+        if (!response.ok) {
+            alert('Impossibile assegnare il cliente alla tappa.');
+            return;
+        }
+        if (cliente) {
             lista.querySelector('[data-tappa-empty]')?.remove();
             lista.querySelector('span.text-sm.text-gray-400')?.remove();
             const card = document.createElement('div');
             card.className = 'flex items-center justify-between rounded bg-blue-50 px-3 py-2 text-sm';
-            card.dataset.tappaCliente = clienteTappaTrascinato;
+            card.dataset.tappaCliente = clienteId;
             card.dataset.tappaClienteName = cliente.dataset.tappaClientName;
-            card.innerHTML = `<span>${escapeHtmlTappa(cliente.dataset.tappaClientName)}</span><button type="button" title="Rimuovi dalla tappa" aria-label="Rimuovi dalla tappa" class="text-red-600">&#10005;</button>`;
+            card.innerHTML = `<span>${escapeHtmlTappa(cliente.dataset.tappaClientName)}</span><button type="button" title="Rimuovi dalla tappa" aria-label="Rimuovi dalla tappa" class="hidden text-red-600 md:inline">&#10005;</button>`;
             card.querySelector('button').addEventListener('click', (clickEvent) => rimuoviDaTappa(clickEvent, tappaId, card.dataset.tappaCliente));
             lista.appendChild(card);
             cliente.remove();
         }
-        clienteTappaTrascinato = null;
     }
+
+    const mobileTappeQuery = window.matchMedia('(max-width: 767px)');
+    let menuTappa = null;
+    let ultimoTapCliente = {id: null, time: 0};
+
+    function chiudiMenuTappa() {
+        menuTappa?.remove();
+        menuTappa = null;
+    }
+
+    function apriMenuTappa(tappa, x, y) {
+        chiudiMenuTappa();
+        const clienti = [...document.querySelectorAll('#clienti-disponibili-tappe [data-tappa-client-id]')];
+        menuTappa = document.createElement('div');
+        menuTappa.className = 'fixed z-50 max-h-64 w-64 overflow-y-auto rounded border bg-white py-1 text-sm shadow-lg';
+        if (!clienti.length) {
+            menuTappa.innerHTML = '<p class="px-3 py-2 text-gray-500">Nessun cliente disponibile.</p>';
+        }
+        clienti.forEach((cliente) => {
+            const voce = document.createElement('button');
+            voce.type = 'button';
+            voce.className = 'block w-full px-3 py-2 text-left hover:bg-blue-50';
+            voce.textContent = cliente.dataset.tappaClientName;
+            voce.addEventListener('click', async () => {
+                chiudiMenuTappa();
+                await assegnaClienteTappa(tappa.querySelector('[data-drop-tappa]'), tappa.dataset.tappaId, tappa.dataset.tappaUrl, cliente.dataset.tappaClientId);
+            });
+            menuTappa.appendChild(voce);
+        });
+        document.body.appendChild(menuTappa);
+        const rect = menuTappa.getBoundingClientRect();
+        menuTappa.style.left = `${Math.max(8, Math.min(x, window.innerWidth - rect.width - 8))}px`;
+        menuTappa.style.top = `${Math.max(8, Math.min(y, window.innerHeight - rect.height - 8))}px`;
+    }
+
+    listaTappe?.addEventListener('click', (event) => {
+        if (!mobileTappeQuery.matches) return;
+        const card = event.target.closest('[data-tappa-cliente]');
+        if (card) {
+            const adesso = Date.now();
+            if (ultimoTapCliente.id === card.dataset.tappaCliente && adesso - ultimoTapCliente.time < 400) {
+                ultimoTapCliente = {id: null, time: 0};
+                const tappaId = card.closest('[data-tappa-id]').dataset.tappaId;
+                rimuoviDaTappa(event, tappaId, card.dataset.tappaCliente);
+            } else {
+                ultimoTapCliente = {id: card.dataset.tappaCliente, time: adesso};
+            }
+            return;
+        }
+        const tappa = event.target.closest('[data-tappa-id]');
+        if (!tappa) return;
+        event.stopPropagation();
+        apriMenuTappa(tappa, event.clientX, event.clientY);
+    });
+
+    document.addEventListener('click', (event) => {
+        if (menuTappa && !menuTappa.contains(event.target)) chiudiMenuTappa();
+    });
+    document.addEventListener('keydown', (event) => { if (event.key === 'Escape') chiudiMenuTappa(); });
+    window.addEventListener('resize', chiudiMenuTappa);
+    window.addEventListener('scroll', chiudiMenuTappa, true);
 
     async function rimuoviDaTappa(event, tappaId, clienteId) {
         event.preventDefault();
