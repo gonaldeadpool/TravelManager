@@ -4,31 +4,35 @@
     <meta charset="utf-8">
     <title>Riepilogo pratica {{ $pratica->id }}</title>
     <style>
-        @page { margin: 16mm 14mm; }
-        body { color: #17202a; font-family: DejaVu Sans, sans-serif; font-size: 10px; line-height: 1.45; }
-        .header { border-bottom: 2px solid #17365d; margin-bottom: 16px; padding-bottom: 12px; }
+        @page { margin: 9mm 10mm; }
+        body { color: #17202a; font-family: DejaVu Sans, sans-serif; font-size: 9.5px; line-height: 1.35; }
+        .header { border-bottom: 2px solid #17365d; margin-bottom: 12px; padding-bottom: 9px; }
         .header-table, .grid, .participants, .summary { border-collapse: collapse; width: 100%; }
         .header-table td { vertical-align: middle; }
-        .logo { max-height: 58px; max-width: 170px; }
+        .logo { max-height: 50px; max-width: 155px; }
         .document-meta { color: #334155; text-align: right; }
-        h1 { color: #17365d; font-size: 19px; margin: 0 0 5px; text-transform: uppercase; }
-        h2 { border-bottom: 1px solid #9aa8b6; color: #17365d; font-size: 12px; margin: 16px 0 7px; padding-bottom: 4px; text-transform: uppercase; }
-        .grid td, .grid th { border: 1px solid #c8d0d8; padding: 6px 7px; text-align: left; vertical-align: top; }
+        h1 { color: #17365d; font-size: 16px; margin: 0 0 3px; text-transform: uppercase; }
+        h2 { border-bottom: 1px solid #9aa8b6; color: #17365d; font-size: 10px; margin: 12px 0 6px; padding-bottom: 3px; text-transform: uppercase; }
+        .grid td, .grid th { border: 1px solid #c8d0d8; padding: 5px 6px; text-align: left; vertical-align: top; }
         .grid th { background: #edf1f5; color: #334155; font-weight: bold; width: 17%; }
-        .participants td { border-bottom: 1px solid #c8d0d8; padding: 7px 5px; vertical-align: top; }
+        .participants td { border-bottom: 1px solid #c8d0d8; padding: 5px 5px; vertical-align: top; }
         .participant-name { font-weight: bold; width: 34%; }
         .participant-date { width: 19%; }
         .participant-type { width: 21%; }
         .participant-amount { text-align: right; white-space: nowrap; width: 26%; }
-        .summary td { border-bottom: 1px solid #d5dbe1; padding: 6px 5px; }
+        .summary td { border-bottom: 1px solid #d5dbe1; padding: 5px 5px; }
         .summary td:last-child { text-align: right; white-space: nowrap; width: 30%; }
-        .summary .total td { border-top: 1px solid #17365d; font-size: 11px; font-weight: bold; padding-top: 9px; }
-        .notes { border: 1px solid #c8d0d8; min-height: 30px; padding: 8px; white-space: pre-wrap; }
-        .signatures { margin-top: 38px; page-break-inside: avoid; width: 100%; }
-        .signatures td { padding: 0 10px; vertical-align: top; width: 50%; }
-        .signature-line { border-bottom: 1px solid #374151; height: 58px; }
-        .stamp { border: 1px solid #7b8794; height: 92px; margin-top: 8px; }
-        .label { color: #475569; font-size: 9px; }
+        .summary .total td { border-top: 1px solid #17365d; font-size: 10px; font-weight: bold; padding-top: 6px; }
+        .notes { border: 1px solid #c8d0d8; min-height: 30px; padding: 6px; white-space: pre-wrap; }
+        .signatures { margin-top: 18px; page-break-inside: avoid; width: 100%; }
+        .signatures td { padding: 0 7px; vertical-align: top; width: 50%; }
+        .signature-line { border-bottom: 1px solid #374151; height: 42px; }
+        .stamp { border: 1px solid #7b8794; height: 70px; margin-top: 6px; }
+        .payment-details { border: 1px solid #c8d0d8; height: 70px; margin-top: 6px; padding: 6px; }
+        .payment-details div { margin-bottom: 4px; }
+        .payment-details div:last-child { margin-bottom: 0; }
+        .payment-iban { word-break: break-all; }
+        .label { color: #475569; font-size: 8px; }
     </style>
 </head>
 <body>
@@ -98,7 +102,20 @@
             <td><div class="label">Luogo e data</div><div class="signature-line"></div></td>
             <td><div class="label">Firma del cliente</div><div class="signature-line"></div></td>
         </tr>
-        <tr><td colspan="2"><div class="label">Timbro e firma dell'agenzia</div><div class="stamp"></div></td></tr>
+        <tr>
+            <td>
+                <div class="label">Timbro e firma dell'agenzia</div>
+                <div class="stamp"></div>
+            </td>
+            <td>
+                <div class="label">Dati pagamento</div>
+                <div class="payment-details">
+                    <div><strong>Intestatario:</strong> {{ $datiPagamento['intestatario'] ?: '-' }}</div>
+                    <div><strong>Banca:</strong> {{ $datiPagamento['banca'] ?: '-' }}</div>
+                    <div class="payment-iban"><strong>IBAN:</strong> {{ $datiPagamento['iban'] ?: '-' }}</div>
+                </div>
+            </td>
+        </tr>
     </table>
 </body>
 </html>

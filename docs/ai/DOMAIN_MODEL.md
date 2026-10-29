@@ -53,7 +53,7 @@ Il posto è registrato sulla partecipazione; quando lo stesso cliente compare in
 ### Utenti e impostazioni
 
 - `User` (`users`): autenticazione, `role` (`admin`/`operatore`), `menu_permissions` JSON, `dashboard_widgets`, avatar e dati 2FA. Admin supera i controlli menu; l'operatore usa le permission configurate.
-- `AppSetting` (`app_settings`): chiave univoca e valore testuale nullable per soglie, percorsi storage e configurazione mail. La password SMTP è cifrata prima di essere salvata.
+- `AppSetting` (`app_settings`): chiave univoca e valore testuale nullable per soglie, percorsi storage, dati di pagamento e configurazione mail. I dati di pagamento includono intestatario, banca e IBAN; la password SMTP è cifrata prima di essere salvata.
 
 ## Relazioni e vincoli di cancellazione
 

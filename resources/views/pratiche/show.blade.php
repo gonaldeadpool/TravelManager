@@ -4,31 +4,38 @@
 
         @page {
             size: A4;
-            margin: 14mm 15mm 16mm;
+            margin: 8mm 10mm;
         }
 
         @media print {
             html, body, .min-h-screen, main { background: #ffffff !important; }
-            body { color: #17202a !important; font-family: Arial, sans-serif; font-size: 10pt; }
+            body { color: #17202a !important; font-family: Arial, sans-serif; font-size: 9.5pt; line-height: 1.35; }
             nav, .min-h-screen > header, .pratica-screen-only { display: none !important; }
-            .pratica-print-document { max-width: none !important; gap: 8px !important; padding: 0 !important; }
-            .pratica-print-header { display: flex !important; }
+            .pratica-print-document { max-width: none !important; gap: 9px !important; padding: 0 !important; }
+            .pratica-print-header { display: flex !important; padding-bottom: 9px !important; }
+            .pratica-print-header img { height: 50px !important; }
             .pratica-print-only { display: block !important; }
-            .pratica-print-section { break-inside: avoid; border: 1px solid #aeb8c2 !important; border-radius: 0 !important; margin: 0; padding: 10px 12px !important; box-shadow: none !important; }
-            .pratica-print-section h3 { margin-bottom: 8px !important; border-bottom: 1px solid #d5dbe1; padding-bottom: 5px; color: #17365d; font-size: 10pt; text-transform: uppercase; }
-            .pratica-trip-data { display: grid !important; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px 16px !important; }
+            .pratica-print-section { break-inside: avoid; border: 1px solid #aeb8c2 !important; border-radius: 0 !important; margin: 0; padding: 8px 10px !important; box-shadow: none !important; }
+            .pratica-print-section h3 { margin-bottom: 7px !important; border-bottom: 1px solid #d5dbe1; padding-bottom: 4px; color: #17365d; font-size: 9pt; text-transform: uppercase; }
+            .pratica-trip-data { display: grid !important; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 7px 12px !important; }
             .pratica-trip-data > div { break-inside: avoid; }
             .pratica-screen-table { display: none !important; }
             .pratica-print-participants { display: grid !important; gap: 0; }
-            .pratica-print-participant { display: grid; grid-template-columns: minmax(0, 1.7fr) minmax(0, 0.9fr) minmax(0, 1fr) minmax(0, 1fr); gap: 8px; border-bottom: 1px solid #c8d0d8; padding: 7px 4px; font-size: 9pt; }
+            .pratica-print-participant { display: grid; grid-template-columns: minmax(0, 1.7fr) minmax(0, 0.9fr) minmax(0, 1fr) minmax(0, 1fr); gap: 7px; border-bottom: 1px solid #c8d0d8; padding: 5px 5px; font-size: 8.5pt; }
             .pratica-financial-list { display: grid; grid-template-columns: minmax(0, 1fr); }
-            .pratica-financial-row { display: grid; grid-template-columns: 1fr auto; gap: 16px; border-bottom: 1px solid #d5dbe1; padding: 6px 2px; }
+            .pratica-financial-row { display: grid; grid-template-columns: 1fr auto; gap: 16px; border-bottom: 1px solid #d5dbe1; padding: 5px 3px; }
             .pratica-financial-row:last-child { border-bottom: 0; }
-            .pratica-financial-total { border-top: 1px solid #17365d; margin-top: 3px; padding-top: 9px; font-weight: 700; }
-            .pratica-signatures { break-inside: avoid; margin-top: 12mm; }
+            .pratica-financial-total { border-top: 1px solid #17365d; margin-top: 3px; padding-top: 6px; font-weight: 700; }
+            .pratica-signatures { break-inside: avoid; margin-top: 12px; gap: 9px !important; padding-top: 5px !important; }
             .pratica-signatures.pratica-print-only { display: grid !important; grid-template-columns: 1fr 1fr; }
-            .pratica-signature-line { min-height: 25mm; border-bottom: 1px solid #374151; }
-            .pratica-stamp-area { min-height: 34mm; border: 1px solid #7b8794; }
+            .pratica-signatures p { margin-bottom: 4px !important; font-size: 8.5pt; }
+            .pratica-signature-line { min-height: 17mm; border-bottom: 1px solid #374151; }
+            .pratica-stamp-area, .pratica-payment-details { min-height: 25mm; }
+            .pratica-stamp-area { border: 1px solid #7b8794; }
+            .pratica-payment-details { border: 1px solid #c8d0d8; padding: 4px; font-size: 7.5pt; }
+            .pratica-payment-details div { margin-bottom: 2px; }
+            .pratica-payment-details div:last-child { margin-bottom: 0; }
+            .pratica-payment-iban { word-break: break-all; }
             a { color: inherit !important; text-decoration: none !important; }
         }
     </style>
@@ -182,9 +189,17 @@
                 <p class="mb-2 text-sm font-medium">Firma del cliente</p>
                 <div class="pratica-signature-line"></div>
             </div>
-            <div class="sm:col-span-2">
+            <div>
                 <p class="mb-2 text-sm font-medium">Timbro e firma dell'agenzia</p>
                 <div class="pratica-stamp-area"></div>
+            </div>
+            <div>
+                <p class="mb-2 text-sm font-medium">Dati pagamento</p>
+                <div class="pratica-payment-details">
+                    <div><strong>Intestatario:</strong> {{ $datiPagamento['intestatario'] ?: '-' }}</div>
+                    <div><strong>Banca:</strong> {{ $datiPagamento['banca'] ?: '-' }}</div>
+                    <div class="pratica-payment-iban"><strong>IBAN:</strong> {{ $datiPagamento['iban'] ?: '-' }}</div>
+                </div>
             </div>
         </section>
 

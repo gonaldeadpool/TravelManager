@@ -65,3 +65,5 @@ Gli importi ammessi sono numerici e non negativi; i valori sono somme monetarie,
 - Nell'email riepilogo pratica, indirizzi selezionati fra quelli dei clienti devono appartenere ai partecipanti; gli indirizzi manuali sono validati separatamente.
 - La password SMTP è cifrata in `AppSetting`; non loggare né esporre valori segreti. Errore di configurazione/invio è riportato all'utente e registrato nei log.
 - Le locandine usano storage configurabile (fallback predefinito in `storage/app/public/locandine`); documenti cliente e pratica hanno cartelle private configurabili. Eliminare un record con allegati deve rimuovere anche i file fisici.
+- Le impostazioni generali consentono di salvare i riferimenti per i pagamenti (intestatario, banca e IBAN) in `AppSetting`; i tre campi sono facoltativi e vengono memorizzati senza valori predefiniti.
+- La stampa e il PDF della pratica riportano i riferimenti di pagamento accanto allo spazio per timbro e firma dell'agenzia e adottano un layout compatto su un singolo foglio A4.

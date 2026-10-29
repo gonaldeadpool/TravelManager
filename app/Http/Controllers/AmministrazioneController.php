@@ -23,6 +23,7 @@ class AmministrazioneController extends Controller
             'documentiPratichePath' => LocalStoragePaths::documentiPratiche(),
             'scadenze' => $this->scadenze(),
             'scadenzePagamenti' => $this->scadenzePagamenti(),
+            'datiPagamento' => $this->datiPagamento(),
             'mailSettings' => $mailSettings->forForm(),
         ]);
     }
@@ -39,6 +40,9 @@ class AmministrazioneController extends Controller
             'scadenza_altro' => ['required', 'integer', 'min:0', 'max:3650'],
             'scadenza_acconto' => ['required', 'integer', 'min:0', 'max:3650'],
             'scadenza_saldo' => ['required', 'integer', 'min:0', 'max:3650'],
+            'pagamento_intestatario' => ['nullable', 'string', 'max:255'],
+            'pagamento_banca' => ['nullable', 'string', 'max:255'],
+            'pagamento_iban' => ['nullable', 'string', 'max:34'],
         ]);
 
         AppSetting::updateOrCreate(['key' => 'storage.locandine'], ['value' => trim($validated['locandine_path'])]);
@@ -57,6 +61,18 @@ class AmministrazioneController extends Controller
         AppSetting::updateOrCreate(
             ['key' => 'pratiche.scadenza.saldo'],
             ['value' => (string) $validated['scadenza_saldo']]
+        );
+        AppSetting::updateOrCreate(
+            ['key' => 'pagamenti.intestatario'],
+            ['value' => trim((string) ($validated['pagamento_intestatario'] ?? ''))]
+        );
+        AppSetting::updateOrCreate(
+            ['key' => 'pagamenti.banca'],
+            ['value' => trim((string) ($validated['pagamento_banca'] ?? ''))]
+        );
+        AppSetting::updateOrCreate(
+            ['key' => 'pagamenti.iban'],
+            ['value' => trim((string) ($validated['pagamento_iban'] ?? ''))]
         );
         LocalStoragePaths::ensureDirectories();
 
@@ -114,6 +130,15 @@ class AmministrazioneController extends Controller
         return [
             'acconto' => (int) (AppSetting::where('key', 'pratiche.scadenza.acconto')->value('value') ?? 30),
             'saldo' => (int) (AppSetting::where('key', 'pratiche.scadenza.saldo')->value('value') ?? 30),
+        ];
+    }
+
+    private function datiPagamento(): array
+    {
+        return [
+            'intestatario' => (string) (AppSetting::where('key', 'pagamenti.intestatario')->value('value') ?? ''),
+            'banca' => (string) (AppSetting::where('key', 'pagamenti.banca')->value('value') ?? ''),
+            'iban' => (string) (AppSetting::where('key', 'pagamenti.iban')->value('value') ?? ''),
         ];
     }
 }

@@ -112,8 +112,9 @@ class PraticaController extends Controller
     public function show(Pratica $pratica): View
     {
         $this->preparaRiepilogo($pratica);
+        $datiPagamento = $this->datiPagamento();
 
-        return view('pratiche.show', compact('pratica'));
+        return view('pratiche.show', compact('pratica', 'datiPagamento'));
     }
 
     public function riepilogoPdf(Pratica $pratica)
@@ -173,7 +174,8 @@ class PraticaController extends Controller
         try {
             $mailSettings->configure();
             $this->preparaRiepilogo($pratica);
-            $pdfContent = Pdf::loadView('pratiche.riepilogo-pdf', compact('pratica'))
+            $datiPagamento = $this->datiPagamento();
+            $pdfContent = Pdf::loadView('pratiche.riepilogo-pdf', compact('pratica', 'datiPagamento'))
                 ->setPaper('a4')
                 ->output();
         } catch (Throwable $exception) {
@@ -215,8 +217,9 @@ class PraticaController extends Controller
     private function renderRiepilogoPdf(Pratica $pratica, bool $download)
     {
         $this->preparaRiepilogo($pratica);
+        $datiPagamento = $this->datiPagamento();
         $nomeFile = 'riepilogo-pratica-' . $pratica->id . '.pdf';
-        $pdf = Pdf::loadView('pratiche.riepilogo-pdf', compact('pratica'))->setPaper('a4');
+        $pdf = Pdf::loadView('pratiche.riepilogo-pdf', compact('pratica', 'datiPagamento'))->setPaper('a4');
 
         return $download ? $pdf->download($nomeFile) : $pdf->stream($nomeFile);
     }
@@ -227,6 +230,15 @@ class PraticaController extends Controller
         $pratica->clienti->each(function (Cliente $cliente) use ($pratica) {
             $cliente->setAttribute('quota_pratica', $this->quotaCliente($pratica, $cliente));
         });
+    }
+
+    private function datiPagamento(): array
+    {
+        return [
+            'intestatario' => (string) (AppSetting::where('key', 'pagamenti.intestatario')->value('value') ?? ''),
+            'banca' => (string) (AppSetting::where('key', 'pagamenti.banca')->value('value') ?? ''),
+            'iban' => (string) (AppSetting::where('key', 'pagamenti.iban')->value('value') ?? ''),
+        ];
     }
 
     public function update(Request $request, Pratica $pratica): RedirectResponse

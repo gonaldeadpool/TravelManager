@@ -26,21 +26,23 @@
             </div>
         @endif
 
-        <div class="mx-auto max-w-4xl" x-data="{ tab: @js(session('mailError') || $errors->has('smtp_host') || $errors->has('smtp_port') || $errors->has('smtp_scheme') || $errors->has('smtp_username') || $errors->has('smtp_password') || $errors->has('from_address') || $errors->has('from_name') ? 'posta' : 'configurazione') }">
+        <div class="mx-auto max-w-4xl" x-data="{ tab: @js(session('mailError') || $errors->has('smtp_host') || $errors->has('smtp_port') || $errors->has('smtp_scheme') || $errors->has('smtp_username') || $errors->has('smtp_password') || $errors->has('from_address') || $errors->has('from_name') ? 'posta' : ($errors->has('pagamento_intestatario') || $errors->has('pagamento_banca') || $errors->has('pagamento_iban') ? 'generali' : 'configurazione')) }">
             <div class="mb-6 border-b border-gray-200 pb-3 md:pb-0">
                 <label for="amministrazione-sezione" class="sr-only">Sezione amministrazione</label>
                 <select id="amministrazione-sezione" x-model="tab" class="w-full rounded border border-gray-300 bg-white p-3 text-sm font-semibold text-gray-700 md:hidden">
                     <option value="configurazione">Setup</option>
                     <option value="tecnica">Path file esterni</option>
+                    <option value="generali">Impostazioni generali</option>
                     @if (Auth::user()->isAdmin())
                         <option value="posta">Posta</option>
                     @endif
                 </select>
-                <nav class="hidden gap-6 md:flex" aria-label="Sezioni amministrazione">
-                    <button type="button" @click="tab = 'configurazione'" :class="tab === 'configurazione' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'" class="border-b-2 px-1 pb-3 text-sm font-semibold">Setup</button>
-                    <button type="button" @click="tab = 'tecnica'" :class="tab === 'tecnica' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'" class="border-b-2 px-1 pb-3 text-sm font-semibold">Path file esterni</button>
+                <nav class="hidden gap-6 overflow-x-auto whitespace-nowrap md:flex" aria-label="Sezioni amministrazione">
+                    <button type="button" @click="tab = 'configurazione'" :class="tab === 'configurazione' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'" class="shrink-0 border-b-2 px-1 pb-3 text-sm font-semibold">Setup</button>
+                    <button type="button" @click="tab = 'tecnica'" :class="tab === 'tecnica' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'" class="shrink-0 border-b-2 px-1 pb-3 text-sm font-semibold">Path file esterni</button>
+                    <button type="button" @click="tab = 'generali'" :class="tab === 'generali' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'" class="shrink-0 border-b-2 px-1 pb-3 text-sm font-semibold">Impostazioni generali</button>
                     @if (Auth::user()->isAdmin())
-                        <button type="button" @click="tab = 'posta'" :class="tab === 'posta' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'" class="border-b-2 px-1 pb-3 text-sm font-semibold">Posta</button>
+                        <button type="button" @click="tab = 'posta'" :class="tab === 'posta' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'" class="shrink-0 border-b-2 px-1 pb-3 text-sm font-semibold">Posta</button>
                     @endif
                 </nav>
             </div>
@@ -111,6 +113,28 @@
                                     </div>
                                 </div>
                             @endforeach
+                        </div>
+                    </div>
+                </div>
+
+                <div x-show="tab === 'generali'" x-cloak class="rounded bg-white p-6 shadow">
+                    <h4 class="mb-1 font-semibold">Dati pagamento</h4>
+                    <p class="mb-4 text-sm text-gray-500">Inserisci i riferimenti bancari da utilizzare per i pagamenti.</p>
+
+                    <div class="space-y-4">
+                        <div>
+                            <label for="pagamento_intestatario" class="mb-1 block">Intestatario</label>
+                            <input id="pagamento_intestatario" type="text" name="pagamento_intestatario" value="{{ old('pagamento_intestatario', $datiPagamento['intestatario']) }}" maxlength="255" class="w-full rounded border p-2">
+                        </div>
+
+                        <div>
+                            <label for="pagamento_banca" class="mb-1 block">Banca</label>
+                            <input id="pagamento_banca" type="text" name="pagamento_banca" value="{{ old('pagamento_banca', $datiPagamento['banca']) }}" maxlength="255" class="w-full rounded border p-2">
+                        </div>
+
+                        <div>
+                            <label for="pagamento_iban" class="mb-1 block">IBAN</label>
+                            <input id="pagamento_iban" type="text" name="pagamento_iban" value="{{ old('pagamento_iban', $datiPagamento['iban']) }}" maxlength="34" class="w-full rounded border p-2">
                         </div>
                     </div>
                 </div>
